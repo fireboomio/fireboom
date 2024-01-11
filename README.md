@@ -77,13 +77,27 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 
 > Fireboom 是 BaaS 平台，理论上可以开发任意应用的 API！
 
-- 移动和 WEB 应用程序：Fireboom 擅长 API 构建，尤其擅长聚合不同库表或三方 API 的数据在一个请求中，能够节省网络请求的成本，提高应用性能。而大部分移动或 WEB 应用程序都是从数据库查询数据，这是 Fireboom 的强项。例如：英语口语练习 APP：enjoyfreetalk.com/
-- 中后台应用：Fireboom 能够与前端低代码平台结合，实现复杂业务逻辑。为了解决中后台开发的需求，Fireboom 生态集成了一套中后台管理界面，并与 Fireboom 深度打通。基于此，快速完成中后台应用，覆盖前端低代码无法实现的用例！例如：Fireboom Admin ：github.com/fireboomio/…
-- 数据大屏应用：Fireboom 擅长数据聚合和复杂 SQL 查询，能够在一次查询中获得页面所需的全部数据，同时，Fireboom 支持服务端订阅，无需客户端轮询，即可实现大屏数据的实时更新。
-- BFF 层：Fireboom 本身也是一个可编程网关，可作为各数据源的中央访问点，聚合不同数据，为不同客户端按需提供数据，同时提供鉴权等功能。
-- 物联网应用：Fireboom 支持消息队列，非常适合处理来自物联网设备的数据。Fireboom 将实时消息映射为 GraphQL 订阅，并以 REST API 的推送方式暴露给客户端。同时，Fireboom 支持开发者自定义脚本处理订阅事件，实现事件数据落库等功能。
+**移动和 WEB 应用程序：**
 
-## 为什么用 Fireboom？
+Fireboom 擅长 API 构建，尤其擅长聚合不同库表或三方 API 的数据在一个请求中，能够节省网络请求的成本，提高应用性能。而大部分移动或 WEB 应用程序都是从数据库查询数据，这是 Fireboom 的强项。例如：[英语口语练习 APP](https://enjoyfreetalk.com/)
+
+**中后台应用：**
+
+Fireboom 能够与前端低代码平台结合，实现复杂业务逻辑。为了解决中后台开发的需求，Fireboom 生态集成了一套中后台管理界面，并与 Fireboom 深度打通。基于此，快速完成中后台应用，覆盖前端低代码无法实现的用例！例如：[Fireboom Admin](https://github.com/fireboomio/amis-admin)
+
+**数据大屏应用：**
+
+Fireboom 擅长数据聚合和复杂 SQL 查询，能够在一次查询中获得页面所需的全部数据，同时，Fireboom 支持服务端订阅，无需客户端轮询，即可实现大屏数据的实时更新。
+
+**BFF 层：**
+
+Fireboom 本身也是一个可编程网关，可作为各数据源的中央访问点，聚合不同数据，为不同客户端按需提供数据，同时提供鉴权等功能。
+
+**物联网应用：**
+
+Fireboom 支持消息队列，非常适合处理来自物联网设备的数据。Fireboom 将实时消息映射为 GraphQL 订阅，并以 REST API 的推送方式暴露给客户端。同时，Fireboom 支持开发者自定义脚本处理订阅事件，实现事件数据落库等功能。
+
+## ❓ 为什么用 Fireboom？
 
 首先，业务型 Web 应用 80% 由样板代码组成，例如增删改查，权限管理，用户管理，消息或者通知。一次又一次的建立这些功能，不仅乏味，而且减少了我们集中在软件与竞争对手不同之处的时间。
 
@@ -96,7 +110,12 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 - N+1 缓存：避免关联查询时重复查询数据的问题，提高应用性能
 - 实时推送：对于 IM 聊天等应用，需要实现实时推送功能（传统方式需要使用 websocket 等技术）
 
-最后，当前市场上存在诸多 API 开发框架，但这些框架都基于某种特定编程语言实现，需要开发者掌握特定编程语言才能上手使用。
+最后，当前市场上存在诸多 API 开发框架，但这些框架大都基于某种特定编程语言实现，开发者掌握特定编程语言才能上手使用。
+
+使用 Fireboom，
+- 对于简单需求，无需掌握任何开发语言，只需了解数据库知识和 GraphQL 协议就能胜任
+- 对于复杂需求，可编写钩子扩展逻辑，钩子基于 [HTTP 协议](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/operation-gou-zi)，原则是兼容任意后端语言，此外 我们还实现了 Golang、Nodejs 的钩子 SDK 
+
 
 ## Fireboom 的核心架构？
 
@@ -104,9 +123,10 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 
 ![Fireboom 架构图](https://www.fireboom.cloud/_next/static/media/framework.5ff914cd.svg)
 
-# 运行
+# 快速上手
 
-使用下面的命令行初始化项目：
+## Fireboom 服务
+**安装 Fireboom**
 
 ```shell
 curl -fsSL fireboom.io/install | bash -s project-name -t init-todo --cn
@@ -114,7 +134,7 @@ curl -fsSL fireboom.io/install | bash -s project-name -t init-todo --cn
 
 > 推荐使用 Github Codespace 快速体验下述流程！
 
-启动 Fireboom 服务：
+**启动 Fireboom 服务**
 
 ```shell
 ./fireboom dev
@@ -126,14 +146,14 @@ curl -fsSL fireboom.io/install | bash -s project-name -t init-todo --cn
 Web server started on http://localhost:9123
 ```
 
-打开控制面板
+**打开控制面板**
 
 [http://localhost:9123](http://localhost:9123)
 
-## 更新
+**更新Fireboom**
 
 ```shell
-# 同时更新命令行和前端资源
+# 更新本地二进制命令
 curl -fsSL https://www.fireboom.io/update | bash
 ```
 
@@ -153,9 +173,163 @@ Fireboom 的GraphQL OPERATION 可以构建绝大多数增删改查的需求（�
 2. 点击右上角<浏览模板市场>，打开模板市场
 3. 在**钩子模板**分组下载对应SDK（根据你的语言选择），目录 template 下新建对应文件夹
 
+ps：**不建议钩子开发过程中切换钩子的语言！** 否则，已开启钩子需要用新语言重新编写。
+
 ### Golang 钩子
 
+1. 开启 `Golang server` 钩子
 
+根目录下新建`custom-go`文件夹 
+
+2.安装 golang 依赖
+```sh
+# 进入 custom-go 目录
+cd custom-go/
+# 安装依赖
+go mod tidy
+```
+3. 编写局部钩子
+
+在[API管理]TAB，选择 `Todo/CreateOneTodo` 接口，打开 `postResolve` 钩子。
+
+可以看到 `custom-go/operation/Todo/CreateOneTodo/postResolve.go` 文件。
+
+将其修改为：
+
+```go
+package CreateOneTodo
+
+import (
+	"custom-go/generated"
+	"custom-go/pkg/base"
+	"fmt"
+)
+
+func PostResolve(hook *base.HookRequest, body generated.Todo__CreateOneTodoBody) (res generated.Todo__CreateOneTodoBody, err error) {
+	// body 挂载了对象，如 入参 input、响应 resopnse
+	fmt.Println("Input", body.Input)
+	fmt.Println("Response", body.Response)
+	// hook 挂载了其他对象，如 登录用户 user
+	fmt.Println("User", hook.User)
+	// if err != nil {
+	// 	hook.Logger().Errorf(err.Error())
+	// }
+	return body, nil
+}
+```
+4. 编写funtion钩子
+
+在[数据源]TAB，点击 <脚本->Function> 新建 Function 钩子，命名为 hello。
+
+可以看到 custom-go/function/hello.go 文件。
+
+这是一个用户登录的逻辑 ~
+```go
+package function
+import (
+	"custom-go/pkg/base"
+	"custom-go/pkg/plugins"
+	"custom-go/pkg/wgpb"
+)
+
+func init() {
+	plugins.RegisterFunction[hello_loginReq, hello_loginRes](hello, wgpb.OperationType_MUTATION)
+}
+
+type hello_loginReq struct {
+	Username string    `json:"username"`
+	Password string    `json:"password"`
+	Info     hello_loginInfo `json:"info,omitempty"`
+}
+
+type hello_loginInfo struct {
+	Code    string `json:"code,omitempty"`
+	Captcha string `json:"captcha,omitempty"`
+}
+
+type hello_loginRes struct {
+	Msg  string `json:"msg"`
+	Data string `json:"data"`
+}
+
+func hello(hook *base.HookRequest, body *base.OperationBody[hello_loginReq, hello_loginRes]) (*base.OperationBody[hello_loginReq, hello_loginRes], error) {
+	if body.Input.Username != "John" || body.Input.Password != "123456" {
+		body.Response = &base.OperationBodyResponse[hello_loginRes]{
+			Errors: []base.GraphQLError{{Message: "username or password wrong"}},
+		}
+		return body, nil
+	}
+
+	body.Response = &base.OperationBodyResponse[hello_loginRes]{Data: hello_loginRes{Msg: "login success"}}
+	return body, nil
+}
+```
+
+**打开 custom-go/main.go 文件，打开第6行注释**，引入上述包
+
+```go
+package main
+
+import (
+	// 根据需求，开启注释
+	//_ "custom-go/customize"
+	_ "custom-go/function" // 开启后function 才生效
+	//_ "custom-go/proxy"
+	"custom-go/server"
+)
+
+func main() {
+	server.Execute()
+}
+```
+
+
+5. 启动钩子
+
+```sh
+go run main.go
+```
+
+6. 测试钩子
+7. 
+**局部钩子**
+
+执行请求：
+```sh
+curl 'http://127.0.0.1:9991/operations/Todo/CreateOneTodo' \
+  -X POST  \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"title":"learn fireboom"}' \
+  --compressed
+```
+
+输出响应：
+
+```json
+{"data":{"data":{"id":9,"title":"learn fireboom","completed":false,"createdAt":"2024-01-11T16:04:55.286Z"}}}
+```
+钩子控制台：
+```log
+Input {learn fireboom}
+Response &{<nil> {{false 2024-01-11T16:04:55.286Z 9 learn fireboom}} []}
+User <nil>
+```
+
+**Function 钩子**
+
+执行请求：
+```sh
+curl http://127.0.0.1:9991/operations/function/hello \
+  -X POST \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"info":{"captcha":"string","code":"string"},"password":"string","username":"string"}' \
+  --compressed
+```
+
+响应结果：
+```log
+{"data":{"data":"","msg":""},"errors":[{"message":"username or password wrong","path":null}]}
+```
 
 ### NodeJS 钩子
 
@@ -165,16 +339,16 @@ Fireboom 的GraphQL OPERATION 可以构建绝大多数增删改查的需求（�
 
 2. 安装 nodejs 依赖
 ```sh
-# 进入 ustom-ts 目录
+# 进入 custom-ts 目录
 cd custom-ts/
 # 安装依赖
 npm i
 ```
 3. 编写局部钩子
 
-在[API管理]TAB，选择 Todo/CreateOneTodo 接口，打开 postResolve 钩子。
+在[API管理]TAB，选择 `Todo/CreateOneTodo` 接口，打开 `postResolve` 钩子。
 
-可以看到 custom-ts/operation/Todo/CreateOneTodo/postResolve.ts 文件。
+可以看到 `custom-ts/operation/Todo/CreateOneTodo/postResolve.ts` 文件。
 
 将其修改为：
 
@@ -202,7 +376,7 @@ registerPostResolve<Todo__CreateOneTodoInput, Todo__CreateOneTodoResponseData, F
 ```ts
 import { OperationType, registerFunctionHandler } from '@fireboom/server'
 import { type FireboomRequestContext } from '@/operations'
-registerFunctionHandler('ping', {
+registerFunctionHandler('hello', {
   input: {
     type: 'object',
     properties: {
@@ -221,7 +395,7 @@ registerFunctionHandler('ping', {
       }
     }
   },
-  operationType: OperationType.SUBSCRIPTION,
+  operationType: OperationType.SUBSCRIPTION, // 订阅类型
   handler: async function* (input, ctx: FireboomRequestContext) {
     for (let i = 0; i < 10; i++) {
       yield { msg: `Hello ${i}` }
@@ -231,33 +405,19 @@ registerFunctionHandler('ping', {
 })
 ```
 
-3. 启动钩子
+5. 启动钩子
 
 ```sh
 npm run dev
 ```
 
-4. 测试钩子
+6. 测试钩子
 
-**Function 钩子**
-
-访问：http://127.0.0.1:9991/operations/function/ping?wg_variables={%22name%22:%22string%22}&wg_sse=true
-
-结果：
-```log
-data: {"data":{"msg":"Hello 0"}}
-data: {"data":{"msg":"Hello 1"}}
-data: {"data":{"msg":"Hello 2"}}
-...
-data: {"data":{"msg":"Hello 8"}}
-data: {"data":{"msg":"Hello 9"}}
-data: done
-```
 **局部钩子**
 
 执行请求：
 ```sh
-curl 'https://ubiquitous-chainsaw-p76wgjv5prh99x6-9991.app.github.dev/operations/Todo/CreateOneTodo' \
+curl 'http://127.0.0.1:9991/operations/Todo/CreateOneTodo' \
   -X POST  \
   -H 'Content-Type: application/json' \
   --data-raw '{"title":"learn fireboom"}' \
@@ -285,6 +445,24 @@ response: {
 user: undefined
 ```
 
+**Function 钩子**
+
+在网页访问：
+
+```http
+GET http://127.0.0.1:9991/operations/function/hello?wg_variables={%22name%22:%22string%22}&wg_sse=true
+```
+
+结果：
+```log
+data: {"data":{"msg":"Hello 0"}}
+data: {"data":{"msg":"Hello 1"}}
+data: {"data":{"msg":"Hello 2"}}
+...
+data: {"data":{"msg":"Hello 8"}}
+data: {"data":{"msg":"Hello 9"}}
+data: done
+```
 
 # 参考
 
