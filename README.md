@@ -1,5 +1,5 @@
 
-# 飞布介绍
+# Fireboom 介绍
 
 Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使用。
 
@@ -114,14 +114,20 @@ Fireboom 支持消息队列，非常适合处理来自物联网设备的数据�
 
 使用 Fireboom，
 - 对于简单需求，无需掌握任何开发语言，只需了解数据库知识和 GraphQL 协议就能胜任
-- 对于复杂需求，可编写钩子扩展逻辑，钩子基于 [HTTP 协议](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/operation-gou-zi)，原则是兼容任意后端语言，此外 我们还实现了 Golang、Nodejs 的钩子 SDK 
+- 对于复杂需求，可编写钩子扩展逻辑，钩子基于 [HTTP 协议](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/operation-gou-zi)，原则上兼容任意后端语言，此外 我们还实现了 Golang、Nodejs 的钩子 SDK 
 
 
 ## Fireboom 的核心架构？
 
-针对上述问题，飞布采用完全不同的思路。飞布采用声明式开发方式，它以 API 为中心，将所有数据抽象为 API，包括 REST API，GraphQL API ，数据库甚至消息队列等，通过统一协议 GraphQL 把他们聚合为“超图”，同时通过可视化界面，从“超图”中选择子集 Operation 作为函数签名，并将其编译为 REST-API。开发者通过界面配置，即可开启某 API 的的缓存或实时推送功能。此外，飞布基于 HTTP 协议实现了 HOOKS 机制，方便开发者采用任何喜欢的语言实现自定义逻辑。
+**API 作为数据源和客户端的桥梁，目的是提供数据，而数据源往往有严苛的 schema ，API 本质上是 schema 的子集。** Fireboom 将数据源的 schema 以可视化的方式呈现，开发者通过界面勾选所需函数，构建客户端需要的 API 。
 
 ![Fireboom 架构图](https://www.fireboom.cloud/_next/static/media/framework.5ff914cd.svg)
+
+Fireboom 采用声明式开发方式，它以 API 为中心，将所有数据源抽象为 API，包括 REST API、GraphQL API、数据库甚至消息队列等。通过统一协议 GraphQL 把他们聚合为“超图”，同时通过可视化界面，从“超图”中选择子集 Operation 作为函数签名，并将其编译为 REST-API。
+
+开发者通过界面配置，即可开启某 API 的缓存或实时推送功能。
+
+此外，Fireboom 基于 HTTP 协议实现了 HOOKS 机制，方便开发者采用任何喜欢的语言实现自定义逻辑。
 
 # 快速上手
 
