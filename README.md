@@ -1,3 +1,20 @@
+<div align="center">
+  <h1>Fireboom V2.0</h1>
+  <a href="https://github.com/fireboomio/fireboom/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
+  <a href="https://github.com/fireboomio/fireboom/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
+  <a href="https://github.com/orgs/fireboomio/discussions/1"><img alt="wechat" src="https://img.shields.io/badge/join-wechat-green"></a>
+  <br />
+  <br />
+  <a href="https://docs.fireboom.io/kuai-su-ru-men/kuai-su-shang-shou">Quickstart</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.fireboom.cloud/">Website</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://docs.fireboom.io">Docs</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://space.bilibili.com/3493080529373820">Bilibili</a>
+  <br />
+  <hr />
+</div>
 
 # Fireboom 介绍
 
@@ -19,10 +36,10 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 
 ## 👀 Fireboom 是什么?
 
-- Fb 是可视化 API 开发平台，可以快速开发 API；
-- Fb 是一个可视化的 BaaS 开发平台（Backend as a Service)；
-- Fb 是一个集「API 开发」、「身份验证」、「对象存储」等于一身的一站式开发平台；
-- Fb 可以是中国版的 Hasura 和 Supabase，支持 PostgreSQL、MySQL、MongoDB 等数据库。
+- 是可视化 API 开发平台，可以快速开发 API；
+- 是一个可视化的 BaaS 开发平台（Backend as a Service)；
+- 是一个集「API 开发」、「身份验证」、「对象存储」等于一身的一站式开发平台；
+- 可以是中国版的 Hasura 和 Supabase，支持 **PostgreSQL**、**MySQL**、**MongoDB** 等数据库。
 
 > 产品愿景：极致开发体验，`飞速布署`应用！
 
@@ -34,11 +51,11 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 
 ## 🎉 Fireboom 有什么?
 
-- 多数据源：数据库（PgSQL、MySQL、MongoDB）、REST API、GraphQL 以及消息队列等；
+- 多数据源：数据库（**PgSQL**、**MySQL**、**MongoDB**...）、**REST API**、**GraphQL** 以及消息队列等；
 - 数据管理：简化版 Navicat，主要包含数据库建模和数据预览功能；
 - 可视化构建 API：基于 GraphQL 可视化构建 API，支持 API 授权、跨源关联、数据缓存、N+1 查询等高阶能力；
 - 实时推送：将 GET 请求转换为实时查询接口，同时具备实时推送能力，业务无死角；
-- SDK 生成：根据 API 实时生成客户端 SDK，当前已支持 React SDK，计划支持 Vue SDK 和 Flutter SDK；
+- SDK 生成：根据 API 实时生成客户端 SDK，当前已支持 TS SDK、 Flutter SDK；
 - 文件存储：集成 S3 规范，实现文件管理，后续将支持钩子进行文件上传的后置处理；
 - 钩子机制：提供了灵活的钩子机制，具备 PRO CODE  能力 (Go、Node、Java、Python...)，无惧复杂业务。
 - ...
@@ -51,27 +68,23 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 - PRO CODE：会写 Node TS 函数，就能定制业务逻辑
 - SDK 生成：实时生成客户端 SDK，接口对接从未如此丝滑
 
-**后端开发者 + Fireboom（Golang/Java/Python）= ∞**
+**后端开发者 + Fireboom（Golang/Java/Python）= 无限可能**
 
 - 声明式开发：声明式语言开发 API，BUG 更少
 - 多语言支持：用任意后端语言编写钩子，Golang、Java、Python...
 - 文档生成：实时生成 Swagger 文档，无需手工编写
 
-
-
 **独立开发者 + Fireboom= 一支团队**
 
 - 分钟级交付：将传统模式下 2 天才能完成的接口开发时间缩短至 2 分钟
-- 一键部署：一键发布应用到 Sealos 平台，自动化运维无惧“三高”
-
+- 一键部署：一键发布应用到 [Sealos 平台](https://template.cloud.sealos.io/deploy?templateName=fireboom)，自动化运维无惧“三高”
 
 **Hasura、Supabase 用户，获得更强大、快速的开发体验**
 
-- Fb 更适用于本土开发者，中文学习资料及配套组件
-- Fb 支持多种数据库，包括国内常用的 MySQL 数据库
-- Fb 不引入额外学习成本，对外暴露 REST 端点，前端更友好
-- Fb 权限系统更灵活，不仅支持数据库还支持 REST 和 GraphQL 数据源
-
+- 更适用于本土开发者，中文学习资料及配套组件
+- 支持多种数据库，包括国内常用的 **MySQL** 数据库
+- 不引入额外学习成本，对外暴露 REST 端点，前端更友好
+- 权限系统更灵活，不仅支持数据库还支持 REST 和 GraphQL 数据源
 
 ## 💥 Fireboom 能用来做什么？
 
@@ -116,7 +129,6 @@ Fireboom 支持消息队列，非常适合处理来自物联网设备的数据�
 - 对于简单需求，无需掌握任何开发语言，只需了解数据库知识和 GraphQL 协议就能胜任
 - 对于复杂需求，可编写钩子扩展逻辑，钩子基于 [HTTP 协议](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/operation-gou-zi)，原则上兼容任意后端语言，此外 我们还实现了 Golang、Nodejs 的钩子 SDK 
 
-
 ## Fireboom 的核心架构？
 
 **API 作为数据源和客户端的桥梁，目的是提供数据，而数据源往往有严苛的 schema ，API 本质上是 schema 的子集。** Fireboom 将数据源的 schema 以可视化的方式呈现，开发者通过界面勾选所需函数，构建客户端需要的 API 。
@@ -132,13 +144,21 @@ Fireboom 采用声明式开发方式，它以 API 为中心，将所有数据源
 # 快速上手
 
 ## Fireboom 服务
+
+> 推荐使用 Github Codespace 快速体验下述流程！
+
 **安装 Fireboom**
 
 ```shell
 curl -fsSL fireboom.io/install | bash -s project-name -t init-todo --cn
 ```
 
-> 推荐使用 Github Codespace 快速体验下述流程！
+**更新Fireboom**
+
+```shell
+# 更新本地二进制命令
+curl -fsSL https://www.fireboom.io/update | bash
+```
 
 **启动 Fireboom 服务**
 
@@ -156,12 +176,78 @@ Web server started on http://localhost:9123
 
 [http://localhost:9123](http://localhost:9123)
 
-**更新Fireboom**
+## 可视化开发接口
 
-```shell
-# 更新本地二进制命令
-curl -fsSL https://www.fireboom.io/update | bash
+在[API管理]TAB，查看 Todo 目录，内置了5个接口。
+
+> 继续下述章节，最好具备基本的 GraphQL 知识，[前往学习](https://docs.fireboom.io/he-xin-gai-nian/graphql)
+> 基于 Prisma 语法构建，详情参考 [Fireboom 文档](https://docs.fireboom.io/he-xin-gai-nian/chao-tu#prisma)。
+
+1.创建待做事项：Todo/**CreateOneTodo**
+
+```gql
+mutation TodoCreateOneTodo($title: String!) {
+  data: todo_createOneTodo(data: {title: $title}) {
+    id
+    title
+    completed
+    createdAt
+  }
+}
 ```
+> 实际存储位置：store/operation/Todo/**CreateOneTodo**.graphql
+**访问接口：**
+```sh
+curl 'http://127.0.0.1:9991/operations/Todo/CreateOneTodo' \
+  -X POST  \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"title":"learn fireboom"}' \
+  --compressed
+```
+**响应结果：**
+```json
+{"data":{"data":{"id":11,"title":"learn fireboom","completed":false,"createdAt":"2024-01-12T16:06:46.871Z"}}}
+```
+
+2.查询待做事项：Todo/**GetManyTodo**
+
+```gql
+query TodoGetManyTodo {
+  data: todo_findManyTodo {
+    id
+    title
+    completed
+    createdAt
+  }
+}
+```
+> 实际存储位置：store/operation/Todo/**GetManyTodo**.graphql
+
+**访问接口：**
+```sh
+curl 'http://127.0.0.1:9991/operations/Todo/GetManyTodo' 
+```
+**响应结果：**
+```json
+{
+	"data": {
+		"data": [{
+			"id": 1,
+			"title": "Hello world",
+			"completed": true,
+			"createdAt": "2022-12-31T16:00:01.000Z"
+		}, {
+			"id": 2,
+			"title": "This is Fireboom",
+			"completed": false,
+			"createdAt": "2022-12-31T16:00:01.000Z"
+		}]
+	}
+}
+```
+3.其他接口跑起来[试一试](https://gitpod.io/#https://github.com/fireboomio/fb-init-simple)吧~
+
+**更多用例，参见 [Fireboom 文档](https://docs.fireboom.io/ji-chu-ke-shi-hua-kai-fa/api-gou-jian/chang-jian-yong-li)**
 
 ## 钩子服务
 
@@ -289,7 +375,6 @@ func main() {
 }
 ```
 
-
 5. 启动钩子
 
 ```sh
@@ -297,7 +382,7 @@ go run main.go
 ```
 
 6. 测试钩子
-7. 
+
 **局部钩子**
 
 执行请求：
@@ -333,7 +418,7 @@ curl http://127.0.0.1:9991/operations/function/hello \
 ```
 
 响应结果：
-```log
+```json
 {"data":{"data":"","msg":""},"errors":[{"message":"username or password wrong","path":null}]}
 ```
 
