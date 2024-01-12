@@ -24,8 +24,7 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 
 **查看 [快速上手视频教程](https://www.bilibili.com/video/BV1rM411u7e8/?spm_id_from=888.80997.embed_other.whitelist&t=136)**
 
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/fireboomio/fb-init-simple)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/new/#https://github.com/fireboomio/init-todo)
 
 > [gitpod 介绍](https://juejin.cn/post/6844903773878386701)：Gitpod是一个在线IDE，可以从任何GitHub页面启动。在几秒钟之内，Gitpod就可以为您提供一个完整的开发环境，包括一个VS Code驱动的IDE和一个可以由项目定制化配置的云Linux容器。
 
@@ -245,7 +244,7 @@ curl 'http://127.0.0.1:9991/operations/Todo/GetManyTodo'
 	}
 }
 ```
-3.其他接口跑起来[试一试](https://gitpod.io/#https://github.com/fireboomio/fb-init-simple)吧~
+3.其他接口跑起来[试一试](https://gitpod.io/new/#https://github.com/fireboomio/init-todo)吧~
 
 **更多用例，参见 [Fireboom 文档](https://docs.fireboom.io/ji-chu-ke-shi-hua-kai-fa/api-gou-jian/chang-jian-yong-li)**
 
