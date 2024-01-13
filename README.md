@@ -2,7 +2,7 @@
   <h1>Fireboom V2.0</h1>
   <p>前后端都喜欢的可视化 API 开发平台</p>
   <a href="https://github.com/fireboomio/fireboom/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
-  <a href="https://github.com/fireboomio/fireboom/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
+  <a href="https://github.com/fireboomio/fireboom/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-SSPL-blue" /></a>
   <a href="https://github.com/orgs/fireboomio/discussions/1"><img alt="wechat" src="https://img.shields.io/badge/join-wechat-green"></a>
   <br />
   <br />
