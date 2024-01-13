@@ -1,5 +1,6 @@
 <div align="center">
   <h1>Fireboom V2.0</h1>
+  <p>前后端都喜欢的可视化 API 开发平台</p>
   <a href="https://github.com/fireboomio/fireboom/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/fireboomio/fireboom/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
   <a href="https://github.com/orgs/fireboomio/discussions/1"><img alt="wechat" src="https://img.shields.io/badge/join-wechat-green"></a>
@@ -40,6 +41,7 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 - 是一个集「API 开发」、「身份验证」、「对象存储」等于一身的一站式开发平台；
 - 可以是中国版的 Hasura 和 Supabase，支持 **PostgreSQL**、**MySQL**、**MongoDB** 等数据库。
 
+> [!NOTE]  
 > 产品愿景：极致开发体验，`飞速布署`应用！
 
 如果你喜欢如下产品，那你大概率也会喜欢 Fireboom 。
@@ -87,6 +89,7 @@ Fireboom 是一个可视化的WEB API开发平台，前后端开发者都能使�
 
 ## 💥 Fireboom 能用来做什么？
 
+> [!NOTE]  
 > Fireboom 是 BaaS 平台，理论上可以开发任意应用的 API！
 
 **移动和 WEB 应用程序：**
@@ -111,18 +114,11 @@ Fireboom 支持消息队列，非常适合处理来自物联网设备的数据�
 
 ## ❓ 为什么用 Fireboom？
 
-首先，业务型 Web 应用 80% 由样板代码组成，例如增删改查，权限管理，用户管理，消息或者通知。一次又一次的建立这些功能，不仅乏味，而且减少了我们集中在软件与竞争对手不同之处的时间。
+**首先**，业务型 Web 应用 80% 由样板代码组成，例如增删改查，权限管理，用户管理，消息或者通知。一次又一次的建立这些功能，不仅乏味，而且减少了我们集中在软件与竞争对手不同之处的时间。
 
-- 增删改查：绝大多数偏业务型项目，都是增删改查，复杂点的包括关联查询等
-- 验证鉴权：所有生产型项目都需要身份验证和身份鉴权，且实现该功能需要耗费大量人力
-- 文件存储：绝大数应用都需要文件存储，用来存储用户头像等，实现文件上传和管理也较为繁琐
+**其次**，除了重复性工作，后端开发者往往还要实现非功能需求，这些需求不仅消耗大量精力，而且有一定的技术门槛。
 
-其次，除了重复性工作，后端开发者往往还要实现非功能需求，这些需求不仅消耗大量精力，而且有一定的技术门槛。
-
-- N+1 缓存：避免关联查询时重复查询数据的问题，提高应用性能
-- 实时推送：对于 IM 聊天等应用，需要实现实时推送功能（传统方式需要使用 websocket 等技术）
-
-最后，当前市场上存在诸多 API 开发框架，但这些框架大都基于某种特定编程语言实现，开发者掌握特定编程语言才能上手使用。
+**最后**，当前市场上存在诸多 API 开发框架，但这些框架大都基于某种特定编程语言实现，开发者掌握特定编程语言才能上手使用。
 
 使用 Fireboom，
 - 对于简单需求，无需掌握任何开发语言，只需了解数据库知识和 GraphQL 协议就能胜任
@@ -132,7 +128,7 @@ Fireboom 支持消息队列，非常适合处理来自物联网设备的数据�
 
 **API 作为数据源和客户端的桥梁，目的是提供数据，而数据源往往有严苛的 schema ，API 本质上是 schema 的子集。** Fireboom 将数据源的 schema 以可视化的方式呈现，开发者通过界面勾选所需函数，构建客户端需要的 API 。
 
-![Fireboom 架构图](https://www.fireboom.cloud/_next/static/media/framework.5ff914cd.svg)
+![Fireboom 架构图](https://2723694181-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FNx22Cp3wzkuW1siRbMwW%2Fuploads%2Fgit-blob-9a22d2858dfc2d35f80e11c33cd16f425d8646ce%2Fimage%20(2)%20(1)%20(1)%20(1)%20(1)%20(1)%20(1)%20(1)%20(1).png?alt=media)
 
 Fireboom 采用声明式开发方式，它以 API 为中心，将所有数据源抽象为 API，包括 REST API、GraphQL API、数据库甚至消息队列等。通过统一协议 GraphQL 把他们聚合为“超图”，同时通过可视化界面，从“超图”中选择子集 Operation 作为函数签名，并将其编译为 REST-API。
 
@@ -149,6 +145,7 @@ Fireboom 采用声明式开发方式，它以 API 为中心，将所有数据源
 **安装 Fireboom**
 
 ```shell
+# 用 init-todo 模板初始化项目 project-name
 curl -fsSL fireboom.io/install | bash -s project-name -t init-todo --cn
 ```
 
@@ -177,14 +174,15 @@ Web server started on http://localhost:9123
 
 ## 可视化开发接口
 
-在[API管理]TAB，查看 Todo 目录，内置了5个接口。
+在[API管理] TAB，查看 Todo 目录，内置了5个接口。
 
+> [!NOTE]  
 > 继续下述章节，最好具备基本的 GraphQL 知识，[前往学习](https://docs.fireboom.io/he-xin-gai-nian/graphql)
-> 基于 Prisma 语法构建，详情参考 [Fireboom 文档](https://docs.fireboom.io/he-xin-gai-nian/chao-tu#prisma)。
 
 1.创建待做事项：Todo/**CreateOneTodo**
 
 ```gql
+# store/operation/Todo/CreateOneTodo.graphql
 mutation TodoCreateOneTodo($title: String!) {
   data: todo_createOneTodo(data: {title: $title}) {
     id
@@ -194,8 +192,12 @@ mutation TodoCreateOneTodo($title: String!) {
   }
 }
 ```
-> 实际存储位置：store/operation/Todo/**CreateOneTodo**.graphql
+
+> [!NOTE]  
+> 上述 OPERATION，基于 Prisma 语法构建，详情参考 [Fireboom 文档](https://docs.fireboom.io/he-xin-gai-nian/chao-tu#prisma)。
+
 **访问接口：**
+
 ```sh
 curl 'http://127.0.0.1:9991/operations/Todo/CreateOneTodo' \
   -X POST  \
@@ -203,7 +205,9 @@ curl 'http://127.0.0.1:9991/operations/Todo/CreateOneTodo' \
   --data-raw '{"title":"learn fireboom"}' \
   --compressed
 ```
+
 **响应结果：**
+
 ```json
 {"data":{"data":{"id":11,"title":"learn fireboom","completed":false,"createdAt":"2024-01-12T16:06:46.871Z"}}}
 ```
@@ -211,6 +215,7 @@ curl 'http://127.0.0.1:9991/operations/Todo/CreateOneTodo' \
 2.查询待做事项：Todo/**GetManyTodo**
 
 ```gql
+# store/operation/Todo/GetManyTodo.graphql
 query TodoGetManyTodo {
   data: todo_findManyTodo {
     id
@@ -220,51 +225,57 @@ query TodoGetManyTodo {
   }
 }
 ```
-> 实际存储位置：store/operation/Todo/**GetManyTodo**.graphql
 
 **访问接口：**
+
 ```sh
 curl 'http://127.0.0.1:9991/operations/Todo/GetManyTodo' 
 ```
 **响应结果：**
 ```json
 {
-	"data": {
-		"data": [{
-			"id": 1,
-			"title": "Hello world",
-			"completed": true,
-			"createdAt": "2022-12-31T16:00:01.000Z"
-		}, {
-			"id": 2,
-			"title": "This is Fireboom",
-			"completed": false,
-			"createdAt": "2022-12-31T16:00:01.000Z"
-		}]
-	}
+  "data": {
+    "data": [
+      {
+        "id": 1,
+        "title": "Hello world",
+        "completed": true,
+        "createdAt": "2022-12-31T16:00:01.000Z"
+      },
+      {
+        "id": 2,
+        "title": "This is Fireboom",
+        "completed": false,
+        "createdAt": "2022-12-31T16:00:01.000Z"
+      }
+    ]
+  }
 }
 ```
-3.其他接口跑起来[试一试](https://gitpod.io/new/#https://github.com/fireboomio/init-todo)吧~
+3.其他接口，动手[试一试](https://gitpod.io/new/#https://github.com/fireboomio/init-todo)吧~
 
-**更多用例，参见 [Fireboom 文档](https://docs.fireboom.io/ji-chu-ke-shi-hua-kai-fa/api-gou-jian/chang-jian-yong-li)**
+> [!NOTE]  
+> 除了增删改查（包括关联表），OPERATION 还支持**事务**、**跨源关联**、**权限控制**、**响应转换**等特性，更多用例参见 **[Fireboom 文档](https://docs.fireboom.io/ji-chu-ke-shi-hua-kai-fa/api-gou-jian/chang-jian-yong-li)**
 
 ## 钩子服务
 
 Fireboom 的GraphQL OPERATION 可以构建绝大多数增删改查的需求（包括关联表查询或更新）。但若遇到 OPERATION 无法胜任的场景时，可使用钩子机制扩展逻辑。
 
-![](https://2723694181-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FNx22Cp3wzkuW1siRbMwW%2Fuploads%2Fgit-blob-24c89a58be58a1feadda5631d0781b74ef2b6dc7%2Fimage%20(2)%20(1)%20(1)%20(1)%20(1)%20(1)%20(1)%20(1).png?alt=media)
+![Fireboom 钩子架构图](https://2723694181-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FNx22Cp3wzkuW1siRbMwW%2Fuploads%2Fgit-blob-24c89a58be58a1feadda5631d0781b74ef2b6dc7%2Fimage%20(2)%20(1)%20(1)%20(1)%20(1)%20(1)%20(1)%20(1).png?alt=media)
 
-目前已支持NodeJS、Golang、Java 语言的SDK，其他未提供SDK 的语言，可基于HTTP规范自行开发。
+> [!NOTE]  
+> 目前已支持 **NodeJS**、**Golang**、**Java** 的SDK，其他未提供SDK 的语言，可基于 [HTTP 规范](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/operation-gou-zi)自行开发。
 
 ### 安装钩子
 
 ![安装钩子](https://2723694181-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FNx22Cp3wzkuW1siRbMwW%2Fuploads%2Fgit-blob-1faf4f6d4e7d0a8bf07133971e02a019188f0c1e%2Fimage%20(55).png?alt=media)
 
-1. 点击<状态栏>的<钩子模版:未选择>，进入模板页
-2. 点击右上角<浏览模板市场>，打开模板市场
-3. 在**钩子模板**分组下载对应SDK（根据你的语言选择），目录 template 下新建对应文件夹
+1. 点击<**状态栏**>的<**钩子模版:未选择**>，进入模板页
+2. 点击右上角<**浏览模板市场**>，打开模板市场
+3. 在<**钩子模板**>分组下载对应SDK（根据你的语言选择），目录 `template` 下新建对应文件夹
 
-ps：**不建议钩子开发过程中切换钩子的语言！** 否则，已开启钩子需要用新语言重新编写。
+> [!WARNING]  
+> **不建议钩子开发过程中切换钩子的语言！** 否则，已开启钩子需要用新语言重新编写。
 
 ### Golang 钩子
 
@@ -279,11 +290,11 @@ cd custom-go/
 # 安装依赖
 go mod tidy
 ```
-3. 编写局部钩子
+3. 编写[局部钩子](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/operation-gou-zi#ju-bu-gou-zi)
 
-在[API管理]TAB，选择 `Todo/CreateOneTodo` 接口，打开 `postResolve` 钩子。
+在[**API管理**] TAB，选择 `Todo/CreateOneTodo` 接口，打开 `postResolve` 钩子。
 
-可以看到 `custom-go/operation/Todo/CreateOneTodo/postResolve.go` 文件。
+系统创建文件： `custom-go/operation/Todo/CreateOneTodo/postResolve.go` 
 
 将其修改为：
 
@@ -302,20 +313,17 @@ func PostResolve(hook *base.HookRequest, body generated.Todo__CreateOneTodoBody)
 	fmt.Println("Response", body.Response)
 	// hook 挂载了其他对象，如 登录用户 user
 	fmt.Println("User", hook.User)
-	// if err != nil {
-	// 	hook.Logger().Errorf(err.Error())
-	// }
 	return body, nil
 }
 ```
-4. 编写funtion钩子
+4. 编写 [Funtion 钩子](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/han-shu-gou-zi/zu-he-shi-api)
 
-在[数据源]TAB，点击 <脚本->Function> 新建 Function 钩子，命名为 hello。
+在[**数据源**] TAB，点击 <**脚本**->**Function**> ，新建 Function 钩子，命名为 `hello`。
 
-可以看到 custom-go/function/hello.go 文件。
+系统创建文件： `custom-go/function/hello.go`
 
-这是一个用户登录的逻辑 ~
 ```go
+// 预设模板是一个账户密码登录的示例 ~
 package function
 import (
 	"custom-go/pkg/base"
@@ -356,7 +364,7 @@ func hello(hook *base.HookRequest, body *base.OperationBody[hello_loginReq, hell
 }
 ```
 
-**打开 custom-go/main.go 文件，打开第6行注释**，引入上述包
+打开 `custom-go/main.go` 文件，**取消第6行注释**，引入上述包
 
 ```go
 package main
@@ -434,11 +442,12 @@ cd custom-ts/
 # 安装依赖
 npm i
 ```
-3. 编写局部钩子
 
-在[API管理]TAB，选择 `Todo/CreateOneTodo` 接口，打开 `postResolve` 钩子。
+3. 编写[局部钩子](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/operation-gou-zi#ju-bu-gou-zi)
 
-可以看到 `custom-ts/operation/Todo/CreateOneTodo/postResolve.ts` 文件。
+在[**API管理**] TAB，选择 `Todo/CreateOneTodo` 接口，打开 `postResolve` 钩子。
+
+系统创建文件： `custom-ts/operation/Todo/CreateOneTodo/postResolve.ts` 
 
 将其修改为：
 
@@ -456,14 +465,14 @@ registerPostResolve<Todo__CreateOneTodoInput, Todo__CreateOneTodoResponseData, F
 })
 ```
 
-4. 编写funtion钩子
+4. 编写 [Funtion 钩子](https://docs.fireboom.io/jin-jie-gou-zi-ji-zhi/han-shu-gou-zi/zu-he-shi-api)
 
-在[数据源]TAB，点击 <脚本->Function> 新建 Function 钩子，命名为 hello。
+在[数据源] TAB，点击 <脚本->Function> 新建 Function 钩子，命名为 hello。
 
-可以看到 custom-ts/function/hello.ts 文件。
+系统创建文件： `custom-ts/function/hello.ts`
 
-这是一个推流函数 ~
 ```ts
+// 预设模板是 实时推流 函数，从0-9计数输出
 import { OperationType, registerFunctionHandler } from '@fireboom/server'
 import { type FireboomRequestContext } from '@/operations'
 registerFunctionHandler('hello', {
@@ -519,7 +528,9 @@ curl 'http://127.0.0.1:9991/operations/Todo/CreateOneTodo' \
 ```json
 {"data":{"data":{"id":5,"title":"learn fireboom","completed":false,"createdAt":"2024-01-10T16:17:08.883Z"}}}
 ```
+
 钩子控制台：
+
 ```log
 input: { title: 'learn fireboom' }
 response: {
