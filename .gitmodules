@@ -1,7 +1,7 @@
 [submodule "wundergraphGitSubmodule"]
 	path = wundergraphGitSubmodule
 	url = https://github.com/fireboomio/wundergraph.git
-	branch = gen
+	branch = main
 [submodule "assets/front"]
 	path = assets/front
 	url = https://github.com/fireboomio/fireboom-web.git
