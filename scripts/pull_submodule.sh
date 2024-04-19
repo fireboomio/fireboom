@@ -16,4 +16,4 @@ function batch_cmd() {
 }
 
 batch_cmd "../assets/front" "release"
-batch_cmd "../wundergraphGitSubmodule" "gen"
+batch_cmd "../wundergraphGitSubmodule" "main"
