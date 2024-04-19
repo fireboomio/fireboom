@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  app:
+    image: fireboom:latest
+    build:
+      dockerfile: FIREBOOM_SERVER_Dockerfile
+      context: .
+    ports:
+      - 9123:9123
+      - 9991:9991
+    depends_on:
+      - nodehooks
+  nodehooks:
+     image: nodehooks:latest
+     build:
+      dockerfile: NODE_SERVER_Dockerfile
+      context: .
+     ports:
+      - 9992:9992

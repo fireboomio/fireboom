@@ -1,0 +1,5 @@
+mutation myQuery ($requestId: String! @fromHeader(name: "x-request-id"), $requestTime: DateTime! @injectCurrentDateTime(format: ISO8601)) {
+  data: createOneLog(data: {requestId: $requestId, requestTime: $requestTime, from: "request"}) {
+    id
+  }
+}

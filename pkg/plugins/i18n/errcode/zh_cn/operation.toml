@@ -1,0 +1,2 @@
+OperationRoleHasBindError = "rbac[%s]已绑定角色[%s]"
+OperationRbacTypeError = "rbacType[%s]不支持"

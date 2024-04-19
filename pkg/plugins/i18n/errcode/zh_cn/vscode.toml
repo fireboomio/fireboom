@@ -1,0 +1,6 @@
+VscodeOnlyDirectoriesCanWatchError = "仅目录可被监听"
+VscodeDirectoryExistError = "目录[%s]已存在"
+VscodeFileExistError = "文件[%s]已存在"
+VscodeFileNotExistError = "文件[%s]不存在"
+VscodeSourceNotDirectoryError = "来源[%s]不是目录"
+VscodeTargetDirectoryExistError = "目标目录[%s]已存在"

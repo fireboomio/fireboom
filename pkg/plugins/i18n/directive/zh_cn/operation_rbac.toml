@@ -1,0 +1,5 @@
+RbacDesc = "作用于OPERATION上，声明API的RBAC权限"
+RbacRequireMatchAnyDesc = "任意匹配，用户角色与API角色有交集时，可访问（常用）"
+RbacRequireMatchAllDesc = "全部匹配，用户角色包含API角色时，可访问"
+RbacDenyMatchAllDesc = "非全部匹配，当任意匹配或互斥匹配时，可访问"
+RbacDenyMatchAnyDesc = "互斥匹配，用户角色与API角色互斥时，可访问"

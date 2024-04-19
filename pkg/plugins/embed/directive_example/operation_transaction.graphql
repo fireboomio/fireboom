@@ -1,0 +1,8 @@
+mutation myQuery ($requestTime: DateTime! @injectCurrentDateTime(format: ISO8601)) @transaction(maxWaitSeconds: 10, timeoutSeconds: 10, isolationLevel: read_committed) {
+  appLog: createOneLog(data: {requestTime: $requestTime, from: "app"}) {
+    id
+  }
+  reqeustLog: createOneLog(data: {requestTime: $requestTime, from: "request"}) {
+    id
+  }
+}

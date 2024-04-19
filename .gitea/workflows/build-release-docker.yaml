@@ -1,0 +1,33 @@
+name: Build docker production image for release branch
+on:
+  push:
+    branches:
+      - release
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: catthehacker/ubuntu:act-latest
+    steps:
+      - uses: https://git.fireboom.io/actions/checkout@v2
+      - name: Set up QEMU
+        uses: https://git.fireboom.io/docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: https://git.fireboom.io/docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: https://git.fireboom.io/docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Build and push
+        uses: https://git.fireboom.io/docker/build-push-action@v5
+        env:
+          FB_VERSION: ${{ gitea.ref_name }}
+        with:
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            fireboomapi/fireboom:${{ gitea.ref_name }}

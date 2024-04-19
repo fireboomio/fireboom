@@ -1,0 +1,2 @@
+EngineCreateConfigError = "创建引擎启动配置错误"
+EngineRestartError = "引擎重启错误"

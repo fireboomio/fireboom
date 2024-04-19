@@ -1,0 +1,13 @@
+query myQuery ($userId: ID!, $classId: String! @internal) {
+  data: findFirstStudent(where: {userId: {equals: $userId}}) {
+    userId
+    name
+    classId @export(as: "classId")
+    teacher: _join @transform(get: "findManyTeacher") {
+      findManyTeacher(where: {classId: {equals: $classId}}) {
+        name
+        subject
+      }
+    }
+  }
+}

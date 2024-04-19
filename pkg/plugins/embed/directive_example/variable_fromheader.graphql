@@ -1,0 +1,5 @@
+mutation myQuery ($requestId: String! @fromHeader(name: "x-request-id"), $requestId: String! @fromHeader(name: "host")) {
+  data: createOneLog(data: {requestId: $requestId, host: $host, from: "request"}) {
+    id
+  }
+}

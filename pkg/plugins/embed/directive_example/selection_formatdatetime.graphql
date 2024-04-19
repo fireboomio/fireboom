@@ -1,0 +1,7 @@
+query myQuery {
+  data: findManyStudent {
+    userId
+    name
+    birthday @formatDateTime(customFormat: "yyyy-MM-dd")
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "system",
+  "enabled": true,
+  "kind": 1,
+  "customRest": {
+    "oasFilepath": "system.json",
+    "baseUrl": {
+      "staticVariableContent": "http://localhost:9123/api"
+    },
+    "headers": {
+      "X-FB-Authentication": {
+        "values": [
+          {
+            "kind": 1,
+            "environmentVariableName": "X_FB_Authentication"
+          }
+        ]
+      }
+    }
+  }
+}

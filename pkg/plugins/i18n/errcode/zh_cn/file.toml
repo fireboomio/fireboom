@@ -1,0 +1,7 @@
+FileReadError = "文件[%s]读取错误"
+FileWriteError = "文件[%s]写入错误"
+FileZipError = "文件压缩错误"
+FileUnZipError = "文件解压错误"
+FileZipAmountZeroError = "文件压缩数量为0"
+FileContentEmptyError = "文件[%s]内容为空"
+DirectoryReadError = "目录[%s]读取错误"

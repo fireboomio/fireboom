@@ -1,0 +1,4 @@
+FromClaimDesc = "作用于变量上，用于注入用户信息"
+FromClaimArgNameDesc = "用于String变量，注入OIDC Claim对象声明的值，如USERID等"
+FromClaimArgCustomJsonPathDesc = "用于任意变量，name=CUSTOM时生效，以数组形式指定json path，从CustomClaims中提取数据"
+FromClaimArgRemoveIfNoneMatchDesc = "用于判断是否删除入参，当不满足条件时删除"

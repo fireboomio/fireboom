@@ -1,0 +1,14 @@
+{
+  "defaultLimits": {
+    "datasource": 25,
+    "operation": 1000,
+    "import": 0,
+    "teamwork": 0,
+    "incrementBuild": 0
+  },
+  "wsPushRequired": [
+    "datasource",
+    "operation",
+    "prismaDatasource"
+  ]
+}

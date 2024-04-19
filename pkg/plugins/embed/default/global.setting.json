@@ -1,0 +1,87 @@
+{
+  "nodeOptions": {
+    "nodeUrl": {
+      "kind": 1,
+      "environmentVariableName": "FB_API_INTERNAL_URL"
+    },
+    "publicNodeUrl": {
+      "kind": 1,
+      "environmentVariableName": "FB_API_PUBLIC_URL"
+    },
+    "listen": {
+      "host": {
+        "kind": 1,
+        "environmentVariableName": "FB_API_LISTEN_HOST"
+      },
+      "port": {
+        "kind": 1,
+        "environmentVariableName": "FB_API_LISTEN_PORT"
+      }
+    },
+    "logger": {
+      "level": {
+        "kind": 1,
+        "environmentVariableName": "FB_LOG_LEVEL"
+      }
+    }
+  },
+  "serverOptions": {
+    "serverUrl": {
+      "kind": 1,
+      "environmentVariableName": "FB_SERVER_URL"
+    },
+    "listen": {
+      "host": {
+        "kind": 1,
+        "environmentVariableName": "FB_SERVER_LISTEN_HOST"
+      },
+      "port": {
+        "kind": 1,
+        "environmentVariableName": "FB_SERVER_LISTEN_PORT"
+      }
+    }
+  },
+  "corsConfiguration": {
+    "allowedOrigins": [
+      {
+        "staticVariableContent": "*"
+      }
+    ],
+    "allowedMethods": [
+      "GET",
+      "POST"
+    ],
+    "allowedHeaders": [
+      "*"
+    ],
+    "exposedHeaders": [
+      "*"
+    ],
+    "maxAge": 120,
+    "allowCredentials": true
+  },
+  "allowedHostNames": [
+    {
+      "staticVariableContent": "*"
+    }
+  ],
+  "authorizedRedirectUris": [
+    {
+      "staticVariableContent": "http://localhost:9123/#/workbench/userInfo"
+    },
+    {
+      "staticVariableContent": "http://localhost:9123/#/workbench/rapi/loginBack"
+    }
+  ],
+  "allowedReport": true,
+  "enableCSRFProtect": true,
+  "consoleLogger": {
+    "filename": "log/fireboom.log",
+    "maxage": 7,
+    "maxsize": 10,
+    "compress": true
+  },
+  "buildInfo": {
+    "BuiltBy": "Fireboom"
+  }
+}

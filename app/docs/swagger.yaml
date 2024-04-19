@@ -1,0 +1,1563 @@
+definitions:
+  api.authenticationStatistics:
+    properties:
+      authenticationTotal:
+        type: integer
+      userTodayAdd:
+        type: integer
+      userTotal:
+        type: integer
+    type: object
+  api.datasourceStatistics:
+    properties:
+      customizeTotal:
+        type: integer
+      databaseTotal:
+        type: integer
+      graphqlTotal:
+        type: integer
+      restTotal:
+        type: integer
+    type: object
+  api.homeStatistics:
+    properties:
+      authentication:
+        $ref: '#/definitions/api.authenticationStatistics'
+      dataSource:
+        $ref: '#/definitions/api.datasourceStatistics'
+      operation:
+        $ref: '#/definitions/api.operationStatistics'
+      storage:
+        $ref: '#/definitions/api.storageStatistics'
+    type: object
+  api.operationStatistics:
+    properties:
+      liveQueryTotal:
+        type: integer
+      mutationTotal:
+        type: integer
+      queryTotal:
+        type: integer
+      subscriptionTotal:
+        type: integer
+    type: object
+  api.paramBindRole:
+    properties:
+      operationPaths:
+        items:
+          type: string
+        type: array
+      rbacType:
+        type: string
+      roleCodes:
+        items:
+          type: string
+        type: array
+    type: object
+  api.paramQueryRole:
+    properties:
+      rbacType:
+        type: string
+      roleCode:
+        type: string
+    type: object
+  api.storageStatistics:
+    properties:
+      memoryTotal:
+        type: integer
+      memoryUsed:
+        type: integer
+      storageTotal:
+        type: integer
+    type: object
+  fileloader.DataBatchResult:
+    properties:
+      dataName:
+        type: string
+      succeed:
+        type: boolean
+    type: object
+  fileloader.DataMutation:
+    properties:
+      dst:
+        type: string
+      overload:
+        type: boolean
+      src:
+        type: string
+    type: object
+  fileloader.DataTree:
+    properties:
+      extension:
+        type: string
+      extra: {}
+      isDir:
+        type: boolean
+      items:
+        items:
+          $ref: '#/definitions/fileloader.DataTree'
+        type: array
+      name:
+        type: string
+      path:
+        type: string
+    type: object
+  fileloader.DataWithLockUser_data:
+    properties:
+      data: {}
+      user:
+        type: string
+    type: object
+  i18n.CustomError:
+    properties:
+      code:
+        allOf:
+        - $ref: '#/definitions/i18n.Errcode'
+        description: 错误码
+      message:
+        description: 错误消息
+        type: string
+      mode:
+        description: 业务模块
+        type: string
+    type: object
+  i18n.Errcode:
+    enum:
+    - 10101
+    - 10201
+    - 10202
+    - 10203
+    - 10204
+    - 10205
+    - 10206
+    - 10207
+    - 10301
+    - 10302
+    - 10303
+    - 10304
+    - 10305
+    - 10401
+    - 10402
+    - 10403
+    - 10404
+    - 10405
+    - 10406
+    - 10407
+    - 10501
+    - 10502
+    - 10503
+    - 10504
+    - 10505
+    - 10506
+    - 10507
+    - 10508
+    - 10509
+    - 10510
+    - 10511
+    - 10512
+    - 10513
+    - 10514
+    - 10515
+    - 10516
+    - 10517
+    - 10518
+    - 10519
+    - 10520
+    - 10601
+    - 10602
+    - 10603
+    - 10604
+    - 10605
+    - 10606
+    - 20101
+    - 10102
+    - 20201
+    - 20202
+    - 20203
+    - 20204
+    - 20205
+    - 20206
+    - 20207
+    - 20208
+    - 20209
+    - 20210
+    - 20211
+    - 20301
+    - 20302
+    - 20303
+    - 20304
+    - 20305
+    - 20306
+    - 20307
+    - 20401
+    - 20402
+    - 20403
+    - 20404
+    - 20405
+    - 20406
+    - 20407
+    - 20408
+    - 20409
+    - 20501
+    - 20502
+    - 20601
+    - 20701
+    type: integer
+    x-enum-varnames:
+    - ServerError
+    - ParamIllegalError
+    - ParamBindError
+    - StructParamEmtpyError
+    - BodyParamEmptyError
+    - PathParamEmptyError
+    - QueryParamEmptyError
+    - FormParamEmptyError
+    - RequestResubmitError
+    - RequestSignatureError
+    - RequestReadBodyError
+    - RequestEmptyBodyError
+    - RequestProxyError
+    - FileReadError
+    - FileWriteError
+    - FileZipError
+    - FileUnZipError
+    - FileZipAmountZeroError
+    - FileContentEmptyError
+    - DirectoryReadError
+    - LoaderFileReadError
+    - LoaderFileUnmarshalError
+    - LoaderDataExistEditorError
+    - LoaderDataExistError
+    - LoaderDataNotExistError
+    - LoaderLockNotFoundError
+    - LoaderWatcherNotSupport
+    - LoaderNoneModifiedError
+    - LoaderRWNotSupportError
+    - LoaderNameEmptyError
+    - LoaderBasenameEmptyErr
+    - LoaderRootOrExtensionEmptyErr
+    - LoaderMultipleOnlyError
+    - LoaderEmbedNotAllowModifyErr
+    - LoaderRemoveKeyNotFoundError
+    - LoaderRenameKeyNotFoundError
+    - LoaderRenameTargetExistError
+    - LoaderRenameNotAllowMultipleError
+    - LoaderWriteableRelyModelRequiredError
+    - LoaderDataFilepathError
+    - VscodeOnlyDirectoriesCanWatchError
+    - VscodeDirectoryExistError
+    - VscodeFileExistError
+    - VscodeFileNotExistError
+    - VscodeSourceNotDirectoryError
+    - VscodeTargetDirectoryExistError
+    - EngineCreateConfigError
+    - EngineRestartError
+    - DataInsertError
+    - DataDeleteError
+    - DataUpdateError
+    - DataSelectError
+    - DataCopyError
+    - DataRenameError
+    - DataBatchInsertError
+    - DataBatchDeleteError
+    - DataBatchUpdateError
+    - DataEmptyListError
+    - DataNotExistsError
+    - DatasourceConnectionError
+    - DatasourceKindNotSupportedError
+    - DatasourceDisabledError
+    - DatasourceDatabaseUrlEmptyError
+    - DatabaseOasVersionError
+    - PrismaQueryError
+    - PrismaMigrateError
+    - StoragePingError
+    - StorageDisabledError
+    - StorageMkdirError
+    - StorageTouchError
+    - StorageRemoveError
+    - StorageRenameError
+    - StorageListError
+    - StorageDetailError
+    - StorageDownloadError
+    - OperationRoleHasBindError
+    - OperationRbacTypeError
+    - SettingServerUrlEmptyError
+    - SdkAlreadyUpToDateError
+  models.HookOptions:
+    additionalProperties:
+      $ref: '#/definitions/models.hookOption'
+    type: object
+  models.Sdk:
+    properties:
+      author:
+        type: string
+      codePackage:
+        type: string
+      createTime:
+        type: string
+      deleteTime:
+        type: string
+      description:
+        type: string
+      enabled:
+        type: boolean
+      extension:
+        type: string
+      gitBranch:
+        type: string
+      gitCommitHash:
+        type: string
+      gitUrl:
+        type: string
+      icon:
+        type: string
+      language:
+        type: string
+      name:
+        type: string
+      outputPath:
+        type: string
+      title:
+        type: string
+      type:
+        $ref: '#/definitions/models.sdkType'
+      updateTime:
+        type: string
+      upperFirst:
+        type: boolean
+      version:
+        type: string
+    type: object
+  models.Storage:
+    type: object
+  models.StorageFile:
+    properties:
+      contentType:
+        description: A standard MIME type describing the format of the object data.
+        type: string
+      extension:
+        type: string
+      lastModified:
+        description: Date and time the object was last modified.
+        type: string
+      name:
+        description: Name of the object
+        type: string
+      signedUrl:
+        type: string
+      size:
+        description: Size in bytes of the object.
+        type: integer
+    type: object
+  models.hookOption:
+    properties:
+      enabled:
+        type: boolean
+      existed:
+        type: boolean
+      path:
+        type: string
+    type: object
+  models.sdkType:
+    enum:
+    - client
+    - server
+    type: string
+    x-enum-varnames:
+    - SdkClient
+    - SdkServer
+  vscode.FileStat:
+    properties:
+      ctime:
+        type: integer
+      mtime:
+        type: integer
+      name:
+        type: string
+      size:
+        type: integer
+      type:
+        $ref: '#/definitions/vscode.FileType'
+    type: object
+  vscode.FileType:
+    enum:
+    - 1
+    - 2
+    - 64
+    type: integer
+    x-enum-varnames:
+    - File
+    - Directory
+    - SymbolicLink
+info:
+  contact: {}
+paths:
+  /$modelName$:
+    get:
+      description: '"查询列表"'
+      parameters:
+      - description: model名称
+        in: query
+        items:
+          type: string
+        name: dataNames
+        type: array
+      responses:
+        "200":
+          description: '#/definitions/$modelName$'
+          schema:
+            items:
+              type: object
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+    post:
+      description: '"新增数据"'
+      parameters:
+      - description: '#/definitions/$modelName$'
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      responses:
+        "200":
+          description: 新增成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+    put:
+      description: '"更新"'
+      parameters:
+      - description: '#/definitions/$modelName$'
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      - description: 操作名称[监听子属性使用]
+        in: query
+        name: watchAction
+        type: string
+      responses:
+        "200":
+          description: 更新成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/{dataName}:
+    delete:
+      description: '"删除"'
+      parameters:
+      - description: 数据名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: 删除成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+    get:
+      description: '"查询"'
+      parameters:
+      - description: model名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '#/definitions/$modelName$'
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/batch:
+    delete:
+      description: '"批量删除"'
+      parameters:
+      - description: 数据名称
+        in: query
+        items:
+          type: string
+        name: dataNames
+        required: true
+        type: array
+      responses:
+        "200":
+          description: 批量删除成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+    post:
+      description: '"批量新增"'
+      parameters:
+      - description: '#/definitions/$modelName$'
+        in: body
+        name: data
+        required: true
+        schema:
+          items:
+            type: object
+          type: array
+      - description: 是否覆盖已存在
+        in: query
+        name: overwrite
+        type: boolean
+      responses:
+        "200":
+          description: 批量新增结果
+          schema:
+            items:
+              $ref: '#/definitions/fileloader.DataBatchResult'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+    put:
+      description: '"批量更新"'
+      parameters:
+      - description: '#/definitions/$modelName$'
+        in: body
+        name: data
+        required: true
+        schema:
+          items:
+            type: object
+          type: array
+      - description: 操作名称[监听子属性使用]
+        in: query
+        name: watchAction
+        type: string
+      responses:
+        "200":
+          description: 批量更新成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/checkConnection:
+    post:
+      description: '"检查连接"'
+      parameters:
+      - description: '#/definitions/$modelName$'
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - datasource
+  /$modelName$/copy:
+    post:
+      description: '"复制"'
+      parameters:
+      - description: 请求数据
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/fileloader.DataMutation'
+      responses:
+        "200":
+          description: 复制成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/deleteParent/{dataName}:
+    delete:
+      description: '"删除[ByParentDataName]"'
+      parameters:
+      - description: 数据名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: 删除成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/export:
+    get:
+      description: '"导出"'
+      parameters:
+      - description: dataNames
+        in: query
+        items:
+          type: string
+        name: dataNames
+        type: array
+      responses:
+        "200":
+          description: 导出成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: '"导入"'
+      parameters:
+      - description: 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "200":
+          description: 导入成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/listByRole:
+    post:
+      description: '"ListByRole"'
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.paramQueryRole'
+      responses:
+        "200":
+          description: '#/definitions/$modelName$'
+          schema:
+            items:
+              type: object
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /$modelName$/listPublic:
+    get:
+      description: '"ListPublic"'
+      responses:
+        "200":
+          description: '#/definitions/$modelName$'
+          schema:
+            items:
+              type: object
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /$modelName$/rename:
+    post:
+      description: '"重命名"'
+      parameters:
+      - description: 请求数据
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/fileloader.DataMutation'
+      responses:
+        "200":
+          description: 重命名成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/renameParent:
+    post:
+      description: '"重命名[ByParentDataName]"'
+      parameters:
+      - description: 请求数据
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/fileloader.DataMutation'
+      responses:
+        "200":
+          description: 重命名成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/single:
+    get:
+      description: '"查询singleData"'
+      responses:
+        "200":
+          description: '#/definitions/$modelName$'
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/tree:
+    get:
+      description: '"查询树状图"'
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            items:
+              $ref: '#/definitions/fileloader.DataTree'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/withLockUser:
+    get:
+      description: '"带锁查询singleData"'
+      responses:
+        "200":
+          description: '#/definitions/$modelName$'
+          schema:
+            $ref: '#/definitions/fileloader.DataWithLockUser_data'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /$modelName$/withLockUser/{dataName}:
+    get:
+      description: '"带锁查询"'
+      parameters:
+      - description: model名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '#/definitions/$modelName$'
+          schema:
+            $ref: '#/definitions/fileloader.DataWithLockUser_data'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /datasource/dmmf/{dataName}:
+    get:
+      description: '"获取dmmf"'
+      parameters:
+      - description: model名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: 重载dmmf
+        in: query
+        name: reload
+        type: boolean
+      responses:
+        "200":
+          description: dmmf
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - datasource
+  /datasource/graphql/{dataName}:
+    get:
+      description: '"获取graphql文本"'
+      parameters:
+      - description: model名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: graphql文本
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - datasource
+  /datasource/graphqlQuery/{dataName}:
+    post:
+      description: '"graphqlQuery"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: graphql query
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - datasource
+  /datasource/migrate/{dataName}:
+    post:
+      description: '"迁移"'
+      parameters:
+      - description: model名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: 迁移数据
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: prisma文本
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - datasource
+  /datasource/prisma/{dataName}:
+    get:
+      description: '"获取prisma文本"'
+      parameters:
+      - description: model名称
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: prisma文本
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - datasource
+    post:
+      description: '"updatePrismaText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: 文本
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - datasource
+  /engine/restart:
+    get:
+      description: '"引擎重启"'
+      responses:
+        "200":
+          description: 成功
+      tags:
+      - engine
+  /engine/swagger:
+    get:
+      description: '"引擎swagger.json"'
+      responses:
+        "200":
+          description: 成功
+      tags:
+      - engine
+  /globalOperation/authenticationHookOptions:
+    get:
+      description: '"authenticationHookOptions"'
+      responses:
+        "200":
+          description: authenticationHookOptions配置
+          schema:
+            $ref: '#/definitions/models.HookOptions'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - globalOperation
+  /globalOperation/httpTransportHookOptions:
+    get:
+      description: '"httpTransportHookOptions"'
+      responses:
+        "200":
+          description: httpTransportHookOptions配置
+          schema:
+            $ref: '#/definitions/models.HookOptions'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - globalOperation
+  /home:
+    get:
+      description: '"首页统计数据"'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.homeStatistics'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - home
+  /operation/bindRoles:
+    post:
+      description: '"BindRoles"'
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.paramBindRole'
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /operation/function/{dataName}:
+    post:
+      description: '"updateFunctionText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: 文本
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /operation/graphql/{dataName}:
+    get:
+      description: '"GetGraphqlText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      tags:
+      - operation
+    post:
+      description: '"UpdateGraphqlText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: 文本
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /operation/hookOptions/{dataName}:
+    get:
+      description: '"getHookOptions"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: hook配置
+          schema:
+            $ref: '#/definitions/models.HookOptions'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /operation/proxy/{dataName}:
+    post:
+      description: '"updateProxyText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: 文本
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /sdk/downloadOutput/{dataName}:
+    get:
+      description: '"下载生成output压缩包"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: 下载成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+  /sdk/enabledServer:
+    get:
+      description: '"开启的服务端钩子"'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Sdk'
+      tags:
+      - sdk
+  /storage/hookOptions/{dataName}:
+    get:
+      description: '"getHookOptions"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: hook配置
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/models.HookOptions'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/detail:
+    get:
+      description: '"详情"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: filename
+        in: query
+        name: filename
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.StorageFile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/download:
+    get:
+      description: '"下载"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: filename
+        in: query
+        name: filename
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.StorageFile'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/list:
+    get:
+      description: '"存储列表"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: dirname
+        in: query
+        name: dirname
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.StorageFile'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/mkdir:
+    post:
+      description: '"创建目录"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: dirname
+        in: query
+        name: dirname
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/remove:
+    post:
+      description: '"移除"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: filename
+        in: query
+        name: filename
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/rename:
+    post:
+      description: '"重命名"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: DataMutation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/fileloader.DataMutation'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/upload:
+    post:
+      description: '"上传"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: dirname
+        in: query
+        name: dirname
+        required: true
+        type: string
+      - description: file
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/ping:
+    post:
+      description: '"ping"'
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.Storage'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /system/directories:
+    get:
+      description: '"获取所有配置目录"'
+      responses:
+        "200":
+          description: 成功
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - system
+  /system/proxy:
+    get:
+      description: '"代理请求"'
+      parameters:
+      - description: 请求url
+        in: query
+        name: url
+        required: true
+        type: string
+      responses:
+        "200":
+          description: 成功
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - system
+  /vscode/copy:
+    post:
+      consumes:
+      - application/json
+      description: 将旧URI重命名为新URI。如果overwrite为true，则覆盖同名文件
+      parameters:
+      - description: source
+        in: formData
+        name: source
+        required: true
+        type: string
+      - description: destination
+        in: formData
+        name: destination
+        required: true
+        type: string
+      - description: 是否覆盖同名文件
+        in: formData
+        name: overwrite
+        type: boolean
+      responses:
+        "200":
+          description: 复制成功
+        "400":
+          description: 复制失败
+      tags:
+      - vscode
+  /vscode/createDirectory:
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新目录
+      parameters:
+      - description: URI
+        in: formData
+        name: uri
+        required: true
+        type: string
+      responses:
+        "200":
+          description: 创建成功
+        "400":
+          description: 创建失败
+      tags:
+      - vscode
+  /vscode/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定URI的文件或目录。如果recursive为true，则删除所有子目录和文件
+      parameters:
+      - description: URI
+        in: formData
+        name: uri
+        required: true
+        type: string
+      - description: 是否删除所有子目录和文件
+        in: formData
+        name: recursive
+        type: string
+      responses:
+        "200":
+          description: 删除成功
+        "400":
+          description: 删除失败
+      tags:
+      - vscode
+  /vscode/readDirectory:
+    get:
+      consumes:
+      - application/json
+      description: 返回指定URI下的所有文件和目录的元数据
+      parameters:
+      - description: URI
+        in: formData
+        name: uri
+        required: true
+        type: string
+      - description: 忽略不存在报错
+        in: formData
+        name: ignoreNotExist
+        type: boolean
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            items:
+              $ref: '#/definitions/vscode.FileStat'
+            type: array
+        "400":
+          description: 查询失败
+      tags:
+      - vscode
+  /vscode/readFile:
+    get:
+      consumes:
+      - application/json
+      description: 返回指定URI的文件内容
+      parameters:
+      - description: URI
+        in: formData
+        name: uri
+        required: true
+        type: string
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            type: string
+        "400":
+          description: 查询失败
+      tags:
+      - vscode
+  /vscode/rename:
+    put:
+      consumes:
+      - application/json
+      description: 将旧URI重命名为新URI。如果overwrite为true，则覆盖同名文件
+      parameters:
+      - description: oldURI
+        in: formData
+        name: oldURI
+        required: true
+        type: string
+      - description: newURI
+        in: formData
+        name: newURI
+        required: true
+        type: string
+      - description: 是否覆盖同名文件
+        in: formData
+        name: overwrite
+        type: boolean
+      responses:
+        "200":
+          description: 删除成功
+        "400":
+          description: 删除失败
+      tags:
+      - vscode
+  /vscode/stat:
+    get:
+      consumes:
+      - application/json
+      description: 返回指定URI的文件元数据
+      parameters:
+      - description: URI
+        in: formData
+        name: uri
+        required: true
+        type: string
+      responses:
+        "200":
+          description: 查询成功
+          schema:
+            $ref: '#/definitions/vscode.FileStat'
+        "400":
+          description: 查询失败
+      tags:
+      - vscode
+  /vscode/writeFile:
+    post:
+      consumes:
+      - application/json
+      description: 将content写入指定URI的文件中。如果create为true，则在文件不存在的情况下创建文件；如果overwrite
+      parameters:
+      - description: URI
+        in: formData
+        name: uri
+        required: true
+        type: string
+      - description: URI
+        in: formData
+        name: content
+        required: true
+        type: file
+      - description: create
+        in: formData
+        name: create
+        type: boolean
+      - description: overwrite
+        in: formData
+        name: overwrite
+        type: boolean
+      responses:
+        "200":
+          description: 写入成功
+        "400":
+          description: 写入失败
+      tags:
+      - vscode
+swagger: "2.0"

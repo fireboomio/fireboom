@@ -1,0 +1,7 @@
+ParamIllegalError = "参数非法"
+ParamBindError = "参数解析错误"
+StructParamEmtpyError = "结构体参数[%s]为空"
+BodyParamEmptyError = "Body参数[%s]为空"
+PathParamEmptyError = "Path参数[%s]为空"
+QueryParamEmptyError = "Query参数[%s]为空"
+FormParamEmptyError = "Form参数[%s]为空"

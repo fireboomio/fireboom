@@ -1,0 +1,5 @@
+RequestResubmitError = "请勿重复提交"
+RequestSignatureError = "参数签名有误"
+RequestReadBodyError = "请求数据读取错误"
+RequestEmptyBodyError = "请求数据为空"
+RequestProxyError = "请求代理错误"

@@ -1,0 +1,9 @@
+{
+	"cacheConfig": {
+		"maxAge": 120,
+		"staleWhileRevalidate": 30
+	},
+	"liveQueryConfig": {
+		"pollingIntervalSeconds": 10
+	}
+}

@@ -1,0 +1,7 @@
+DatasourceConnectionError = "数据源连接错误"
+DatasourceKindNotSupportedError = "数据源类型[%d]不支持"
+DatasourceDisabledError = "数据源未开启"
+DatasourceDatabaseUrlEmptyError = "数据源连接参数为空"
+DatabaseOasVersionError = "OAS版本[%s]不支持"
+PrismaQueryError = "Prisma Query引擎错误"
+PrismaMigrateError = "Prisma Migrate引擎错误"

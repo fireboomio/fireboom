@@ -1,0 +1,1 @@
+InjectRuleValueDesc = "作用于变量上，根据表达式注入参数，可以从arguments，request.header, request.body, environment获取参数"

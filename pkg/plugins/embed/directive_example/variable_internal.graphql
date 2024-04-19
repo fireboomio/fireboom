@@ -1,0 +1,18 @@
+query myQuery ($userId: ID!, $classId: String! @internal) {
+  data: findFirstStudent(where: {userId: {equals: $userId}}) {
+    userId
+    name
+    classId @export(as: "classId")
+    teacher: _join {
+      findManyTeacher(where: {classId: {equals: $classId}}) {
+        name
+        subject
+      }
+    }
+    class: _join_mutation {
+      updateManyClass(where: {classId: {equals: $classId}}, data: {deletedAt: {set: null}}) {
+        count
+      }
+    }
+  }
+}

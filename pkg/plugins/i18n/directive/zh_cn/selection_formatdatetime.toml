@@ -1,0 +1,3 @@
+FormatDateTimeDesc = "作用在字段上，用于格式化日期"
+FormatDateTimeArgFormatDesc = "枚举值，系统内置的标准格式，如 ISO8601"
+FormatDateTimeArgCustomFormatDesc = "自定义格式，需遵循Golang规范，例如 2006-01-02 15:04:05"

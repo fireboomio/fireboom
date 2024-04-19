@@ -1,0 +1,6 @@
+FROM scratch
+ADD release/fireboom-linux ./fireboom
+ENTRYPOINT [ "./fireboom" ]
+VOLUME [ "store", "upload", "exported", "generated-sdk", "authentication.key", "license.key" ]
+EXPOSE 9123 9991
+CMD [ "start" ]

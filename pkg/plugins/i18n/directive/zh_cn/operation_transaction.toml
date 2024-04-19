@@ -1,0 +1,4 @@
+TransactionDesc = "作用于MUTATION OPERATION上，指定当前变更为事务操作"
+TransactionArgMaxWaitSecondsDesc = "等待时间"
+TransactionArgTimeoutSecondsDesc = "超时时间"
+TransactionArgIsolationLevelDesc = "隔离级别"

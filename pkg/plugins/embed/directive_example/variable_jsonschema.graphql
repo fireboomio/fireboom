@@ -1,0 +1,21 @@
+query myQuery ($email: String! @jsonSchema(
+  title: "Message"
+  description: "Describe the message"
+  pattern: "^[a-zA-Z 0-9]+$"
+  commonPattern: EMAIL
+  commonPattern: DOMAIN
+  minLength: 3
+  maxLength: 5
+  minimum: 1
+  maximum: 1
+  exclusiveMaximum: 2
+  exclusiveMinimum: 2
+  maxItems: 1
+  minItems: 1
+  multipleOf: 1
+  uniqueItems: true)) {
+  data: findFirstStudent(where: {email: {equals: $email}}) {
+    userId
+    name
+  }
+}

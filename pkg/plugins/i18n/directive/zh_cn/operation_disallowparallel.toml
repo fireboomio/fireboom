@@ -1,0 +1,1 @@
+DisallowParallelDesc = "作用于OPERATION上，禁止graphql并行解析"

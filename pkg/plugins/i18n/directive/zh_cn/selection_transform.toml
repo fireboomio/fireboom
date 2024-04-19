@@ -1,0 +1,2 @@
+TransformDesc = "作用于对象/数组类型的选择集上，将其拍扁"
+TransformArgGetDesc = "示例用法：info.name"

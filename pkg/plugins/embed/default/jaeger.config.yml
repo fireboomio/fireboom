@@ -1,0 +1,9 @@
+serviceName: "FireboomNode.${active:dev}"
+disabled: true
+sampler:
+  type: const
+  param: 1
+reporter:
+  queueSize: 50
+  bufferFlushInterval: 5000
+  localAgentHostPort: "127.0.0.1:6831"

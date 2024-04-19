@@ -1,0 +1,5 @@
+mutation myQuery ($id: ID! @injectGeneratedUUID, $requestTime: DateTime! @injectCurrentDateTime(format: ISO8601)) {
+  data: createOneLog(data: {id: $appId, requestTime: $requestTime, from: "app"}) {
+    id
+  }
+}

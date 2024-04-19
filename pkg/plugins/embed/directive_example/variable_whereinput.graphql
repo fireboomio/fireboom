@@ -1,0 +1,21 @@
+query MyQuery($address: String, $OR: [admin_demo_areaWhereInput]! = [{id: {equals: 0}}] @fromClaim(name: CUSTOM, customJsonPath: ["areaCodes"]) @whereInput(filter: {field: "code", scalar: {type: startsWith}}), $skip: Int = 0, $take: Int = 10) {
+  data: admin_findManydemo_area(
+    where: {address: {contains: $address}, OR: $OR}
+    skip: $skip
+    take: $take
+  ) {
+    address
+    code
+    createdAt
+    id
+    name
+    parentCode
+  }
+  total: admin_aggregatedemo_area(
+    where: {address: {contains: $address}, OR: $OR}
+  ) @transform(get: "_count.id") {
+    _count {
+      id
+    }
+  }
+}

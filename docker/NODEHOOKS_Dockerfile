@@ -1,0 +1,33 @@
+FROM --platform=$TARGETPLATFORM golang:1.19-alpine AS builder
+ARG TARGETOS TARGETARCH
+WORKDIR  /build
+
+ENV GOPROXY https://goproxy.cn
+COPY ..  /fireboom-server
+RUN cd /fireboom-server  && \
+    go mod tidy && \
+    CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /fbcli ./app/main.go
+
+FROM --platform=$TARGETPLATFORM alpine:3.16 AS final
+COPY --from=builder /fbcli /
+COPY ../template/node-server /template/node-server
+COPY ../custom-ts /custom-ts
+COPY ../store /store
+COPY ../entrypoint.sh /entrypoint.sh
+
+RUN echo "http://mirrors.aliyun.com/alpine/edge/main/" > /etc/apk/repositories \
+    && echo "http://mirrors.aliyun.com/alpine/edge/community/" >> /etc/apk/repositories \
+    && apk update \
+    && apk add --no-cache --update nodejs npm \ 
+    && node -v && npm -v \
+    && npm config set registry https://registry.npm.taobao.org
+
+EXPOSE 9123
+EXPOSE 9991
+EXPOSE 9992
+
+
+
+VOLUME ["/custom-go","/custom-ts","/store","/log","/template/node-server"]
+
+ENTRYPOINT ["sh","/entrypoint.sh"]

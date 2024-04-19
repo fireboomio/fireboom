@@ -1,0 +1,23 @@
+FROM golang:1.19-alpine AS builderFB
+
+WORKDIR  /build
+
+ENV GOPROXY https://goproxy.cn
+COPY .  /fireboom-server
+RUN cd /fireboom-server  && \
+go mod tidy && \
+CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -o /fbcli ./app/main.go
+
+FROM node:19-alpine3.16 as buildfinal
+COPY --from=builderFB /fbcli /
+COPY  ../template/node-server /template/node-server
+COPY  ../custom-ts /custom-ts
+COPY ../store /store
+
+EXPOSE 9992
+
+VOLUME ["/custom-ts","/store"]
+
+
+ENTRYPOINT  cd /custom-ts   && \
+npm run dev
