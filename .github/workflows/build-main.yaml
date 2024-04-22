@@ -1,29 +1,26 @@
-name: Build fireboom latest binary from test branch
-# on:
-#   push:
-#     branches:
-#       - test
-#     paths_ignore:
-#       - '.gitea/workflows/build-base-builder-docker.yaml'
-#       - '.gitea/workflows/build-base-runner-docker.yaml'
-#       - '.gitea/workflows/build-release-docker.yaml'
-#       - '.gitea/workflows/build-release.yaml'
-#       - '.gitea/workflows/build-test-docker.yaml'
-#       - 'Dockerfile'
-#       - 'README.md'
+name: Build fireboom latest binary from main branch
+on:
+  push:
+    branches:
+      - main
+    paths_ignore:
+      - './github/workflows/build-base-builder-docker.yaml'
+      - './github/workflows/build-base-runner-docker.yaml'
+      - './github/workflows/build-release-docker.yaml'
+      - './github/workflows/build-release.yaml'
+      - './github/workflows/build-main-docker.yaml'
+      - 'Dockerfile'
+      - 'README.md'
 jobs:
   build:
-    runs-on: ubuntu-latest
-    container:
-      image: catthehacker/ubuntu:act-latest
     env:
       FB_VERSION: test
     steps:
-      - uses: https://git.fireboom.io/actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
           submodules: recursive
       # - name: Set up Go
-      #   uses: https://git.fireboom.io/actions/setup-go@v3
+      #   uses: actions/setup-go@v3
       #   with:
       #     go-version: 1.21.8
       - name: Install & Build
@@ -43,12 +40,12 @@ jobs:
           sh scripts/clear-bin.sh
           echo "clear bin done"
       - name: R2 Upload Action
-        uses: https://git.fireboom.io/ryand56/r2-upload-action@latest
+        uses: ryand56/r2-upload-action@latest
         with:
           r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
           r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-bucket: fb-bin
           source-dir: release
-          destination-dir: ./test
+          destination-dir: ./main
       

@@ -1,0 +1,36 @@
+name: Build fireboom latest docker image from main branch
+on:
+  push:
+    branches:
+      - main
+    paths_ignore:
+      - './github/workflows/build-base-builder-docker.yaml'
+      - './github/workflows/build-base-runner-docker.yaml'
+      - './github/workflows/build-release-docker.yaml'
+      - './github/workflows/build-release.yaml'
+      - './github/workflows/build-main.yaml'
+      - 'README.md'
+
+jobs:
+  build:
+    env:
+      FB_VERSION: test
+    steps:
+      # - uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            fireboomapi/fireboom:latest
+      
