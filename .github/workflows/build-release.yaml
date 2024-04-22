@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     env:
       FB_VERSION: ${{ github.ref_name }}
     steps:
