@@ -1,4 +1,3 @@
-# FROM 192.168.211.101:8090/fireboomapi/base-builder-fireboom:latest as builder
 FROM fireboomapi/base-builder-fireboom:latest as builder
 COPY . .
 ENV GOPROXY https://goproxy.cn

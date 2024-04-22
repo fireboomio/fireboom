@@ -1,0 +1,37 @@
+name: Build fireboom production binary from release branch
+on:
+  push:
+    branches:
+      - release
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      FB_VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21.8
+      - name: Build
+        run: |
+          go mod tidy
+          sh scripts/build-all.sh
+          sh scripts/tar-all.sh
+          sh scripts/clear-bin.sh
+      - name: R2 Upload Action
+        uses: ryand56/r2-upload-action@latest
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: fb-bin
+          source-dir: release
+          destination-dir: ./prod
+      
