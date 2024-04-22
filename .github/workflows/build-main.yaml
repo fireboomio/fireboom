@@ -17,29 +17,19 @@ jobs:
     env:
       FB_VERSION: test
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      # - name: Set up Go
-      #   uses: actions/setup-go@v3
-      #   with:
-      #     go-version: 1.21.8
-      - name: Install & Build
-        env:
-          GOPROXY: "https://goproxy.cn"
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21.8
+      - name: Build
         run: |
-          wget https://go.dev/dl/go1.22.1.linux-amd64.tar.gz
-          rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.1.linux-amd64.tar.gz
-          export PATH=$PATH:/usr/local/go/bin
-          echo "go installed"
           go mod tidy
-          echo "mod tidy done"
           sh scripts/build-all.sh
-          echo "build done"
           sh scripts/tar-all.sh
-          echo "tar done"
           sh scripts/clear-bin.sh
-          echo "clear bin done"
       - name: R2 Upload Action
         uses: ryand56/r2-upload-action@latest
         with:
