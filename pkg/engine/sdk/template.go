@@ -182,14 +182,14 @@ func (t *templateContext) generateTemplate(sdk *models.Sdk) {
 		relPath, _ := filepath.Rel(filesDirname, path)
 		outputFilepath := utils.NormalizePath(outputPath, relPath)
 		if !strings.HasSuffix(path, templateExtension) {
-			// 非模板文件且时忽略文件的跳过
-			if relPath == ignoreFile || existIgnoredFiles && isIgnoredFile(relPath, ignoredFiles) {
+			// 在.fbignore中的忽略文件需要跳过
+			if existIgnoredFiles && isIgnoredFile(relPath, ignoredFiles) {
 				return
 			}
 
 			outputFile, _ := os.Stat(outputFilepath)
-			// 文件存在且模版文件时间小于生成文件时间则跳过
-			if outputFile != nil && info.ModTime().Before(outputFile.ModTime()) {
+			// 文件存在且是.fbignore或模版文件时间小于生成文件时间则跳过
+			if outputFile != nil && (relPath == ignoreFile || info.ModTime().Before(outputFile.ModTime())) {
 				return
 			}
 
