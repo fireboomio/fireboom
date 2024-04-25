@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
 	json "github.com/json-iterator/go"
-	"github.com/prisma/prisma-client-go/engine"
 	"github.com/uber/jaeger-client-go"
 	"github.com/wundergraph/graphql-go-tools/pkg/graphql"
 	"github.com/wundergraph/wundergraph/pkg/apihandler"
@@ -56,7 +55,7 @@ type (
 	}
 	customizeHookResponse struct {
 		Data       json.RawMessage        `json:"data"`
-		Errors     []engine.GQLError      `json:"errors"`
+		Errors     []graphql.RequestError `json:"errors"`
 		Extensions map[string]interface{} `json:"extensions"`
 	}
 	operationHookPayload struct {
@@ -323,6 +322,9 @@ func (o *reflectObjectFactory) reflectBaseHook() {
 
 // 生成自定义数据源相关的jsonschema
 func (o *reflectObjectFactory) reflectCustomizeHook() {
+	o.reflectStructSchema(graphql.RequestError{}, consts.HookCustomizeParent, &enumRewrite{
+		property: "path", schema: &openapi3.SchemaRef{Value: &openapi3.Schema{Type: openapi3.TypeArray, Items: &openapi3.SchemaRef{Value: openapi3.NewStringSchema()}}},
+	})
 	o.reflectStructSchema(customizeHookPayload{}, consts.HookCustomizeParent)
 	o.reflectStructSchema(customizeHookResponse{}, consts.HookCustomizeParent)
 
