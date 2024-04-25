@@ -177,7 +177,7 @@ func (r *resolveGraphqlSchema) fetchExistedDefinition(valueDef *valueDefinition,
 // rest数据源仅存在Query/Mutation两种接口
 func (r *resolveGraphqlSchema) fetchDefinition(name string, kind ast.DefinitionKind, appendKindIgnored ...bool) (*definition, bool) {
 	name = utils.NormalizeName(name)
-	if !IsRootDefinition(name) && kind != ast.Scalar && (len(appendKindIgnored) == 0 || !appendKindIgnored[0]) {
+	if !ContainsRootDefinition(name) && kind != ast.Scalar && (len(appendKindIgnored) == 0 || !appendKindIgnored[0]) {
 		name = utils.JoinString("_", name, strings.ToLower(string(kind)))
 		r.renamedTypes[name] = true
 	}

@@ -525,8 +525,8 @@ func (f *schemaFormatter) needPadding() *schemaFormatter {
 	return f
 }
 
-func IsRootDefinition(name string) bool {
-	return slices.Contains(RootObjectNames, name)
+func ContainsRootDefinition(names ...string) bool {
+	return slices.ContainsFunc(RootObjectNames, func(rootName string) bool { return slices.Contains(names, rootName) })
 }
 
 func IsBaseScalarName(name string) bool {

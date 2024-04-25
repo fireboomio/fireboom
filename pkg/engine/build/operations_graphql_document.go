@@ -34,9 +34,10 @@ const (
 	variableUselessFormat            = "variable [%s] useless, please make sure"
 	argumentDefinitionMissFormat     = "not found argumentDefinition named [%s] on path [%s]"
 	argumentRequiredFormat           = "argument [%s] is required on path [%s]"
-	elementRepeatFormat              = "element [%s] is repeat on path [%s]"
+	argumentElementRepeatFormat      = "argument element [%s] is repeat on path [%s]"
 	argumentAtLeastOneFormat         = "argument of [%s] at least one on path [%s]"
 	fieldDefinitionMissFormat        = "not found fieldDefinition named [%s] on path [%s]"
+	fieldTouchRepeatFormat           = "field [%s] is repeat on path [%s]"
 	selectionFieldMissFormat         = "not found selectionField named [%s] on path [%s]"
 	nullableRequiredErrorFormat      = "definition for [null] expected [*Nullable*], but found [%s] on path [%s]"
 	selectionVariableMissFormat      = "not found variable named [%s] for path [%s]"
@@ -128,7 +129,7 @@ func (i *QueryDocumentItem) resolveOperationList() {
 	rootDefinitionName := utils.UppercaseFirst(string(i.operationDefinition.Operation))
 	rootDefinition := i.definitionFetch(rootDefinitionName)
 	if rootDefinition == nil {
-		i.reportMissDefinition(rootDefinitionMissFormat, rootDefinitionName)
+		i.reportErrorWithPath(rootDefinitionMissFormat, rootDefinitionName)
 		return
 	}
 
@@ -184,10 +185,19 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 
 			fieldDefIndex, ok := fieldIndexes[field.Name]
 			if ok {
-				savedSet = append(savedSet, item)
 				fieldDefinition := definition.Fields[fieldDefIndex]
-				fieldDefDescription := fieldDefinition.Description
+				if !datasource.ContainsRootDefinition(definition.Name, fieldDefinition.Type.Name()) &&
+					slices.ContainsFunc(savedSet, func(selection ast.Selection) bool {
+						savedField, saved := selection.(*ast.Field)
+						return saved && savedField.Name == field.Name
+					}) {
+					i.reportErrorWithPath(fieldTouchRepeatFormat, field.Name, path...)
+					return
+				}
+
 				var fieldOriginName string
+				savedSet = append(savedSet, item)
+				fieldDefDescription := fieldDefinition.Description
 				// 从字段定义中匹配数据源名称并存入operation的数据源引用列表中
 				if quote, cleared := matchDatasource(fieldDefDescription); quote != "" {
 					datasourceQuote, fieldDefDescription = quote, cleared
@@ -228,7 +238,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 					return
 				}
 				if itemSchemaRef = resolver.Schema; itemSchemaRef == nil {
-					i.reportMissDefinition(selectionFieldMissFormat, field.Name, path...)
+					i.reportErrorWithPath(selectionFieldMissFormat, field.Name, path...)
 					return
 				}
 			}
@@ -262,19 +272,19 @@ func (i *QueryDocumentItem) resolveSelectionArguments(fieldName string, argument
 	nextParentPath := CopyAndAppendItem(parentPath, fieldName)
 	for _, argItem := range arguments {
 		if slices.Contains(touchedArguments, argItem.Name) {
-			i.reportMissDefinition(elementRepeatFormat, argItem.Name, nextParentPath...)
+			i.reportErrorWithPath(argumentElementRepeatFormat, argItem.Name, nextParentPath...)
 			return
 		}
 
 		argDefinitionIndex := argumentOverview.indexes[argItem.Name]
 		if argDefinitionIndex == -1 {
-			i.reportMissDefinition(argumentDefinitionMissFormat, argItem.Name, nextParentPath...)
+			i.reportErrorWithPath(argumentDefinitionMissFormat, argItem.Name, nextParentPath...)
 			return
 		}
 
 		argDefinition := fieldDefinition.Arguments[argumentOverview.indexes[argItem.Name]]
 		if argDefinition == nil {
-			i.reportMissDefinition(argumentDefinitionMissFormat, argItem.Name, nextParentPath...)
+			i.reportErrorWithPath(argumentDefinitionMissFormat, argItem.Name, nextParentPath...)
 			return
 		}
 
@@ -286,7 +296,7 @@ func (i *QueryDocumentItem) resolveSelectionArguments(fieldName string, argument
 	for _, name := range argumentOverview.required {
 		// 检查必填参数缺失
 		if !slices.Contains(touchedArguments, name) {
-			i.reportMissDefinition(argumentRequiredFormat, name, nextParentPath...)
+			i.reportErrorWithPath(argumentRequiredFormat, name, nextParentPath...)
 			return
 		}
 	}
@@ -337,7 +347,7 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 
 	fieldDefinition := i.definitionFetch(fieldName)
 	if fieldDefinition == nil {
-		i.reportMissDefinition(fieldDefinitionMissFormat, fieldName, argPath...)
+		i.reportErrorWithPath(fieldDefinitionMissFormat, fieldName, argPath...)
 		return
 	}
 	if fieldDefinition.Kind != ast.InputObject {
@@ -352,7 +362,7 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 
 	// 检查是否错误使用对象定义
 	if argDefType.Elem == nil && argValue.Kind == ast.ListValue {
-		i.reportMissDefinition(fieldDefinitionSupplyErrorFormat, utils.JoinString(" of ", openapi3.TypeObject, fieldName), argPath...)
+		i.reportErrorWithPath(fieldDefinitionSupplyErrorFormat, utils.JoinString(" of ", openapi3.TypeObject, fieldName), argPath...)
 		return
 	}
 
@@ -378,7 +388,7 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 	childFieldAllRequired := len(fieldOverview.required) == len(fieldOverview.indexes)
 	// 数组类型参数判断子属性大于1时是否正确定义为数组
 	if !childFieldAllRequired && len(argValue.Children) > 1 && argDefType.Elem != nil && argValue.Kind == ast.ObjectValue {
-		i.reportMissDefinition(fieldDefinitionSupplyErrorFormat, utils.JoinString(" of ", openapi3.TypeArray, fieldName), argPath...)
+		i.reportErrorWithPath(fieldDefinitionSupplyErrorFormat, utils.JoinString(" of ", openapi3.TypeArray, fieldName), argPath...)
 		return
 	}
 
@@ -395,13 +405,13 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 		}
 
 		if slices.Contains(touchFieldNames, child.Name) {
-			i.reportMissDefinition(elementRepeatFormat, child.Name, argPath...)
+			i.reportErrorWithPath(argumentElementRepeatFormat, child.Name, argPath...)
 			return
 		}
 
 		childFieldDefIndex, ok := fieldOverview.indexes[child.Name]
 		if !ok {
-			i.reportMissDefinition(argumentDefinitionMissFormat, child.Name, argPath...)
+			i.reportErrorWithPath(argumentDefinitionMissFormat, child.Name, argPath...)
 			return
 		}
 
@@ -420,13 +430,13 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 		if inputUniquesLength > 1 {
 			missFormat = argumentAtLeastOneFormat
 		}
-		i.reportMissDefinition(missFormat, utils.JoinString(", ", fieldOverview.inputUniques...), argPath...)
+		i.reportErrorWithPath(missFormat, utils.JoinString(", ", fieldOverview.inputUniques...), argPath...)
 		return
 	}
 	for _, name := range fieldOverview.required {
 		// 检查必填参数缺失
 		if !slices.Contains(touchFieldNames, name) {
-			i.reportMissDefinition(argumentRequiredFormat, name, argPath...)
+			i.reportErrorWithPath(argumentRequiredFormat, name, argPath...)
 			return
 		}
 	}
@@ -434,7 +444,7 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 }
 
 // 汇报定义缺失错误
-func (i *QueryDocumentItem) reportMissDefinition(format, argName string, path ...string) {
+func (i *QueryDocumentItem) reportErrorWithPath(format, argName string, path ...string) {
 	args := []any{argName}
 	if len(path) > 0 {
 		args = append(args, utils.JoinStringWithDot(path...))
@@ -673,7 +683,7 @@ func (i *QueryDocumentItem) buildJsonschemaWithDefinition(hasSubFields bool, fie
 	schemaRef = &openapi3.SchemaRef{Value: openapi3.NewSchema()}
 	fieldTypeDefinition := i.definitionFetch(fieldTypeName)
 	if fieldTypeDefinition == nil {
-		i.reportMissDefinition(fieldDefinitionMissFormat, fieldTypeName, path...)
+		i.reportErrorWithPath(fieldDefinitionMissFormat, fieldTypeName, path...)
 		return
 	}
 

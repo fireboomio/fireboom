@@ -45,7 +45,7 @@ func (d *dataSourceRename) resolve() {
 	for _, itemSchema := range d.doc.Schema {
 		for _, itemType := range itemSchema.OperationTypes {
 			d.rootOperationTypeNameMap[itemType.Type] = utils.UppercaseFirst(string(itemType.Operation))
-			if datasource.IsRootDefinition(itemType.Type) {
+			if datasource.ContainsRootDefinition(itemType.Type) {
 				d.ignoreRenameTypeNames = append(d.ignoreRenameTypeNames, itemType.Type)
 			}
 		}
