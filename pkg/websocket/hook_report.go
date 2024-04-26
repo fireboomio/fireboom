@@ -121,15 +121,14 @@ func init() {
 					affectCount += migrateOperations(report.Proxys, wgpb.OperationExecutionEngine_ENGINE_PROXY, consts.HookProxyParent)
 					if affectCount > 0 || report.Time.After(reportTime) {
 						restartInvoked = true
+						AddOnEveryStartedFunc(reportPrinter)
 						go utils.BuildAndStart()
 					}
 				}
 				if !reportTime.Equal(report.Time) {
 					reportTime = report.Time
 					utils.SetWithLockViper(consts.HookReportTime, reportTime)
-					if restartInvoked {
-						AddOnEveryStartedFunc(reportPrinter)
-					} else {
+					if !restartInvoked {
 						reportPrinter()
 					}
 				}
