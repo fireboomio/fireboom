@@ -16,8 +16,6 @@ var (
 	InvokeFunctionLimit func(string, ...int) bool
 	// ReloadPrismaCache 刷新prisma缓存函数
 	ReloadPrismaCache func(string) error
-	// HookReportFunc hook报告函数
-	HookReportFunc func()
 )
 
 // EngineStarted 引擎是否启动

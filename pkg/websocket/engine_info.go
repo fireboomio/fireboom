@@ -16,6 +16,22 @@ import (
 
 const engineChannel configs.WsChannel = "engine"
 
+var (
+	onFirstStartedOnce  = sync.Once{}
+	onEveryStartedMutex = sync.Mutex{}
+	onFirstStartedFuncs []func()
+	onEveryStartedFuncs []func()
+)
+
+func AddOnFirstStartedFunc(f func()) {
+	onFirstStartedFuncs = append(onFirstStartedFuncs, f)
+}
+func AddOnEveryStartedFunc(f func()) {
+	onEveryStartedMutex.Lock()
+	defer onEveryStartedMutex.Unlock()
+	onEveryStartedFuncs = append(onEveryStartedFuncs, f)
+}
+
 type engineInfo struct {
 	EngineStatus    string    `json:"engineStatus"`              // 引擎状态
 	EngineStartTime time.Time `json:"engineStartTime"`           // 启动时间
@@ -39,7 +55,6 @@ func init() {
 		return nil
 	}
 
-	onceReport := sync.Once{}
 	configs.AddCollector(&configs.LogCollector{
 		MatchLevel:    []zapcore.Level{zap.ErrorLevel, zap.InfoLevel},
 		IdentifyField: consts.EngineStatusField,
@@ -51,7 +66,17 @@ func init() {
 				clearQuestion()
 			case consts.EngineStartSucceed:
 				utils.SetWithLockViper(consts.EngineStartTime, entry.Time)
-				onceReport.Do(func() { go utils.HookReportFunc() })
+				onFirstStartedOnce.Do(func() {
+					for _, itemFunc := range onFirstStartedFuncs {
+						go itemFunc()
+					}
+				})
+				onEveryStartedMutex.Lock()
+				defer onEveryStartedMutex.Unlock()
+				for _, itemFunc := range onEveryStartedFuncs {
+					go itemFunc()
+				}
+				onEveryStartedFuncs = onEveryStartedFuncs[:0]
 			}
 
 			return &configs.WsMsgBody{

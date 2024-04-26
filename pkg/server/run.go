@@ -62,8 +62,10 @@ func GenerateAuthenticationKey() (err error) {
 			return
 		}
 
-		logger.Info("AuthenticationKey", zap.String(consts.HeaderParamAuthentication, authenticationKey))
 		utils.SetWithLockViper(utils.NormalizeName(consts.HeaderParamAuthentication), authenticationKey)
+		websocket.AddOnFirstStartedFunc(func() {
+			logger.Info("AuthenticationKey", zap.String(consts.HeaderParamAuthentication, authenticationKey))
+		})
 	}()
 	if utils.GetBoolWithLockViper(consts.RegenerateKey) || authenticationKey == "" {
 		authenticationKey = utils.RandStr(32)
@@ -96,7 +98,7 @@ func initHttpServer(beforeStarted func()) {
 	e.HTTPErrorHandler = httpErrorHandler
 	e.HideBanner, e.HidePort = true, true
 	address := fmt.Sprintf("http://localhost:%s", utils.GetStringWithLockViper(consts.WebPort))
-	logger.Info("web server started", zap.String("address", address))
+	websocket.AddOnFirstStartedFunc(func() { logger.Info("web server started", zap.String("address", address)) })
 	e.Server.BaseContext = func(listener net.Listener) context.Context {
 		utils.SetWithLockViper(consts.GlobalStartTime, time.Now())
 		return context.Background()

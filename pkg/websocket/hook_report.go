@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/exp/slices"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -67,13 +68,21 @@ func init() {
 	utils.RegisterInitMethod(40, func() {
 		hookClient := hooks.NewHealthClient(zap.L())
 		workdir, _ := os.Getwd()
-		utils.HookReportFunc = func() {
-			reportTime, reportCtx := time.Now(), context.Background()
-			reportTicker := time.NewTicker(time.Second)
+		AddOnFirstStartedFunc(func() {
 			var (
 				reportInterval int
 				reportMutex    sync.Mutex
+				reportStatus   int
+				reportTime     time.Time
+				restartInvoked bool
 			)
+			reportPrinter := func() {
+				logger.Info("health report changed",
+					zap.Int(consts.HookReportStatus, reportStatus),
+					zap.Time(consts.HookReportTime, reportTime),
+					zap.Bool("restartInvoked", restartInvoked))
+			}
+			reportTicker, reportCtx := time.NewTicker(time.Second), context.Background()
 			for range reportTicker.C {
 				reportMutex.Lock()
 				if models.GetEnabledServerSdk() == nil {
@@ -88,16 +97,22 @@ func init() {
 				if hookClient.DoHealthCheckRequest(reportCtx, buf) {
 					var health Health
 					_ = json.Unmarshal(buf.Bytes(), &health)
-					if len(health.Workdir) == 0 || strings.HasPrefix(health.Workdir, workdir) {
-						report = health.Report
+					if len(health.Workdir) >= 0 && !strings.HasPrefix(health.Workdir, workdir) {
+						reportMutex.Unlock()
+						continue
 					}
+					report, reportStatus = health.Report, http.StatusOK
 					reportInterval = resetTicker(reportTicker, reportInterval, 10)
 				} else {
+					report.Time = reportTime
+					if reportStatus == http.StatusOK {
+						report.Time, reportStatus = time.Now(), http.StatusInternalServerError
+					}
 					reportInterval = resetTicker(reportTicker, reportInterval, 1)
 				}
 				pool.PutBytesBuffer(buf)
 
-				var restartInvoked bool
+				restartInvoked = false
 				if utils.GetBoolWithLockViper(consts.EnableHookReport) {
 					// 仅有dev模式会触发热重启
 					var affectCount int
@@ -110,13 +125,17 @@ func init() {
 					}
 				}
 				if !reportTime.Equal(report.Time) {
-					utils.SetWithLockViper(consts.HookReportTime, report.Time)
-					logger.Info("health report changed", zap.Time(consts.HookReportTime, report.Time), zap.Bool("restartInvoked", restartInvoked))
+					reportTime = report.Time
+					utils.SetWithLockViper(consts.HookReportTime, reportTime)
+					if restartInvoked {
+						AddOnEveryStartedFunc(reportPrinter)
+					} else {
+						reportPrinter()
+					}
 				}
-				reportTime = report.Time
 				reportMutex.Unlock()
 			}
-		}
+		})
 	})
 }
 

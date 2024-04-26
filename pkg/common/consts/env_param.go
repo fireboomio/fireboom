@@ -61,4 +61,7 @@ const (
 	EngineStartFailed    = "startFailed"
 )
 
-const HookReportTime = "hookReportTime"
+const (
+	HookReportTime   = "hookReportTime"
+	HookReportStatus = "hookReportStatus"
+)
