@@ -30,5 +30,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             fireboomapi/fireboom:${{ github.ref_name }}
+            fireboomapi/fireboom:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
