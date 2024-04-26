@@ -17,6 +17,9 @@ jobs:
     env:
       FB_VERSION: test
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -29,6 +32,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
