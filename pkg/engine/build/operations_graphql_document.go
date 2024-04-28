@@ -149,7 +149,7 @@ func (i *QueryDocumentItem) resolveOperationList() {
 func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectionSet ast.SelectionSet, definition *ast.Definition, path ...string) (schemaRef *openapi3.SchemaRef, savedSet ast.SelectionSet) {
 	schemaRef = &openapi3.SchemaRef{Value: openapi3.NewObjectSchema()}
 	setLength := len(selectionSet)
-	if setLength == 0 || i.errored() {
+	if setLength == 0 || i.resolveErrored() {
 		savedSet = selectionSet
 		return
 	}
@@ -252,7 +252,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 
 // 处理查询字段的入参
 func (i *QueryDocumentItem) resolveSelectionArguments(fieldName string, arguments ast.ArgumentList, fieldDefinition *ast.FieldDefinition, parentPath ...string) {
-	if len(arguments) == 0 {
+	if len(arguments) == 0 || i.resolveErrored() {
 		return
 	}
 
@@ -456,14 +456,14 @@ func (i *QueryDocumentItem) reportError(format string, args ...any) {
 	i.Errors = append(i.Errors, fmt.Sprintf(format, args...))
 }
 
-func (i *QueryDocumentItem) errored() bool {
+func (i *QueryDocumentItem) resolveErrored() bool {
 	return len(i.Errors) > 0
 }
 
 // 解析传递参数类型的定义
 func (i *QueryDocumentItem) resolveVariableDefinitions(operation *ast.OperationDefinition, variableSchema, interpolationVariableSchema *openapi3.SchemaRef) {
 	variableDefLength := len(operation.VariableDefinitions)
-	if variableDefLength == 0 || i.errored() {
+	if variableDefLength == 0 || i.resolveErrored() {
 		return
 	}
 
@@ -520,6 +520,10 @@ func (i *QueryDocumentItem) resolveVariableDefinitions(operation *ast.OperationD
 
 // 解析operation上的指令
 func (i *QueryDocumentItem) resolveOperationDirectives() {
+	if len(i.operationDefinition.Directives) == 0 || i.resolveErrored() {
+		return
+	}
+
 	for _, directiveItem := range i.operationDefinition.Directives {
 		directiveResolve := directives.GetOperationDirectiveMapByName(directiveItem.Name)
 		if directiveResolve == nil {
@@ -543,6 +547,10 @@ func (i *QueryDocumentItem) resolveOperationDirectives() {
 
 // 解析查询字段上的指令
 func (i *QueryDocumentItem) resolveSelectionDirectives(directiveList ast.DirectiveList, path []string, schemaRef *openapi3.SchemaRef, itemCustomizedDirectiveName string) {
+	if len(directiveList) == 0 || i.resolveErrored() {
+		return
+	}
+
 	for _, directiveItem := range directiveList {
 		if directiveItem.Name == itemCustomizedDirectiveName {
 			continue
@@ -594,6 +602,10 @@ func (i *QueryDocumentItem) ensureVariableDefinitionSaved(directiveList ast.Dire
 
 // 解析传递参数上的指令
 func (i *QueryDocumentItem) resolveVariableDirectives(directiveList ast.DirectiveList, path []string, schemaRef *openapi3.SchemaRef) (unableInput, skipped bool) {
+	if len(directiveList) == 0 || i.resolveErrored() {
+		return
+	}
+
 	for _, directiveItem := range directiveList {
 		directiveResolve := directives.GetVariableDirectiveByName(directiveItem.Name)
 		if directiveResolve == nil {
