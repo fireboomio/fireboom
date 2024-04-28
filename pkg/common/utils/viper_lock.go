@@ -42,3 +42,11 @@ func GetTimeWithLockViper(key string) time.Time {
 
 	return viper.GetTime(key)
 }
+
+// GetIntWithLockViper 带锁获取viper中的int值
+func GetIntWithLockViper(key string) int {
+	viperMutex.Lock()
+	defer viperMutex.Unlock()
+
+	return viper.GetInt(key)
+}

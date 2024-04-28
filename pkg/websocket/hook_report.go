@@ -42,13 +42,20 @@ type (
 		Proxys     []string  `json:"proxys"`
 		Time       time.Time `json:"time"`
 	}
+	hookReportInfo struct {
+		Time   time.Time `json:"time"`
+		Status int       `json:"status"`
+	}
 )
 
 func init() {
 	configs.WsMsgHandlerMap[hookReportChannel] = func(msg *configs.WsMsgBody) any {
 		switch msg.Event {
 		case configs.PullEvent:
-			return utils.GetTimeWithLockViper(consts.HookReportTime)
+			return &hookReportInfo{
+				Time:   utils.GetTimeWithLockViper(consts.HookReportTime),
+				Status: utils.GetIntWithLockViper(consts.HookReportStatus),
+			}
 		}
 		return nil
 	}
@@ -60,7 +67,10 @@ func init() {
 			return &configs.WsMsgBody{
 				Channel: hookReportChannel,
 				Event:   configs.PushEvent,
-				Data:    utils.GetTimeWithLockViper(consts.HookReportTime),
+				Data: &hookReportInfo{
+					Time:   utils.GetTimeWithLockViper(consts.HookReportTime),
+					Status: utils.GetIntWithLockViper(consts.HookReportStatus),
+				},
 			}
 		},
 	})
@@ -68,26 +78,22 @@ func init() {
 	utils.RegisterInitMethod(40, func() {
 		hookClient := hooks.NewHealthClient(zap.L())
 		workdir, _ := os.Getwd()
-		AddOnFirstStartedFunc(func() {
-			var (
-				reportInterval int
-				reportMutex    sync.Mutex
-				reportStatus   int
-				reportTime     time.Time
-				restartInvoked bool
-			)
+		AddOnFirstStartedHook(func() {
+			reportTime, reportStatus, restartInvoked := time.Now(), 0, false
 			reportPrinter := func() {
 				logger.Info("health report changed",
 					zap.Int(consts.HookReportStatus, reportStatus),
 					zap.Time(consts.HookReportTime, reportTime),
 					zap.Bool("restartInvoked", restartInvoked))
 			}
-			reportTicker, reportCtx := time.NewTicker(time.Second), context.Background()
+			reportInterval, reportFirsted := 1, true
+			reportMutex, reportCtx := sync.Mutex{}, context.Background()
+			reportTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
 			for range reportTicker.C {
 				reportMutex.Lock()
 				if models.GetEnabledServerSdk() == nil {
 					reportMutex.Unlock()
-					reportInterval = resetTicker(reportTicker, reportInterval, 5)
+					reportInterval = resetReportTicker(reportTicker, reportInterval, 5)
 					continue
 				}
 				var report healthReport
@@ -102,43 +108,46 @@ func init() {
 						continue
 					}
 					report, reportStatus = health.Report, http.StatusOK
-					reportInterval = resetTicker(reportTicker, reportInterval, 10)
+					reportInterval = resetReportTicker(reportTicker, reportInterval, 10)
 				} else {
-					report.Time = reportTime
 					if reportStatus == http.StatusOK {
 						report.Time, reportStatus = time.Now(), http.StatusInternalServerError
+					} else {
+						report.Time = reportTime
 					}
-					reportInterval = resetTicker(reportTicker, reportInterval, 1)
+					reportInterval = resetReportTicker(reportTicker, reportInterval, 1)
 				}
 				pool.PutBytesBuffer(buf)
 
 				restartInvoked = false
+				reportChanged := report.Time.After(reportTime)
+				if reportChanged || reportFirsted {
+					reportTime = report.Time
+					utils.SetWithLockViper(consts.HookReportTime, reportTime)
+					utils.SetWithLockViper(consts.HookReportStatus, reportStatus)
+				}
 				if utils.GetBoolWithLockViper(consts.EnableHookReport) {
 					// 仅有dev模式会触发热重启
 					var affectCount int
 					affectCount += migrateCustomizes(report.Customizes)
 					affectCount += migrateOperations(report.Functions, wgpb.OperationExecutionEngine_ENGINE_FUNCTION, consts.HookFunctionParent)
 					affectCount += migrateOperations(report.Proxys, wgpb.OperationExecutionEngine_ENGINE_PROXY, consts.HookProxyParent)
-					if affectCount > 0 || report.Time.After(reportTime) {
-						restartInvoked = true
-						AddOnEveryStartedFunc(reportPrinter)
+					if restartInvoked = affectCount > 0 || reportChanged; restartInvoked {
+						AddOnEveryStartedHook(reportPrinter)
 						go utils.BuildAndStart()
 					}
 				}
-				if !reportTime.Equal(report.Time) {
-					reportTime = report.Time
-					utils.SetWithLockViper(consts.HookReportTime, reportTime)
-					if !restartInvoked {
-						reportPrinter()
-					}
+				if (reportChanged || reportFirsted) && !restartInvoked {
+					reportPrinter()
 				}
+				reportFirsted = false
 				reportMutex.Unlock()
 			}
-		})
+		}, true)
 	})
 }
 
-func resetTicker(ticker *time.Ticker, now, expected int) int {
+func resetReportTicker(ticker *time.Ticker, now, expected int) int {
 	if now != expected {
 		ticker.Reset(time.Second * time.Duration(expected))
 	}

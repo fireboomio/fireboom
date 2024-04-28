@@ -16,20 +16,42 @@ import (
 
 const engineChannel configs.WsChannel = "engine"
 
+type onStartedHook struct {
+	hook      func()
+	goroutine bool
+}
+
 var (
 	onFirstStartedOnce  = sync.Once{}
 	onEveryStartedMutex = sync.Mutex{}
-	onFirstStartedFuncs []func()
-	onEveryStartedFuncs []func()
+	onFirstStartedHooks []onStartedHook
+	onEveryStartedHooks []onStartedHook
 )
 
-func AddOnFirstStartedFunc(f func()) {
-	onFirstStartedFuncs = append(onFirstStartedFuncs, f)
+func executeHooks(hooks []onStartedHook) {
+	for _, hook := range hooks {
+		if hook.goroutine {
+			go hook.hook()
+		} else {
+			hook.hook()
+		}
+	}
 }
-func AddOnEveryStartedFunc(f func()) {
+
+func AddOnFirstStartedHook(hook func(), goroutine ...bool) {
+	onFirstStartedHooks = append(onFirstStartedHooks, onStartedHook{
+		hook:      hook,
+		goroutine: len(goroutine) > 0 && goroutine[0],
+	})
+}
+
+func AddOnEveryStartedHook(hook func(), goroutine ...bool) {
 	onEveryStartedMutex.Lock()
 	defer onEveryStartedMutex.Unlock()
-	onEveryStartedFuncs = append(onEveryStartedFuncs, f)
+	onEveryStartedHooks = append(onEveryStartedHooks, onStartedHook{
+		hook:      hook,
+		goroutine: len(goroutine) > 0 && goroutine[0],
+	})
 }
 
 type engineInfo struct {
@@ -66,17 +88,11 @@ func init() {
 				clearQuestion()
 			case consts.EngineStartSucceed:
 				utils.SetWithLockViper(consts.EngineStartTime, entry.Time)
-				onFirstStartedOnce.Do(func() {
-					for _, itemFunc := range onFirstStartedFuncs {
-						go itemFunc()
-					}
-				})
+				onFirstStartedOnce.Do(func() { executeHooks(onFirstStartedHooks) })
 				onEveryStartedMutex.Lock()
 				defer onEveryStartedMutex.Unlock()
-				for _, itemFunc := range onEveryStartedFuncs {
-					go itemFunc()
-				}
-				onEveryStartedFuncs = onEveryStartedFuncs[:0]
+				executeHooks(onEveryStartedHooks)
+				onEveryStartedHooks = onEveryStartedHooks[:0]
 			}
 
 			return &configs.WsMsgBody{
