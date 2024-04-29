@@ -45,17 +45,24 @@ type (
 	hookReportInfo struct {
 		Time   time.Time `json:"time"`
 		Status int       `json:"status"`
+
+		workdir  string
+		logger   *zap.Logger
+		ctx      context.Context
+		client   *hooks.Client
+		ticker   *time.Ticker
+		interval time.Duration
+		mutex    sync.Mutex
 	}
 )
+
+var hookReport hookReportInfo
 
 func init() {
 	configs.WsMsgHandlerMap[hookReportChannel] = func(msg *configs.WsMsgBody) any {
 		switch msg.Event {
 		case configs.PullEvent:
-			return &hookReportInfo{
-				Time:   utils.GetTimeWithLockViper(consts.HookReportTime),
-				Status: utils.GetIntWithLockViper(consts.HookReportStatus),
-			}
+			return &hookReport
 		}
 		return nil
 	}
@@ -67,91 +74,103 @@ func init() {
 			return &configs.WsMsgBody{
 				Channel: hookReportChannel,
 				Event:   configs.PushEvent,
-				Data: &hookReportInfo{
-					Time:   utils.GetTimeWithLockViper(consts.HookReportTime),
-					Status: utils.GetIntWithLockViper(consts.HookReportStatus),
-				},
+				Data:    &hookReport,
 			}
 		},
 	})
 
 	utils.RegisterInitMethod(40, func() {
-		hookClient := hooks.NewHealthClient(zap.L())
-		workdir, _ := os.Getwd()
-		AddOnFirstStartedHook(func() {
-			reportTime, reportStatus, restartInvoked := time.Now(), 0, false
-			reportPrinter := func() {
-				logger.Info("health report changed",
-					zap.Int(consts.HookReportStatus, reportStatus),
-					zap.Time(consts.HookReportTime, reportTime),
-					zap.Bool("restartInvoked", restartInvoked))
-			}
-			reportInterval, reportFirsted := 1, true
-			reportMutex, reportCtx := sync.Mutex{}, context.Background()
-			reportTicker := time.NewTicker(time.Duration(reportInterval) * time.Second)
-			for range reportTicker.C {
-				reportMutex.Lock()
-				if models.GetEnabledServerSdk() == nil {
-					reportMutex.Unlock()
-					reportInterval = resetReportTicker(reportTicker, reportInterval, 5)
-					continue
-				}
-				var report healthReport
-				buf := pool.GetBytesBuffer()
-				hookClient.ResetServerUrl(models.GetHookServerUrl())
-				// 调用钩子的健康检查接口
-				if hookClient.DoHealthCheckRequest(reportCtx, buf) {
-					var health Health
-					_ = json.Unmarshal(buf.Bytes(), &health)
-					if len(health.Workdir) >= 0 && !strings.HasPrefix(health.Workdir, workdir) {
-						reportMutex.Unlock()
-						continue
-					}
-					report, reportStatus = health.Report, http.StatusOK
-					reportInterval = resetReportTicker(reportTicker, reportInterval, 10)
-				} else {
-					if reportStatus == http.StatusOK {
-						report.Time, reportStatus = time.Now(), http.StatusInternalServerError
-					} else {
-						report.Time = reportTime
-					}
-					reportInterval = resetReportTicker(reportTicker, reportInterval, 1)
-				}
-				pool.PutBytesBuffer(buf)
-
-				restartInvoked = false
-				reportChanged := report.Time.After(reportTime)
-				if reportChanged || reportFirsted {
-					reportTime = report.Time
-					utils.SetWithLockViper(consts.HookReportTime, reportTime)
-					utils.SetWithLockViper(consts.HookReportStatus, reportStatus)
-				}
-				if utils.GetBoolWithLockViper(consts.EnableHookReport) {
-					// 仅有dev模式会触发热重启
-					var affectCount int
-					affectCount += migrateCustomizes(report.Customizes)
-					affectCount += migrateOperations(report.Functions, wgpb.OperationExecutionEngine_ENGINE_FUNCTION, consts.HookFunctionParent)
-					affectCount += migrateOperations(report.Proxys, wgpb.OperationExecutionEngine_ENGINE_PROXY, consts.HookProxyParent)
-					if restartInvoked = affectCount > 0 || reportChanged; restartInvoked {
-						AddOnEveryStartedHook(reportPrinter)
-						go utils.BuildAndStart()
-					}
-				}
-				if (reportChanged || reportFirsted) && !restartInvoked {
-					reportPrinter()
-				}
-				reportFirsted = false
-				reportMutex.Unlock()
-			}
-		}, true)
+		hookReport = hookReportInfo{
+			Time:     time.Now(),
+			ctx:      context.Background(),
+			logger:   zap.L(),
+			client:   hooks.NewHealthClient(zap.L()),
+			interval: time.Second,
+		}
+		hookReport.workdir, _ = os.Getwd()
+		hookReport.ticker = time.NewTicker(hookReport.interval)
+		AddOnFirstStartedHook(hookReport.timingReport, true)
 	})
 }
 
-func resetReportTicker(ticker *time.Ticker, now, expected int) int {
-	if now != expected {
-		ticker.Reset(time.Second * time.Duration(expected))
+func (r *hookReportInfo) printReport(extras ...zap.Field) {
+	fields := []zap.Field{zap.Time(consts.HookReportTime, r.Time), zap.Int(consts.HookReportStatus, r.Status)}
+	fields = append(fields, extras...)
+	r.logger.Info("health report changed", fields...)
+}
+
+func (r *hookReportInfo) timingReport() {
+	isFirstReport := true
+	for range r.ticker.C {
+		r.report(isFirstReport)
+		isFirstReport = false
 	}
-	return expected
+}
+
+func (r *hookReportInfo) resetTicker(interval time.Duration) {
+	if r.interval != interval {
+		r.ticker.Reset(interval)
+	}
+}
+
+func (r *hookReportInfo) report(isFirstReport bool) {
+	var restartInvoked bool
+	r.mutex.Lock()
+	defer func() {
+		if !restartInvoked {
+			r.mutex.Unlock()
+		}
+	}()
+	if models.GetEnabledServerSdk() == nil {
+		r.resetTicker(5 * time.Second)
+		return
+	}
+
+	var report healthReport
+	buf := pool.GetBytesBuffer()
+	defer pool.PutBytesBuffer(buf)
+	r.client.ResetServerUrl(models.GetHookServerUrl())
+	// 调用钩子的健康检查接口
+	if r.client.DoHealthCheckRequest(r.ctx, buf) {
+		var health Health
+		_ = json.Unmarshal(buf.Bytes(), &health)
+		if len(health.Workdir) >= 0 && !strings.HasPrefix(health.Workdir, r.workdir) {
+			return
+		}
+
+		r.resetTicker(10 * time.Second)
+		report, r.Status = health.Report, http.StatusOK
+	} else {
+		r.resetTicker(time.Second)
+		if r.Status == http.StatusOK {
+			report.Time, r.Status = time.Now(), http.StatusInternalServerError
+		} else {
+			report.Time = r.Time
+		}
+	}
+
+	reportChanged := report.Time.After(r.Time)
+	if reportChanged || isFirstReport {
+		r.Time = report.Time
+	}
+	if utils.GetBoolWithLockViper(consts.EnableHookReport) {
+		// 仅有dev模式会触发热重启
+		var affectCount int
+		affectCount += migrateCustomizes(report.Customizes)
+		affectCount += migrateOperations(report.Functions, wgpb.OperationExecutionEngine_ENGINE_FUNCTION, consts.HookFunctionParent)
+		affectCount += migrateOperations(report.Proxys, wgpb.OperationExecutionEngine_ENGINE_PROXY, consts.HookProxyParent)
+		if restartInvoked = affectCount > 0 || reportChanged; restartInvoked {
+			AddOnEveryStartedHook(func() {
+				r.printReport(zap.Bool("restartInvoked", true))
+				r.mutex.Unlock()
+			})
+			go utils.BuildAndStart()
+			return
+		}
+	}
+	if reportChanged || isFirstReport {
+		r.printReport()
+	}
 }
 
 func migrateCustomizes(customizes []string) (affectCount int) {
