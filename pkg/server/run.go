@@ -46,7 +46,7 @@ func init() {
 func Run(beforeStarted func()) {
 	websocket.AddOnFirstStartedHook(func() {
 		fmt.Println(string(configs.BannerText.GetFirstCache()))
-	})
+	}, math.MinInt)
 	initHttpServer(beforeStarted)
 }
 
@@ -67,7 +67,7 @@ func GenerateAuthenticationKey() (err error) {
 		utils.SetWithLockViper(utils.NormalizeName(consts.HeaderParamAuthentication), authenticationKey)
 		websocket.AddOnFirstStartedHook(func() {
 			logger.Info("AuthenticationKey", zap.String(consts.HeaderParamAuthentication, authenticationKey))
-		})
+		}, 1)
 	}()
 	if utils.GetBoolWithLockViper(consts.RegenerateKey) || authenticationKey == "" {
 		authenticationKey = utils.RandStr(32)
@@ -100,7 +100,7 @@ func initHttpServer(beforeStarted func()) {
 	e.HTTPErrorHandler = httpErrorHandler
 	e.HideBanner, e.HidePort = true, true
 	address := fmt.Sprintf("http://localhost:%s", utils.GetStringWithLockViper(consts.WebPort))
-	websocket.AddOnFirstStartedHook(func() { logger.Info("web server started", zap.String("address", address)) })
+	websocket.AddOnFirstStartedHook(func() { logger.Info("web server started", zap.String("address", address)) }, math.MaxInt)
 	e.Server.BaseContext = func(listener net.Listener) context.Context {
 		utils.SetWithLockViper(consts.GlobalStartTime, time.Now())
 		return context.Background()

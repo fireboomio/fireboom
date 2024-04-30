@@ -10,6 +10,7 @@ import (
 	"fireboom-server/pkg/common/utils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/exp/slices"
 	"sync"
 	"time"
 )
@@ -18,6 +19,7 @@ const engineChannel configs.WsChannel = "engine"
 
 type onStartedHook struct {
 	hook      func()
+	order     int
 	goroutine bool
 }
 
@@ -38,9 +40,10 @@ func executeHooks(hooks []onStartedHook) {
 	}
 }
 
-func AddOnFirstStartedHook(hook func(), goroutine ...bool) {
+func AddOnFirstStartedHook(hook func(), order int, goroutine ...bool) {
 	onFirstStartedHooks = append(onFirstStartedHooks, onStartedHook{
 		hook:      hook,
+		order:     order,
 		goroutine: len(goroutine) > 0 && goroutine[0],
 	})
 }
@@ -88,7 +91,10 @@ func init() {
 				clearQuestion()
 			case consts.EngineStartSucceed:
 				utils.SetWithLockViper(consts.EngineStartTime, entry.Time)
-				onFirstStartedOnce.Do(func() { executeHooks(onFirstStartedHooks) })
+				onFirstStartedOnce.Do(func() {
+					slices.SortFunc(onFirstStartedHooks, func(a, b onStartedHook) bool { return a.order < b.order })
+					executeHooks(onFirstStartedHooks)
+				})
 				onEveryStartedMutex.Lock()
 				defer onEveryStartedMutex.Unlock()
 				executeHooks(onEveryStartedHooks)

@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/exp/slices"
+	"math"
 	"net/http"
 	"os"
 	"strings"
@@ -89,7 +90,7 @@ func init() {
 		}
 		hookReport.workdir, _ = os.Getwd()
 		hookReport.ticker = time.NewTicker(hookReport.interval)
-		AddOnFirstStartedHook(hookReport.timingReport, true)
+		AddOnFirstStartedHook(hookReport.timingReport, math.MaxInt, true)
 	})
 }
 
@@ -134,7 +135,7 @@ func (r *hookReportInfo) report(isFirstReport bool) {
 	if r.client.DoHealthCheckRequest(r.ctx, buf) {
 		var health Health
 		_ = json.Unmarshal(buf.Bytes(), &health)
-		if len(health.Workdir) >= 0 && !strings.HasPrefix(health.Workdir, r.workdir) {
+		if len(health.Workdir) > 0 && !strings.HasPrefix(health.Workdir, r.workdir) {
 			return
 		}
 
