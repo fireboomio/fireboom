@@ -110,6 +110,7 @@ func (r *hookReportInfo) timingReport() {
 
 func (r *hookReportInfo) resetTicker(interval time.Duration) {
 	if r.interval != interval {
+		r.interval = interval
 		r.ticker.Reset(interval)
 	}
 }
