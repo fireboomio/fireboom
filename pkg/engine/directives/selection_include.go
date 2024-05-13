@@ -26,10 +26,11 @@ var includeDirective = &include{}
 
 type include struct{}
 
-func (i *include) Directive() *ast.DirectiveDefinition {
+func (s *include) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Name:      includeName,
-		Locations: []ast.DirectiveLocation{ast.LocationField, ast.LocationFragmentSpread, ast.LocationInlineFragment},
+		Description: prependMockAllowed(""),
+		Name:        includeName,
+		Locations:   []ast.DirectiveLocation{ast.LocationField, ast.LocationFragmentSpread, ast.LocationInlineFragment},
 		Arguments: ast.ArgumentDefinitionList{{
 			Name: argIfName,
 			Type: ast.NamedType(consts.ScalarBoolean, nil),
@@ -40,11 +41,11 @@ func (i *include) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (i *include) Definitions() ast.DefinitionList {
+func (s *include) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (i *include) Resolve(resolver *SelectionResolver) (err error) {
+func (s *include) Resolve(resolver *SelectionResolver) (err error) {
 	argIfValue, argIfFound := resolver.Arguments[argIfName]
 	argIfRuleValue, argIfRuleFound := resolver.Arguments[argIfRuleName]
 	if !argIfFound && !argIfRuleFound {
@@ -53,12 +54,12 @@ func (i *include) Resolve(resolver *SelectionResolver) (err error) {
 	}
 
 	if argIfFound {
-		if err = i.addVariablesSchema(resolver, argIfValue, boolSchema); err != nil {
+		if err = s.addVariablesSchema(resolver, argIfValue, boolSchema); err != nil {
 			return
 		}
 	}
 	if argIfRuleFound {
-		if err = i.addVariablesSchema(resolver, argIfRuleValue, stringSchema); err != nil {
+		if err = s.addVariablesSchema(resolver, argIfRuleValue, stringSchema); err != nil {
 			return
 		}
 		resolver.Operation.RuleExpressionExisted = true
@@ -71,7 +72,7 @@ var (
 	boolSchema   = openapi3.NewBoolSchema()
 )
 
-func (i *include) addVariablesSchema(resolver *SelectionResolver, argValue string, argSchema *openapi3.Schema) (err error) {
+func (s *include) addVariablesSchema(resolver *SelectionResolver, argValue string, argSchema *openapi3.Schema) (err error) {
 	argValue, ok := strings.CutPrefix(argValue, VariablePrefix)
 	if !ok {
 		return

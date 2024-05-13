@@ -30,6 +30,7 @@ func (o *operations) resolveFunctionSchema(schemaBytes []byte, extensionFile *Ex
 		extensionFile.VariablesRefs = append(extensionFile.VariablesRefs, name)
 		o.operationsConfigData.Definitions[name] = openapi2conv.ToV3SchemaRef(itemSchema)
 	}
+	schema.Value.Extensions = nil
 	return openapi2conv.ToV3SchemaRef(&schema)
 }
 

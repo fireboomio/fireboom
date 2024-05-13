@@ -17,7 +17,7 @@ const injectEnvironmentVariableName = "injectEnvironmentVariable"
 
 type injectEnvironmentVariable struct{}
 
-func (i *injectEnvironmentVariable) Directive() *ast.DirectiveDefinition {
+func (v *injectEnvironmentVariable) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.InjectEnvironmentVariableDesc.String()),
 		Name:        injectEnvironmentVariableName,
@@ -29,11 +29,11 @@ func (i *injectEnvironmentVariable) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (i *injectEnvironmentVariable) Definitions() ast.DefinitionList {
+func (v *injectEnvironmentVariable) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (i *injectEnvironmentVariable) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+func (v *injectEnvironmentVariable) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
 	value, ok := resolver.Arguments[commonArgName]
 	if !ok {
 		err = fmt.Errorf(argumentRequiredFormat, commonArgName)

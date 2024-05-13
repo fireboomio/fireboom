@@ -26,11 +26,6 @@ import (
 	"os"
 )
 
-const (
-	graphqlPath                 = "/graphql" + base.DataNamePath
-	hookOptionsWithDataNamePath = "/hookOptions" + base.DataNamePath
-)
-
 func OperationExtraRouter(_, operationRouter *echo.Group, baseHandler *base.Handler[models.Operation], modelRoot *fileloader.Model[models.Operation]) {
 	handler := &operation{
 		modelRoot.GetModelName(),
@@ -40,11 +35,11 @@ func OperationExtraRouter(_, operationRouter *echo.Group, baseHandler *base.Hand
 		baseHandler,
 		make(map[string]string),
 	}
-	operationRouter.GET(graphqlPath, handler.getGraphqlText)
-	operationRouter.POST(graphqlPath, handler.updateGraphqlText)
+	operationRouter.GET("/graphql"+base.DataNamePath, handler.getGraphqlText)
+	operationRouter.POST("/graphql"+base.DataNamePath, handler.updateGraphqlText)
 	operationRouter.POST("/function"+base.DataNamePath, handler.updateFunctionText)
 	operationRouter.POST("/proxy"+base.DataNamePath, handler.updateProxyText)
-	operationRouter.GET(hookOptionsWithDataNamePath, handler.getHookOptions)
+	operationRouter.GET("/hookOptions"+base.DataNamePath, handler.getHookOptions)
 
 	operationRouter.POST("/bindRoles", handler.bindRoles)
 	base.AddRouterMetas(modelRoot,

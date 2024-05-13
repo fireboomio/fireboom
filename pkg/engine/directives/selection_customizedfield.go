@@ -27,7 +27,7 @@ const (
 
 type customizedField struct{ selectionFieldCustomized }
 
-func (e *customizedField) Directive() *ast.DirectiveDefinition {
+func (s *customizedField) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.CustomizedFieldDesc.String()),
 		Name:        customizedFieldName,
@@ -45,7 +45,7 @@ func (e *customizedField) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (e *customizedField) Definitions() ast.DefinitionList {
+func (s *customizedField) Definitions() ast.DefinitionList {
 	var typeEnumValues ast.EnumValueList
 	for k := range scalarToSchemaMap {
 		typeEnumValues = append(typeEnumValues, &ast.EnumValueDefinition{Name: k})
@@ -57,7 +57,7 @@ func (e *customizedField) Definitions() ast.DefinitionList {
 	}}
 }
 
-func (e *customizedField) Resolve(resolver *SelectionResolver) (err error) {
+func (s *customizedField) Resolve(resolver *SelectionResolver) (err error) {
 	value, ok := resolver.Arguments[customizedFieldArgType]
 	if !ok {
 		err = fmt.Errorf(argumentRequiredFormat, customizedFieldArgType)

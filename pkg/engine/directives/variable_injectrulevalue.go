@@ -25,7 +25,7 @@ const (
 
 type injectRuleValue struct{}
 
-func (i *injectRuleValue) Directive() *ast.DirectiveDefinition {
+func (v *injectRuleValue) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.InjectRuleValueDesc.String()),
 		Name:        injectRuleValueName,
@@ -38,11 +38,11 @@ func (i *injectRuleValue) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (i *injectRuleValue) Definitions() ast.DefinitionList {
+func (v *injectRuleValue) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (i *injectRuleValue) Resolve(resolver *VariableResolver) (unableInput, skip bool, err error) {
+func (v *injectRuleValue) Resolve(resolver *VariableResolver) (unableInput, skip bool, err error) {
 	value, ok := resolver.Arguments[injectRuleValueArgExpressionName]
 	if !ok {
 		err = fmt.Errorf(argumentRequiredFormat, injectRuleValueArgExpressionName)

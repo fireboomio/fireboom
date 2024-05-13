@@ -15,7 +15,7 @@ const injectGeneratedUUIDName = "injectGeneratedUUID"
 
 type injectGeneratedUUID struct{}
 
-func (u *injectGeneratedUUID) Directive() *ast.DirectiveDefinition {
+func (v *injectGeneratedUUID) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.InjectGeneratedUUIDDesc.String()),
 		Name:        injectGeneratedUUIDName,
@@ -23,11 +23,11 @@ func (u *injectGeneratedUUID) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (u *injectGeneratedUUID) Definitions() ast.DefinitionList {
+func (v *injectGeneratedUUID) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (u *injectGeneratedUUID) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+func (v *injectGeneratedUUID) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
 	resolver.Operation.VariablesConfiguration.InjectVariables = append(resolver.Operation.VariablesConfiguration.InjectVariables, &wgpb.VariableInjectionConfiguration{
 		VariablePathComponents: resolver.Path,
 		VariableKind:           wgpb.InjectVariableKind_UUID,

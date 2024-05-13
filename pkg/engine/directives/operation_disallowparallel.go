@@ -15,19 +15,19 @@ const disallowParallelName = "disallowParallel"
 
 type disallowParallel struct{}
 
-func (e *disallowParallel) Directive() *ast.DirectiveDefinition {
+func (o *disallowParallel) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: appendIfExistExampleGraphql(i18n.DisallowParallelDesc.String()),
+		Description: prependMockAllowed(appendIfExistExampleGraphql(i18n.DisallowParallelDesc.String())),
 		Name:        disallowParallelName,
 		Locations:   []ast.DirectiveLocation{ast.LocationQuery, ast.LocationMutation},
 	}
 }
 
-func (e *disallowParallel) Definitions() ast.DefinitionList {
+func (o *disallowParallel) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (e *disallowParallel) Resolve(*OperationResolver) error {
+func (o *disallowParallel) Resolve(*OperationResolver) error {
 	return nil
 }
 

@@ -14,7 +14,7 @@ const hookVariableName = "hookVariable"
 
 type hookVariable struct{ variableDirectiveRemoved }
 
-func (h *hookVariable) Directive() *ast.DirectiveDefinition {
+func (v *hookVariable) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Name:        hookVariableName,
 		Locations:   []ast.DirectiveLocation{ast.LocationVariableDefinition},
@@ -22,11 +22,11 @@ func (h *hookVariable) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (h *hookVariable) Definitions() ast.DefinitionList {
+func (v *hookVariable) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (h *hookVariable) Resolve(*VariableResolver) (bool, bool, error) {
+func (v *hookVariable) Resolve(*VariableResolver) (bool, bool, error) {
 	return false, false, nil
 }
 

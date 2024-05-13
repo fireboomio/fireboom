@@ -25,7 +25,7 @@ const (
 
 type transaction struct{}
 
-func (e *transaction) Directive() *ast.DirectiveDefinition {
+func (o *transaction) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.TransactionDesc.String()),
 		Name:        transactionName,
@@ -53,7 +53,7 @@ func (e *transaction) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (e *transaction) Definitions() ast.DefinitionList {
+func (o *transaction) Definitions() ast.DefinitionList {
 	var isolationLevelEnumValues ast.EnumValueList
 	for k := range wgpb.OperationTransactionIsolationLevel_value {
 		isolationLevelEnumValues = append(isolationLevelEnumValues, &ast.EnumValueDefinition{Name: k})
@@ -68,7 +68,7 @@ func (e *transaction) Definitions() ast.DefinitionList {
 	}
 }
 
-func (e *transaction) Resolve(resolver *OperationResolver) error {
+func (o *transaction) Resolve(resolver *OperationResolver) error {
 	transactionInfo := &wgpb.OperationTransaction{}
 	resolver.Operation.Transaction = transactionInfo
 	if value, ok := resolver.Arguments[transactionArgMaxWaitSecondsName]; ok {

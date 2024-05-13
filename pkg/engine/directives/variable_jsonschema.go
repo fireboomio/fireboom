@@ -27,7 +27,7 @@ type (
 	}
 )
 
-func (j *jsonSchema) Directive() *ast.DirectiveDefinition {
+func (v *jsonSchema) Directive() *ast.DirectiveDefinition {
 	var arguments ast.ArgumentDefinitionList
 	for k, v := range jsonSchemaArgMap {
 		arguments = append(arguments, &ast.ArgumentDefinition{
@@ -44,7 +44,7 @@ func (j *jsonSchema) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (j *jsonSchema) Definitions() ast.DefinitionList {
+func (v *jsonSchema) Definitions() ast.DefinitionList {
 	var enumValues ast.EnumValueList
 	for k := range jsonSchemaCommonPatternEnumMap {
 		enumValues = append(enumValues, &ast.EnumValueDefinition{Name: k})
@@ -56,7 +56,7 @@ func (j *jsonSchema) Definitions() ast.DefinitionList {
 	}}
 }
 
-func (j *jsonSchema) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+func (v *jsonSchema) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
 	for name, value := range resolver.Arguments {
 		arg, ok := jsonSchemaArgMap[name]
 		if !ok || arg.updateSchema == nil {

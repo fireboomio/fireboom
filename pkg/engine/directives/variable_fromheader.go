@@ -17,7 +17,7 @@ const fromHeaderName = "fromHeader"
 
 type fromHeader struct{}
 
-func (f *fromHeader) Directive() *ast.DirectiveDefinition {
+func (v *fromHeader) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.FromHeaderDesc.String()),
 		Name:        fromHeaderName,
@@ -29,11 +29,11 @@ func (f *fromHeader) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (f *fromHeader) Definitions() ast.DefinitionList {
+func (v *fromHeader) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (f *fromHeader) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+func (v *fromHeader) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
 	value, ok := resolver.Arguments[commonArgName]
 	if !ok {
 		err = fmt.Errorf(argumentRequiredFormat, commonArgName)

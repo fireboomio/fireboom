@@ -17,7 +17,7 @@ import (
 
 func StorageExtraRouter(rootRouter, storageRouter *echo.Group, baseHandler *base.Handler[models.Storage], modelRoot *fileloader.Model[models.Storage]) {
 	handler := &storage{modelRoot.GetModelName(), modelRoot, baseHandler, models.ClientCache}
-	storageRouter.GET(hookOptionsWithDataNamePath, handler.getHookOptions)
+	storageRouter.GET("/hookOptions"+base.DataNamePath, handler.getHookOptions)
 
 	clientRouter := rootRouter.Group("/storageClient")
 	clientRouter.POST("/ping", handler.ping)

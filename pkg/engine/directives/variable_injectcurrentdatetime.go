@@ -29,7 +29,7 @@ const (
 
 type injectCurrentDateTime struct{}
 
-func (i *injectCurrentDateTime) Directive() *ast.DirectiveDefinition {
+func (v *injectCurrentDateTime) Directive() *ast.DirectiveDefinition {
 	formatArgs := dateTimeFormatArguments()
 	formatArgs = append(formatArgs, &ast.ArgumentDefinition{
 		Name: dateTimeArgOffsetName,
@@ -43,7 +43,7 @@ func (i *injectCurrentDateTime) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (i *injectCurrentDateTime) Definitions() ast.DefinitionList {
+func (v *injectCurrentDateTime) Definitions() ast.DefinitionList {
 	definitions := dateTimeFormatDefinitions()
 	var unitEnumValues ast.EnumValueList
 	for k := range wgpb.DateOffsetUnit_value {
@@ -66,10 +66,14 @@ func (i *injectCurrentDateTime) Definitions() ast.DefinitionList {
 	return definitions
 }
 
-func (i *injectCurrentDateTime) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+func (v *injectCurrentDateTime) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+	dateFormat := dateFormatArgValue(resolver.Arguments)
+	if len(dateFormat) == 0 {
+		dateFormat = dateFormatMap[ISO8601]
+	}
 	variableConfig := &wgpb.VariableInjectionConfiguration{
 		VariablePathComponents: resolver.Path,
-		DateFormat:             dateFormatArgValue(resolver.Arguments),
+		DateFormat:             dateFormat,
 		VariableKind:           wgpb.InjectVariableKind_DATE_TIME,
 	}
 	if dateOffset, ok := resolver.Arguments[dateTimeArgOffsetName]; ok {
@@ -91,9 +95,6 @@ func dateFormatArgValue(argMap map[string]string) (dateFormat string) {
 	}
 	if value, ok := argMap[dateTimeArgCustomFormat]; ok {
 		dateFormat = value
-	}
-	if len(dateFormat) == 0 {
-		dateFormat = dateFormatMap[ISO8601]
 	}
 	return
 }

@@ -27,7 +27,7 @@ type (
 	}
 )
 
-func (r *rbac) Directive() *ast.DirectiveDefinition {
+func (o *rbac) Directive() *ast.DirectiveDefinition {
 	var arguments ast.ArgumentDefinitionList
 	for k, v := range rbacArgMap {
 		arguments = append(arguments, &ast.ArgumentDefinition{
@@ -44,7 +44,7 @@ func (r *rbac) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (r *rbac) Definitions() ast.DefinitionList {
+func (o *rbac) Definitions() ast.DefinitionList {
 	var enumValues ast.EnumValueList
 	for _, item := range models.RoleRoot.List() {
 		enumValues = append(enumValues, &ast.EnumValueDefinition{Name: item.Code})
@@ -56,7 +56,7 @@ func (r *rbac) Definitions() ast.DefinitionList {
 	}}
 }
 
-func (r *rbac) Resolve(resolver *OperationResolver) error {
+func (o *rbac) Resolve(resolver *OperationResolver) error {
 	roleConfig := &wgpb.OperationRoleConfig{}
 	for name, value := range resolver.Arguments {
 		updateRoleFunc := FetchUpdateRoleFunc(name)

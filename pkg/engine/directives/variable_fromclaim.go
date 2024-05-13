@@ -32,7 +32,7 @@ const (
 
 type fromClaim struct{}
 
-func (f *fromClaim) Directive() *ast.DirectiveDefinition {
+func (v *fromClaim) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.FromClaimDesc.String()),
 		Name:        fromClaimName,
@@ -58,7 +58,7 @@ func (f *fromClaim) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (f *fromClaim) Definitions() ast.DefinitionList {
+func (v *fromClaim) Definitions() ast.DefinitionList {
 	var nameEnumValues, removeIfNoneEnumValues ast.EnumValueList
 	for k, v := range wgpb.ClaimType_value {
 		nameEnumValues = append(nameEnumValues, &ast.EnumValueDefinition{
@@ -97,7 +97,7 @@ func (f *fromClaim) Definitions() ast.DefinitionList {
 	}
 }
 
-func (f *fromClaim) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+func (v *fromClaim) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
 	value, ok := resolver.Arguments[commonArgName]
 	if !ok {
 		err = fmt.Errorf(argumentRequiredFormat, commonArgName)

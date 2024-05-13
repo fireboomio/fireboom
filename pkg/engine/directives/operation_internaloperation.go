@@ -14,7 +14,7 @@ const internalOperationName = "internalOperation"
 
 type internalOperation struct{}
 
-func (e *internalOperation) Directive() *ast.DirectiveDefinition {
+func (o *internalOperation) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.InternalOperationDesc.String()),
 		Name:        internalOperationName,
@@ -22,11 +22,11 @@ func (e *internalOperation) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (e *internalOperation) Definitions() ast.DefinitionList {
+func (o *internalOperation) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (e *internalOperation) Resolve(resolver *OperationResolver) error {
+func (o *internalOperation) Resolve(resolver *OperationResolver) error {
 	resolver.Operation.Internal = true
 	return nil
 }

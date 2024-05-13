@@ -24,7 +24,7 @@ const (
 
 type transform struct{}
 
-func (t *transform) Directive() *ast.DirectiveDefinition {
+func (s *transform) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.TransformDesc.String()),
 		Name:        transformName,
@@ -37,11 +37,11 @@ func (t *transform) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (t *transform) Definitions() ast.DefinitionList {
+func (s *transform) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (t *transform) Resolve(resolver *SelectionResolver) (err error) {
+func (s *transform) Resolve(resolver *SelectionResolver) (err error) {
 	value, ok := resolver.Arguments[transformArgName]
 	if !ok {
 		err = fmt.Errorf(argumentRequiredFormat, transformArgName)

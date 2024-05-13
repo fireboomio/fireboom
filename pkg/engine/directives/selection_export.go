@@ -22,9 +22,9 @@ const (
 
 type export struct{}
 
-func (e *export) Directive() *ast.DirectiveDefinition {
+func (s *export) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: appendIfExistExampleGraphql(i18n.ExportDesc.String()),
+		Description: prependMockAllowed(appendIfExistExampleGraphql(i18n.ExportDesc.String())),
 		Name:        exportName,
 		Locations:   []ast.DirectiveLocation{ast.LocationField},
 		Arguments: ast.ArgumentDefinitionList{{
@@ -34,11 +34,11 @@ func (e *export) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (e *export) Definitions() ast.DefinitionList {
+func (s *export) Definitions() ast.DefinitionList {
 	return nil
 }
 
-func (e *export) Resolve(resolver *SelectionResolver) error {
+func (s *export) Resolve(resolver *SelectionResolver) error {
 	value, ok := resolver.Arguments[exportArgName]
 	if !ok {
 		return fmt.Errorf(argumentRequiredFormat, exportArgName)

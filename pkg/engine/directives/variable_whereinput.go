@@ -43,7 +43,7 @@ const (
 
 type whereInput struct{}
 
-func (w *whereInput) Directive() *ast.DirectiveDefinition {
+func (v *whereInput) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.WhereInputDesc.String()),
 		Name:        whereInputName,
@@ -62,7 +62,7 @@ func (w *whereInput) Directive() *ast.DirectiveDefinition {
 	}
 }
 
-func (w *whereInput) Definitions() ast.DefinitionList {
+func (v *whereInput) Definitions() ast.DefinitionList {
 	var filterTypeEnumValues ast.EnumValueList
 	for k := range wgpb.VariableWhereInputScalarFilterType_value {
 		filterTypeEnumValues = append(filterTypeEnumValues, &ast.EnumValueDefinition{Name: k})
@@ -150,7 +150,7 @@ func (w *whereInput) Definitions() ast.DefinitionList {
 	}
 }
 
-func (w *whereInput) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
+func (v *whereInput) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
 	schema := resolver.Schema
 	if schema.Value != nil && schema.Value.Items != nil {
 		schema = schema.Value.Items
@@ -165,11 +165,11 @@ func (w *whereInput) Resolve(resolver *VariableResolver) (_, skip bool, err erro
 	if argValue, ok := resolver.Arguments[whereInputFieldNotName]; ok {
 		skip = true
 		variableWhere.Not = &wgpb.VariableWhereInput{}
-		err = w.resolveWhereInput(variableWhere.Not, []byte(argValue), schema, resolver.ArgumentDefinitions)
+		err = v.resolveWhereInput(variableWhere.Not, []byte(argValue), schema, resolver.ArgumentDefinitions)
 	} else if argValue, ok = resolver.Arguments[whereInputFieldFilterName]; ok {
 		skip = true
 		variableWhere.Filter = &wgpb.VariableWhereInputFilter{}
-		err = w.resolveWhereInputFilter(variableWhere.Filter, []byte(argValue), schema, resolver.ArgumentDefinitions)
+		err = v.resolveWhereInputFilter(variableWhere.Filter, []byte(argValue), schema, resolver.ArgumentDefinitions)
 	}
 	if err != nil || !skip {
 		return
@@ -182,12 +182,14 @@ func (w *whereInput) Resolve(resolver *VariableResolver) (_, skip bool, err erro
 	return
 }
 
-var whereInputTypeKeys = [][]string{{whereInputFieldNotName}, {whereInputFieldFilterName}}
-var whereInputFilterTypeKeys = [][]string{{whereInputFilterFieldFieldName}, {whereInputFilterFieldScalarName}, {whereInputFilterFieldRelationName}}
-var whereInputScalarFilterTypeKeys = [][]string{{whereInputFilterCommonFieldTypeName}, {whereInputScalarFilterFieldInsensitiveName}}
-var whereInputRelationFilterTypeKeys = [][]string{{whereInputFilterCommonFieldTypeName}, {whereInputRelationFilterFieldWhereName}}
+var (
+	whereInputTypeKeys               = [][]string{{whereInputFieldNotName}, {whereInputFieldFilterName}}
+	whereInputFilterTypeKeys         = [][]string{{whereInputFilterFieldFieldName}, {whereInputFilterFieldScalarName}, {whereInputFilterFieldRelationName}}
+	whereInputScalarFilterTypeKeys   = [][]string{{whereInputFilterCommonFieldTypeName}, {whereInputScalarFilterFieldInsensitiveName}}
+	whereInputRelationFilterTypeKeys = [][]string{{whereInputFilterCommonFieldTypeName}, {whereInputRelationFilterFieldWhereName}}
+)
 
-func (w *whereInput) resolveWhereInput(variableWhere *wgpb.VariableWhereInput, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInput(variableWhere *wgpb.VariableWhereInput, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -195,16 +197,16 @@ func (w *whereInput) resolveWhereInput(variableWhere *wgpb.VariableWhereInput, d
 		switch i {
 		case 0:
 			variableWhere.Not = &wgpb.VariableWhereInput{}
-			err = w.resolveWhereInput(variableWhere.Not, bytes, schema, argumentDefinitions)
+			err = v.resolveWhereInput(variableWhere.Not, bytes, schema, argumentDefinitions)
 		case 1:
 			variableWhere.Filter = &wgpb.VariableWhereInputFilter{}
-			err = w.resolveWhereInputFilter(variableWhere.Filter, bytes, schema, argumentDefinitions)
+			err = v.resolveWhereInputFilter(variableWhere.Filter, bytes, schema, argumentDefinitions)
 		}
 	}, whereInputTypeKeys...)
 	return
 }
 
-func (w *whereInput) resolveWhereInputFilter(variableFilter *wgpb.VariableWhereInputFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInputFilter(variableFilter *wgpb.VariableWhereInputFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -215,16 +217,16 @@ func (w *whereInput) resolveWhereInputFilter(variableFilter *wgpb.VariableWhereI
 			schema, err = searchFieldSchemaOnDefinitionProperties(argumentDefinitions, schema, variableFilter.Field)
 		case 1:
 			variableFilter.Scalar = &wgpb.VariableWhereInputScalarFilter{}
-			err = w.resolveWhereInputScalarFilter(variableFilter.Scalar, bytes, schema, argumentDefinitions)
+			err = v.resolveWhereInputScalarFilter(variableFilter.Scalar, bytes, schema, argumentDefinitions)
 		case 2:
 			variableFilter.Relation = &wgpb.VariableWhereInputRelationFilter{}
-			err = w.resolveWhereInputRelationFilter(variableFilter.Relation, bytes, schema, argumentDefinitions)
+			err = v.resolveWhereInputRelationFilter(variableFilter.Relation, bytes, schema, argumentDefinitions)
 		}
 	}, whereInputFilterTypeKeys...)
 	return
 }
 
-func (w *whereInput) resolveWhereInputScalarFilter(scalarFilter *wgpb.VariableWhereInputScalarFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInputScalarFilter(scalarFilter *wgpb.VariableWhereInputScalarFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -241,7 +243,7 @@ func (w *whereInput) resolveWhereInputScalarFilter(scalarFilter *wgpb.VariableWh
 	return
 }
 
-func (w *whereInput) resolveWhereInputRelationFilter(relationFilter *wgpb.VariableWhereInputRelationFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInputRelationFilter(relationFilter *wgpb.VariableWhereInputRelationFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -253,7 +255,7 @@ func (w *whereInput) resolveWhereInputRelationFilter(relationFilter *wgpb.Variab
 			schema, err = searchFieldSchemaOnDefinitionProperties(argumentDefinitions, schema, relationType)
 		case 1:
 			relationFilter.Where = &wgpb.VariableWhereInput{}
-			err = w.resolveWhereInput(relationFilter.Where, bytes, schema, argumentDefinitions)
+			err = v.resolveWhereInput(relationFilter.Where, bytes, schema, argumentDefinitions)
 		}
 	}, whereInputRelationFilterTypeKeys...)
 	return
