@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type Operation struct {
@@ -42,6 +43,8 @@ type Operation struct {
 	Internal            bool                               `json:"-"`
 	OperationType       wgpb.OperationType                 `json:"-"`
 	AuthorizationConfig *wgpb.OperationAuthorizationConfig `json:"-"`
+	SelectedFieldHashes map[string]string                  `json:"-"`
+	ContentModifiedTime time.Time                          `json:"-"`
 }
 
 type operationExtra struct {

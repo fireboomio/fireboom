@@ -7,15 +7,18 @@ package build
 
 import (
 	"bufio"
+	"crypto/md5"
 	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/models"
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/engine/datasource"
 	"fireboom-server/pkg/engine/directives"
 	"fireboom-server/pkg/plugins/fileloader"
+	"fmt"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 	"github.com/vektah/gqlparser/v2/parser"
+	"github.com/wundergraph/wundergraph/pkg/pool"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
@@ -161,6 +164,7 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 		return
 	}
 
+	e.calculateRootFieldHash(builder, otherDefinitionMap)
 	builder.DefinedApi.EngineConfiguration = e.engineConfig
 	return
 }
@@ -254,4 +258,30 @@ func (e *engineConfiguration) resolveTypeConfigurations(typeName, originName str
 
 func (e *engineConfiguration) printIntrospectError(err error, dsName string) {
 	logger.Error("build datasource failed", zap.Error(err), zap.String(e.modelName, dsName))
+}
+
+func (e *engineConfiguration) calculateRootFieldHash(builder *Builder, fieldDefinitions map[string]*ast.Definition) {
+	if !utils.GetBoolWithLockViper(consts.DevMode) {
+		return
+	}
+
+	builder.FieldHashes = make(map[string]string)
+	for _, dsConfig := range e.engineConfig.DatasourceConfigurations {
+		for _, rootNode := range dsConfig.RootNodes {
+			for index, name := range rootNode.FieldNames {
+				buf, document := pool.GetBytesBuffer(), &ast.SchemaDocument{}
+				format := formatter.NewFormatter(buf, formatter.WithIndent(""))
+				quotes, ok := rootNode.Quotes[int32(index)]
+				if ok {
+					for _, i := range quotes.Indexes {
+						document.Definitions = append(document.Definitions, fieldDefinitions[dsConfig.ChildNodes[i].TypeName])
+					}
+				}
+				format.FormatSchemaDocument(document)
+				buf.WriteString(name)
+				builder.FieldHashes[name] = fmt.Sprintf("%x", md5.Sum(buf.Bytes()))
+				pool.PutBytesBuffer(buf)
+			}
+		}
+	}
 }

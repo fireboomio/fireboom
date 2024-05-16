@@ -202,10 +202,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 				if quote, cleared := matchDatasource(fieldDefDescription); quote != "" {
 					datasourceQuote, fieldDefDescription = quote, cleared
 					fieldOriginName = strings.TrimPrefix(field.Name, quote+"_")
-					if len(path) == 1 || definition.Name != consts.TypeQuery {
-						if len(path) > 1 && definition.Name == consts.TypeMutation {
-							quote = utils.JoinStringWithDot(datasource.JoinMutationFieldName, quote)
-						}
+					if datasource.ContainsRootDefinition(definition.Name) {
 						if exist, ok := i.operation.DatasourceQuotes[quote]; ok {
 							exist.Fields = append(exist.Fields, fieldOriginName)
 						} else {

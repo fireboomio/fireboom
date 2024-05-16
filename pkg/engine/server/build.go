@@ -33,7 +33,6 @@ type EngineBuild struct {
 }
 
 func (b *EngineBuild) release() {
-	build.GeneratedOperationsConfigRoot.ClearCache()
 	build.GeneratedGraphqlConfigRoot.ClearCache()
 	b.builder = nil
 }

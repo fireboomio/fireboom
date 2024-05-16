@@ -18,6 +18,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 type ModelText[T any] struct {
@@ -127,6 +128,16 @@ func (t *ModelText[T]) Stat(dataName string, optional ...string) (fileInfo os.Fi
 	}
 
 	fileInfo, err = os.Stat(path)
+	return
+}
+
+// GetModifiedTime 获取文本文件修改时间
+func (t *ModelText[T]) GetModifiedTime(dataName string, optional ...string) (modTime time.Time, err error) {
+	fileInfo, err := t.Stat(dataName, optional...)
+	if err != nil {
+		return
+	}
+	modTime = fileInfo.ModTime()
 	return
 }
 

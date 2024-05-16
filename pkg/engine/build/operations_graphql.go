@@ -11,11 +11,9 @@ import (
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/plugins/fileloader"
 	"github.com/getkin/kin-openapi/openapi3"
-	json "github.com/json-iterator/go"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 	"github.com/vektah/gqlparser/v2/parser"
-	"github.com/wundergraph/wundergraph/pkg/interpolate"
 	"github.com/wundergraph/wundergraph/pkg/pool"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"go.uber.org/zap/buffer"
@@ -36,14 +34,36 @@ type (
 	}
 )
 
-func (o *operations) resolveGraphqlOperation(operation *models.Operation) (operationResult *wgpb.Operation, err error) {
+func (o *operations) extractGraphqlOperation(operation *models.Operation,
+	graphqlFiles, builtGraphqlFiles map[string]*GraphqlOperationFile) (defRefs []string, extracted bool) {
+	modifiedTime, _ := models.OperationGraphql.GetModifiedTime(operation.Path)
+	defer func() { operation.ContentModifiedTime = modifiedTime }()
+	if !modifiedTime.Equal(operation.ContentModifiedTime) || len(operation.SelectedFieldHashes) == 0 {
+		return
+	}
+
+	for field, hash := range operation.SelectedFieldHashes {
+		if value, ok := o.fieldHashes[field]; !ok || value != hash {
+			return
+		}
+	}
+	graphqlFile, ok := builtGraphqlFiles[operation.Path]
+	if !ok {
+		return
+	}
+
+	graphqlFiles[operation.Path] = graphqlFile
+	defRefs, extracted = graphqlFile.VariablesRefs, true
+	return
+}
+
+func (o *operations) resolveGraphqlOperation(operation *models.Operation, graphqlFiles map[string]*GraphqlOperationFile) (operationResult *wgpb.Operation, err error) {
 	content, err := models.OperationGraphql.Read(operation.Path)
 	// 文本为空（新建operation未创建）且未开启时直接返回
 	if content == "" && !operation.Enabled {
 		err = nil
 		return
 	}
-
 	if err != nil {
 		return
 	}
@@ -77,13 +97,13 @@ func (o *operations) resolveGraphqlOperation(operation *models.Operation) (opera
 			VariablesRefs:       queryItem.variablesRefs,
 			OperationSchema:     queryItem.operationSchema,
 			OperationName:       operationResult.Name,
-			FilePath:            models.OperationGraphql.GetPath(operationResult.Path),
+			FilePath:            models.OperationGraphql.GetPath(operation.Path),
 			OperationType:       operationResult.OperationType,
 			AuthorizationConfig: operationResult.AuthorizationConfig,
 		},
 		Internal: operationResult.Internal,
 	}
-	o.operationsConfigData.GraphqlOperationFiles[operationResult.Path] = graphqlFile
+	graphqlFiles[operation.Path] = graphqlFile
 	if len(queryItem.Errors) > 0 {
 		err = errors.New(strings.Join(queryItem.Errors, ";"))
 		return
@@ -102,9 +122,22 @@ func (o *operations) resolveGraphqlOperation(operation *models.Operation) (opera
 		SearchRefDefinitions(nil, argumentDefinitionsItem, o.operationsConfigData.Definitions, graphqlFile.VariablesRefs...)
 	}
 
-	o.mergeGlobalOperation(operation, operationResult)
-	o.resolveOperationHook(operationResult)
+	o.setSelectedFieldHashes(operation, operationResult.DatasourceQuotes)
 	return
+}
+
+func (o *operations) setSelectedFieldHashes(operation *models.Operation, dsQuotes map[string]*wgpb.DatasourceQuote) {
+	if len(o.fieldHashes) == 0 || len(dsQuotes) == 0 {
+		return
+	}
+
+	operation.SelectedFieldHashes = make(map[string]string)
+	for name, quote := range dsQuotes {
+		for _, field := range quote.Fields {
+			fieldName := utils.JoinString("_", name, field)
+			operation.SelectedFieldHashes[fieldName] = o.fieldHashes[fieldName]
+		}
+	}
 }
 
 func (o *operations) definitionFetch(name string) *ast.Definition {
@@ -114,49 +147,6 @@ func (o *operations) definitionFetch(name string) *ast.Definition {
 	}
 
 	return o.rootDocument.Definitions[index]
-}
-
-// 合成全局的配置，根据是否开启自定义配置来合成最终配置
-func (o *operations) mergeGlobalOperation(operation *models.Operation, operationResult *wgpb.Operation) {
-	globalOperation := models.GlobalOperationRoot.FirstData()
-	if operation.ConfigCustomized {
-		operationResult.CacheConfig = operation.CacheConfig
-		operationResult.LiveQueryConfig = operation.LiveQueryConfig
-	} else {
-		operationResult.CacheConfig = globalOperation.CacheConfig
-		operationResult.LiveQueryConfig = globalOperation.LiveQueryConfig
-	}
-
-	if operationResult.AuthenticationConfig != nil {
-		return
-	}
-
-	if operation.ConfigCustomized {
-		operationResult.AuthenticationConfig = operation.AuthenticationConfig
-	} else if globalOperation.AuthenticationConfigs != nil {
-		operationResult.AuthenticationConfig = globalOperation.AuthenticationConfigs[operationResult.OperationType]
-	}
-}
-
-// 合成钩子配置和全局钩子配置
-func (o *operations) resolveOperationHook(operationItem *wgpb.Operation) {
-	hookConfigMap := make(map[string]any)
-	for hook, option := range models.GetOperationHookOptions(operationItem.Path) {
-		ensureEnabled := option.Enabled && option.Existed
-		if hook == consts.MockResolve {
-			hookConfigMap[string(hook)] = &wgpb.MockResolveHookConfiguration{Enabled: ensureEnabled}
-			continue
-		}
-
-		hookConfigMap[string(hook)] = ensureEnabled
-	}
-
-	for hook, option := range models.GetHttpTransportHookOptions() {
-		hookConfigMap[models.HttpTransportHookAliasMap[hook]] = option.Enabled && option.Existed
-	}
-
-	configBytes, _ := json.Marshal(hookConfigMap)
-	_ = json.Unmarshal(configBytes, &operationItem.HooksConfiguration)
 }
 
 var storeFragmentDirname = utils.NormalizePath(consts.RootStore, consts.StoreFragmentParent)
@@ -196,49 +186,4 @@ func (o *operations) loadFragments() error {
 
 	o.graphqlFragments = buf.String()
 	return nil
-}
-
-// SearchRefDefinitions 递归搜索schema定义的引用，减少schema的定义的冗余
-func SearchRefDefinitions(schema *openapi3.SchemaRef, searchRefs, requireRefs openapi3.Schemas, refStr ...string) {
-	if len(refStr) > 0 {
-		var requireSchemas []*openapi3.SchemaRef
-		for _, ref := range refStr {
-			refSchemaName := strings.TrimPrefix(ref, interpolate.Openapi3SchemaRefPrefix)
-			searchSchema := searchRefs[refSchemaName]
-			if _, ok := requireRefs[refSchemaName]; !ok && searchSchema != nil {
-				requireRefs[refSchemaName] = searchSchema
-				requireSchemas = append(requireSchemas, searchSchema)
-			}
-		}
-		if len(requireSchemas) == 0 {
-			return
-		}
-		for _, requireSchema := range requireSchemas {
-			SearchRefDefinitions(requireSchema, searchRefs, requireRefs)
-		}
-		return
-	}
-
-	if schema == nil {
-		return
-	}
-
-	if schema.Ref != "" {
-		SearchRefDefinitions(nil, searchRefs, requireRefs, schema.Ref)
-		return
-	}
-
-	schemaValue := schema.Value
-	if schemaValue == nil {
-		return
-	}
-
-	if schemaValue.Type == openapi3.TypeArray {
-		SearchRefDefinitions(schemaValue.Items, searchRefs, requireRefs)
-		return
-	}
-
-	for _, itemSchema := range schemaValue.Properties {
-		SearchRefDefinitions(itemSchema, searchRefs, requireRefs)
-	}
 }

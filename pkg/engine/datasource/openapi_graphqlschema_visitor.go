@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"strings"
 )
@@ -113,7 +114,10 @@ func visitSchemaType(r *resolveGraphqlSchema, input *visitSchemaInput, schemaVal
 		}
 
 		objectDef.Description = normalizeDescription(schemaValue.Description)
-		for key, item := range schemaValue.Properties {
+		keys := maps.Keys(schemaValue.Properties)
+		slices.Sort(keys)
+		for _, key := range keys {
+			item := schemaValue.Properties[key]
 			itemDefinitionName := utils.JoinString("_", objectDef.Name, key)
 			itemRequired := slices.Contains(schemaValue.Required, key)
 			itemPath := utils.CopyAndAppendItem(input.path, key)

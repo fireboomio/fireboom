@@ -34,8 +34,9 @@ var (
 
 type (
 	Builder struct {
-		Document   *ast.SchemaDocument
-		DefinedApi *wgpb.UserDefinedApi
+		FieldHashes map[string]string
+		Document    *ast.SchemaDocument
+		DefinedApi  *wgpb.UserDefinedApi
 	}
 	Resolve interface {
 		Resolve(*Builder) error

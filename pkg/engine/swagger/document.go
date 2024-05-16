@@ -53,7 +53,9 @@ func (s *document) Generate(builder *build.Builder) {
 			logger.Debug("generate swagger3 succeed")
 		}
 	}()
+	build.OperationsDefinitionRwMutex.Lock()
 	docBytes, err := json.Marshal(&s.doc)
+	build.OperationsDefinitionRwMutex.Unlock()
 	if err != nil {
 		return
 	}
