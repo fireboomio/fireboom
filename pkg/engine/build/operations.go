@@ -16,7 +16,6 @@ import (
 	"github.com/wundergraph/wundergraph/pkg/interpolate"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"go.uber.org/zap"
-	"golang.org/x/exp/maps"
 	"math"
 	"strings"
 	"sync"
@@ -90,7 +89,6 @@ func (o *operations) Resolve(builder *Builder) (err error) {
 		}
 	}
 
-	maps.Clear(o.fieldHashes)
 	o.builtOperationsConfigData = nil
 	// 将编译结果保存，留作生成swagger合成schema，运行时设置operation属性等
 	if err = GeneratedOperationsConfigRoot.InsertOrUpdate(o.operationsConfigData); err != nil {
