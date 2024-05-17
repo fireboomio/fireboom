@@ -111,6 +111,7 @@ func (s *EngineStart) StartNodeServer(mutex ...*sync.Mutex) {
 		node.WithStaticWunderNodeConfig(*s.nodeConfig),
 		node.WithCSRFProtect(setting.EnableCSRFProtect),
 		node.WithForceHttpsRedirects(setting.ForceHttpsRedirects),
+		node.WithHooksServerHealthCheck(time.Second * 5),
 		node.WithStartedHandler(func() {
 			if len(mutex) > 0 {
 				defer mutex[0].Unlock()
