@@ -34,9 +34,13 @@ var (
 
 type (
 	Builder struct {
-		FieldHashes map[string]string
+		FieldHashes map[string]*LazyFieldHash
 		Document    *ast.SchemaDocument
 		DefinedApi  *wgpb.UserDefinedApi
+	}
+	LazyFieldHash struct {
+		hashValue string
+		lazyFunc  func() string
 	}
 	Resolve interface {
 		Resolve(*Builder) error
@@ -47,6 +51,13 @@ type (
 	ResolveFetch       func() Resolve
 	AsyncGenerateFetch func() AsyncGenerate
 )
+
+func (f *LazyFieldHash) Hash() string {
+	if f.hashValue == "" {
+		f.hashValue, f.lazyFunc = f.lazyFunc(), nil
+	}
+	return f.hashValue
+}
 
 func GeneratedJsonLoadErrored() bool {
 	return GeneratedGraphqlConfigRoot.LoadErrored() || GeneratedOperationsConfigRoot.LoadErrored()

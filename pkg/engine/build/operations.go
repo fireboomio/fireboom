@@ -35,7 +35,7 @@ const (
 type operations struct {
 	modelName    string
 	rootDocument *ast.SchemaDocument
-	fieldHashes  map[string]string
+	fieldHashes  map[string]*LazyFieldHash
 	results      []*wgpb.Operation
 
 	graphqlFragments       string
@@ -50,7 +50,7 @@ type operations struct {
 func (o *operations) Resolve(builder *Builder) (err error) {
 	o.rootDocument = builder.Document
 	o.fieldHashes = builder.FieldHashes
-	o.results = nil
+	o.results = o.results[:0]
 
 	if err = o.loadFragments(); err != nil {
 		logger.Warn("load fragments failed", zap.Error(err))

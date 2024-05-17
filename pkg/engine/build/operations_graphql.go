@@ -43,7 +43,7 @@ func (o *operations) extractGraphqlOperation(operation *models.Operation,
 	}
 
 	for field, hash := range operation.SelectedFieldHashes {
-		if value, ok := o.fieldHashes[field]; !ok || value != hash {
+		if value, ok := o.fieldHashes[field]; !ok || value.Hash() != hash {
 			return
 		}
 	}
@@ -135,7 +135,9 @@ func (o *operations) setSelectedFieldHashes(operation *models.Operation, dsQuote
 	for name, quote := range dsQuotes {
 		for _, field := range quote.Fields {
 			fieldName := utils.JoinString("_", name, field)
-			operation.SelectedFieldHashes[fieldName] = o.fieldHashes[fieldName]
+			if value, ok := o.fieldHashes[fieldName]; ok {
+				operation.SelectedFieldHashes[fieldName] = value.Hash()
+			}
 		}
 	}
 }
@@ -175,7 +177,7 @@ func (o *operations) loadFragments() error {
 			return err
 		}
 
-		doc.Operations = nil
+		doc.Operations = doc.Operations[:0]
 		bufFormatter.FormatQueryDocument(doc)
 		_, _ = buf.WriteString("\n\n")
 		return nil

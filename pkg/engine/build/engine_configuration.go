@@ -42,7 +42,7 @@ type engineConfiguration struct {
 
 func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 	e.engineConfig = &wgpb.EngineConfiguration{}
-	e.typeConfigurationFlags = make(map[string]bool, math.MaxInt8)
+	e.typeConfigurationFlags = make(map[string]bool, math.MaxUint8)
 
 	sources := models.DatasourceRoot.ListByCondition(func(item *models.Datasource) bool { return item.Enabled })
 	if len(sources) == 0 {
@@ -117,7 +117,6 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 		logger.Debug("build datasource succeed", zap.String(e.modelName, ds.Name))
 	}
 
-	e.typeConfigurationFlags = nil
 	// 合成自定义指令到文档中
 	for _, customDirective := range directives.GetDirectiveSchemas() {
 		directiveItem := customDirective.Directive()
@@ -164,6 +163,7 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 		return
 	}
 
+	maps.Clear(e.typeConfigurationFlags)
 	e.calculateRootFieldHash(builder, otherDefinitionMap)
 	builder.DefinedApi.EngineConfiguration = e.engineConfig
 	return
@@ -265,22 +265,30 @@ func (e *engineConfiguration) calculateRootFieldHash(builder *Builder, fieldDefi
 		return
 	}
 
-	builder.FieldHashes = make(map[string]string)
-	for _, dsConfig := range e.engineConfig.DatasourceConfigurations {
-		for _, rootNode := range dsConfig.RootNodes {
-			for index, name := range rootNode.FieldNames {
-				buf, document := pool.GetBytesBuffer(), &ast.SchemaDocument{}
-				format := formatter.NewFormatter(buf, formatter.WithIndent(""))
-				quotes, ok := rootNode.Quotes[int32(index)]
-				if ok {
-					for _, i := range quotes.Indexes {
-						document.Definitions = append(document.Definitions, fieldDefinitions[dsConfig.ChildNodes[i].TypeName])
-					}
+	builder.FieldHashes = make(map[string]*LazyFieldHash, math.MaxUint8)
+	for dsIndex := range e.engineConfig.DatasourceConfigurations {
+		dsConfig := e.engineConfig.DatasourceConfigurations[dsIndex]
+		for nodeIndex := range dsConfig.RootNodes {
+			rootNode := dsConfig.RootNodes[nodeIndex]
+			for i := range rootNode.FieldNames {
+				fieldIndex, fieldName := i, rootNode.FieldNames[i]
+				builder.FieldHashes[fieldName] = &LazyFieldHash{
+					lazyFunc: func() string {
+						buf := pool.GetBytesBuffer()
+						defer pool.PutBytesBuffer(buf)
+						document := &ast.SchemaDocument{}
+						format := formatter.NewFormatter(buf, formatter.WithIndent(""))
+						quotes, ok := rootNode.Quotes[int32(fieldIndex)]
+						if ok {
+							for _, i := range quotes.Indexes {
+								document.Definitions = append(document.Definitions, fieldDefinitions[dsConfig.ChildNodes[i].TypeName])
+							}
+						}
+						format.FormatSchemaDocument(document)
+						buf.WriteString(fieldName)
+						return fmt.Sprintf("%x", md5.Sum(buf.Bytes()))
+					},
 				}
-				format.FormatSchemaDocument(document)
-				buf.WriteString(name)
-				builder.FieldHashes[name] = fmt.Sprintf("%x", md5.Sum(buf.Bytes()))
-				pool.PutBytesBuffer(buf)
 			}
 		}
 	}
