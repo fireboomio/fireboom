@@ -60,10 +60,6 @@ func (o *operations) resolveExtensionOperation(operation *models.Operation,
 	if operationResult.AuthorizationConfig == nil {
 		operationResult.AuthorizationConfig = &wgpb.OperationAuthorizationConfig{}
 	}
-	operationResult.HooksConfiguration = &wgpb.OperationHooksConfiguration{
-		HttpTransportBeforeRequest: operationResult.HooksConfiguration.HttpTransportBeforeRequest,
-		HttpTransportAfterResponse: operationResult.HooksConfiguration.HttpTransportAfterResponse,
-	}
 
 	extensionFile := &ExtensionOperationFile{
 		BaseOperationFile: BaseOperationFile{

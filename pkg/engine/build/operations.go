@@ -184,16 +184,18 @@ func (o *operations) mergeGlobalOperation(operation *models.Operation, operation
 }
 
 // 合成钩子配置和全局钩子配置
-func (o *operations) resolveOperationHook(operationItem *wgpb.Operation) {
+func (o *operations) resolveOperationHook(operationResult *wgpb.Operation) {
 	hookConfigMap := make(map[string]any)
-	for hook, option := range models.GetOperationHookOptions(operationItem.Path) {
-		ensureEnabled := option.Enabled && option.Existed
-		if hook == consts.MockResolve {
-			hookConfigMap[string(hook)] = &wgpb.MockResolveHookConfiguration{Enabled: ensureEnabled}
-			continue
-		}
+	if operationResult.Engine == wgpb.OperationExecutionEngine_ENGINE_GRAPHQL {
+		for hook, option := range models.GetOperationHookOptions(operationResult.Path) {
+			ensureEnabled := option.Enabled && option.Existed
+			if hook == consts.MockResolve {
+				hookConfigMap[string(hook)] = &wgpb.MockResolveHookConfiguration{Enabled: ensureEnabled}
+				continue
+			}
 
-		hookConfigMap[string(hook)] = ensureEnabled
+			hookConfigMap[string(hook)] = ensureEnabled
+		}
 	}
 
 	for hook, option := range models.GetHttpTransportHookOptions() {
@@ -201,7 +203,7 @@ func (o *operations) resolveOperationHook(operationItem *wgpb.Operation) {
 	}
 
 	configBytes, _ := json.Marshal(hookConfigMap)
-	_ = json.Unmarshal(configBytes, &operationItem.HooksConfiguration)
+	_ = json.Unmarshal(configBytes, &operationResult.HooksConfiguration)
 }
 
 var OperationsDefinitionRwMutex = sync.Mutex{}
