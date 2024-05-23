@@ -52,15 +52,13 @@ func cacheGraphqlSchema(dsName string, graphqlSchema string) {
 // 有jsonField的childNode需要额外添加字段
 // 从在编译期保存的根字段引用解析出实际引用的字段定义
 func copyDatasourceWithRootNodes(config *wgpb.DataSourceConfiguration, copyPostFunc func(*wgpb.TypeField, *wgpb.DataSourceConfiguration) bool) (configs []*wgpb.DataSourceConfiguration, fields []*wgpb.FieldConfiguration) {
-	var joinFieldIndex int
 	emptyArgs, emptyRequires := make([]*wgpb.ArgumentConfiguration, 0), make([]string, 0)
 	emptyCustomStatic := &wgpb.DataSourceCustom_Static{Data: utils.MakeStaticVariable("{}")}
-	joinModifyFunc := func(childItem *wgpb.TypeField, fieldName string, fieldNames []string) {
-		if joinFieldIndex = slices.Index(childItem.FieldNames, fieldName); joinFieldIndex == -1 {
+	joinModifyFunc := func(childItem *wgpb.TypeField, fieldName string, fieldNames []string) (joinIndex int) {
+		if joinIndex = slices.Index(childItem.FieldNames, fieldName); joinIndex == -1 {
 			return
 		}
 
-		childItem.FieldNames = slices.Delete(childItem.FieldNames, joinFieldIndex, joinFieldIndex+1)
 		configs = append(configs, &wgpb.DataSourceConfiguration{
 			Kind: wgpb.DataSourceKind_STATIC,
 			RootNodes: []*wgpb.TypeField{{
@@ -77,11 +75,31 @@ func copyDatasourceWithRootNodes(config *wgpb.DataSourceConfiguration, copyPostF
 			ArgumentsConfiguration:     emptyArgs,
 			RequiresFields:             emptyRequires,
 		})
+		return
 	}
-	joinFieldNames, joinMutationFieldNames := []string{JoinFieldName}, []string{JoinMutationFieldName}
-	for _, childItem := range config.ChildNodes {
-		joinModifyFunc(childItem, JoinFieldName, joinFieldNames)
-		joinModifyFunc(childItem, JoinMutationFieldName, joinMutationFieldNames)
+	clearJoinChildNodes := make([]*wgpb.TypeField, len(config.ChildNodes))
+	for i, item := range config.ChildNodes {
+		joinIndexes := make([]int, 0, len(joinFieldMap))
+		for name, fieldNames := range joinFieldMap {
+			if index := joinModifyFunc(item, name, fieldNames); index != -1 {
+				joinIndexes = append(joinIndexes, index)
+			}
+		}
+		if len(joinIndexes) == 0 {
+			clearJoinChildNodes[i] = item
+			continue
+		}
+
+		clearItem := &wgpb.TypeField{
+			TypeName:   item.TypeName,
+			FieldNames: make([]string, 0, len(item.FieldNames)-len(joinIndexes)),
+		}
+		for index := range item.FieldNames {
+			if !slices.Contains(joinIndexes, index) {
+				clearItem.FieldNames = append(clearItem.FieldNames, item.FieldNames[index])
+			}
+		}
+		clearJoinChildNodes[i] = clearItem
 	}
 
 	for _, rootItem := range config.RootNodes {
@@ -100,7 +118,7 @@ func copyDatasourceWithRootNodes(config *wgpb.DataSourceConfiguration, copyPostF
 			}
 			if quotes, ok := rootItem.Quotes[int32(index)]; ok {
 				for _, quoteIndex := range quotes.Indexes {
-					destCopy.ChildNodes = append(destCopy.ChildNodes, config.ChildNodes[quoteIndex])
+					destCopy.ChildNodes = append(destCopy.ChildNodes, clearJoinChildNodes[quoteIndex])
 				}
 			}
 			if copyPostFunc(copyRootItem, destCopy) {
@@ -117,6 +135,10 @@ const (
 )
 
 var (
+	joinFieldMap = map[string][]string{
+		JoinFieldName:         {JoinFieldName},
+		JoinMutationFieldName: {JoinMutationFieldName},
+	}
 	datasourceModelName string
 	logger              *zap.Logger
 	actionMap           = make(map[wgpb.DataSourceKind]func(*models.Datasource, string) Action)
