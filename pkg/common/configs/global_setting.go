@@ -79,6 +79,7 @@ func init() {
 					if appearance := data.Appearance; appearance != nil {
 						i18n.SwitchErrcodeLocale(appearance.Language)
 						i18n.SwitchDirectiveLocale(appearance.Language)
+						i18n.SwitchPrismaErrorLocale(appearance.Language)
 					}
 
 					if nodeLogger := data.NodeOptions.Logger; nodeLogger != nil {
@@ -90,6 +91,7 @@ func init() {
 						language := string(detail.Target)
 						i18n.SwitchErrcodeLocale(language)
 						i18n.SwitchDirectiveLocale(language)
+						i18n.SwitchPrismaErrorLocale(language)
 					}
 
 					if _, ok := modifies.GetModifyDetail("nodeOptions.logger.level"); ok {

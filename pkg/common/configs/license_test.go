@@ -27,7 +27,7 @@ func TestGenerateEnterpriseCode(t *testing.T) {
 }
 
 func generateUserLicense(licenseType consts.LicenseType, months int, userLimits map[string]int) {
-	requiredUserCode := "d70f6e1d2083fd88739f81ba87030339"
+	requiredUserCode := "1ab53c25d9622a455422cb37cf58e858"
 	encodeCode := utils.GenerateLicenseKey(requiredUserCode, &userLicense{
 		Type:       licenseType,
 		ExpireTime: time.Now().AddDate(0, months, 0),
