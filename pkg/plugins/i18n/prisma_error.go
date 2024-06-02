@@ -17,7 +17,7 @@ import (
 
 func init() {
 	database.TranslateErrorFunc = func(code string) string {
-		return PrismaError._transOne(PrismaError(cast.ToInt(code[1:])), _PrismaError_defaultLocale)
+		return PrismaError(cast.ToInt(code[1:])).String()
 	}
 }
 
@@ -30,6 +30,26 @@ func SwitchPrismaErrorLocale(locale string) bool {
 }
 
 type PrismaError uint16
+
+// CommonError
+const (
+	PrismaError_P1000 PrismaError = 1000 + iota
+	PrismaError_P1001
+	PrismaError_P1002
+	PrismaError_P1003
+)
+const (
+	PrismaError_P1008 PrismaError = 1008 + iota
+	PrismaError_P1009
+	PrismaError_P1010
+	PrismaError_P1011
+	PrismaError_P1012
+	PrismaError_P1013
+	PrismaError_P1014
+	PrismaError_P1015
+	PrismaError_P1016
+	PrismaError_P1017
+)
 
 // PrismaQueryError
 const (
@@ -65,9 +85,43 @@ const (
 	PrismaError_P2029
 	PrismaError_P2030
 	PrismaError_P2031
-	PrismaError_P2033
+)
+const (
+	PrismaError_P2033 PrismaError = 2033 + iota
 	PrismaError_P2034
 	PrismaError_P2035
 	PrismaError_P2036
 	PrismaError_P2037
+)
+
+// PrismaSchemaError
+const (
+	PrismaError_P3000 PrismaError = 3000 + iota
+	PrismaError_P3001
+	PrismaError_P3002
+	PrismaError_P3003
+	PrismaError_P3004
+	PrismaError_P3005
+	PrismaError_P3006
+	PrismaError_P3007
+	PrismaError_P3008
+	PrismaError_P3009
+	PrismaError_P3010
+	PrismaError_P3011
+	PrismaError_P3012
+	PrismaError_P3013
+	PrismaError_P3014
+	PrismaError_P3015
+	PrismaError_P3016
+	PrismaError_P3017
+	PrismaError_P3018
+	PrismaError_P3019
+	PrismaError_P3020
+	PrismaError_P3021
+	PrismaError_P3022
+)
+const (
+	PrismaError_P4000 PrismaError = 4000 + iota
+	PrismaError_P4001
+	PrismaError_P4002
 )
