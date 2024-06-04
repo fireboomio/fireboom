@@ -53,6 +53,7 @@ func (s *include) Resolve(resolver *SelectionResolver) (err error) {
 		return
 	}
 
+	resolver.Schema.Value.Nullable = true
 	if argIfFound {
 		if err = s.addVariablesSchema(resolver, argIfValue, boolSchema); err != nil {
 			return

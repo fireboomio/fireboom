@@ -174,6 +174,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 			var (
 				itemName                    string
 				itemPath                    []string
+				itemNonNull                 bool
 				itemSchemaRef               *openapi3.SchemaRef
 				itemCustomizedDirectiveName string
 			)
@@ -221,9 +222,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 					}
 					return
 				}, path...)
-				if fieldDefinition.Type.NonNull {
-					selectionSchema.Required = append(selectionSchema.Required, itemName)
-				}
+				itemNonNull = fieldDefinition.Type.NonNull
 				i.resolveSelectionArguments(field.Name, field.Arguments, fieldDefinition, path...)
 			} else {
 				var itemError error
@@ -241,7 +240,11 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 			}
 
 			selectionSchema.Properties[itemName] = itemSchemaRef
+			originNullable := itemSchemaRef.Value.Nullable
 			i.resolveSelectionDirectives(field.Directives, itemPath, itemSchemaRef, itemCustomizedDirectiveName)
+			if itemNonNull && !(!originNullable && itemSchemaRef.Value.Nullable) {
+				selectionSchema.Required = append(selectionSchema.Required, itemName)
+			}
 		}
 	}
 	return
