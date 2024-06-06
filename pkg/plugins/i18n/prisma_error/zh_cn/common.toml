@@ -12,3 +12,5 @@ PrismaError_P1014 = "模型{model}的基础{kind}不存在。"
 PrismaError_P1015 = "您的Prisma模式正在使用数据库版本不支持的功能。数据库版本: {database_version}。错误: {errors}"
 PrismaError_P1016 = "您的原始查询参数数量不正确。预期: {expected}，实际: {actual}。
 PrismaError_P1017 = "服务器已关闭连接。"
+PrismaError_P1018 = "{message}"
+PrismaError_P1019 = "{message}"

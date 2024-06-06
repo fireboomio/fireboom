@@ -49,6 +49,8 @@ const (
 	PrismaError_P1015
 	PrismaError_P1016
 	PrismaError_P1017
+	PrismaError_P1018
+	PrismaError_P1019
 )
 
 // PrismaQueryError
