@@ -18,6 +18,7 @@ import (
 	"github.com/labstack/echo/v4"
 	engineClient "github.com/prisma/prisma-client-go/engine"
 	"github.com/prisma/prisma-client-go/generator/ast/dmmf"
+	"github.com/wundergraph/wundergraph/pkg/datasources/database"
 	"github.com/wundergraph/wundergraph/pkg/eventbus"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"net/http"
@@ -260,6 +261,7 @@ func (d *datasource) graphqlQuery(c echo.Context) (err error) {
 			return
 		}
 
+		queryEngine.RewriteErrorsFunc = database.RewriteErrors
 		d.queryEngines.Store(data.Name, queryEngine)
 		defer func() {
 			_ = queryEngine.Disconnect()
