@@ -56,6 +56,14 @@ func (a *actionPrisma) RuntimeDataSourceConfiguration(config *wgpb.DataSourceCon
 	return
 }
 
+func (a *actionPrisma) ExtendDocument(document *ast.SchemaDocument) {
+	extendOptionalRawField(document)
+}
+
+func (a *actionPrisma) GetFieldRealName(fieldName string) string {
+	return getRawFieldOriginName(fieldName)
+}
+
 func (a *actionPrisma) fetchIntrospectSchema() (prismaSchema, env string, skipGraphql bool, err error) {
 	if skipGraphql = len(a.prismaSchema) > 0; skipGraphql {
 		prismaSchema = a.prismaSchema

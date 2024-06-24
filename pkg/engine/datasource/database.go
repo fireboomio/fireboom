@@ -53,6 +53,14 @@ func (a *actionDatabase) RuntimeDataSourceConfiguration(config *wgpb.DataSourceC
 	return
 }
 
+func (a *actionDatabase) ExtendDocument(document *ast.SchemaDocument) {
+	extendOptionalRawField(document)
+}
+
+func (a *actionDatabase) GetFieldRealName(fieldName string) string {
+	return getRawFieldOriginName(fieldName)
+}
+
 // 根据数据库类型组装introspectSchema
 func (a *actionDatabase) fetchIntrospectSchema() (introspectSchema, _ string, skipGraphql bool, err error) {
 	databaseConfig := a.ds.CustomDatabase

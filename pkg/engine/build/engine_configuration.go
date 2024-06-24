@@ -80,6 +80,10 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 			continue
 		}
 
+		if extend, ok := itemAction.(datasource.ActionExtend); ok {
+			extend.ExtendDocument(itemDocument)
+		}
+
 		// 调用不同的函数构建引擎所需配置
 		if itemConfig, err = itemAction.BuildDataSourceConfiguration(itemDocument); err != nil || itemConfig == nil {
 			e.printIntrospectError(err, ds.Name)
@@ -92,6 +96,7 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 
 		itemConfig.Id = ds.Name
 		itemConfig.Kind = ds.Kind
+		itemConfig.KindForPrisma = ds.KindForPrisma
 		itemConfig.RootNodes = itemRename.rootNodes
 		itemConfig.ChildNodes = itemRename.childNodes
 		e.engineConfig.DatasourceConfigurations = append(e.engineConfig.DatasourceConfigurations, itemConfig)
@@ -227,10 +232,14 @@ func (e *engineConfiguration) resolveFieldConfigurations(field *ast.FieldDefinit
 			RenderConfiguration: renderConfig,
 		})
 	}
+	fieldName := field.Name
+	if extend, ok := itemAction.(datasource.ActionExtend); ok {
+		fieldName = extend.GetFieldRealName(fieldName)
+	}
 	fieldConfiguration := &wgpb.FieldConfiguration{
 		TypeName:               typeName,
 		FieldName:              fieldRename,
-		Path:                   []string{field.Name},
+		Path:                   []string{fieldName},
 		ArgumentsConfiguration: argsConfig,
 		RequiresFields:         requiresFields,
 	}

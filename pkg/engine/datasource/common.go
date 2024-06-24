@@ -22,6 +22,11 @@ type Action interface {
 	RuntimeDataSourceConfiguration(*wgpb.DataSourceConfiguration) ([]*wgpb.DataSourceConfiguration, []*wgpb.FieldConfiguration, error)
 }
 
+type ActionExtend interface {
+	ExtendDocument(*ast.SchemaDocument)
+	GetFieldRealName(string) string
+}
+
 type FieldConfigurationAction interface {
 	// Handle 实现特殊的字段添加逻辑
 	Handle(*wgpb.FieldConfiguration)
@@ -110,6 +115,7 @@ func copyDatasourceWithRootNodes(config *wgpb.DataSourceConfiguration, copyPostF
 			}
 			destCopy := &wgpb.DataSourceConfiguration{
 				Kind:                       config.Kind,
+				KindForPrisma:              config.KindForPrisma,
 				RootNodes:                  []*wgpb.TypeField{copyRootItem},
 				OverrideFieldPathFromAlias: config.OverrideFieldPathFromAlias,
 				Directives:                 config.Directives,
