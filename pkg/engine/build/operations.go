@@ -16,6 +16,7 @@ import (
 	"github.com/wundergraph/wundergraph/pkg/interpolate"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 	"math"
 	"strings"
 	"sync"
@@ -100,7 +101,7 @@ func (o *operations) Resolve(builder *Builder) (err error) {
 }
 
 func (o *operations) extractOperationItem(item *models.Operation) (itemResult *wgpb.Operation, extracted bool) {
-	if o.builtOperationsConfigData == nil {
+	if o.builtOperationsConfigData == nil || slices.Contains(o.builtOperationsConfigData.Invalids, item.Path) {
 		return
 	}
 
