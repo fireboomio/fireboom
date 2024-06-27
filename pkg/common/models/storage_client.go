@@ -178,6 +178,8 @@ func (s *StorageClientCache) RenameObject(ctx context.Context, storage *Storage,
 		basename := strings.TrimPrefix(info.Key, mutation.Src)
 		if isDir && basename != "" {
 			destObject = utils.NormalizePath(destObject, basename)
+		} else if srcObject == "" {
+			srcObject = mutation.Src
 		}
 		srcOptions := minio.CopySrcOptions{Bucket: bucketName, Object: srcObject}
 		destOptions := minio.CopyDestOptions{Bucket: bucketName, Object: destObject}
