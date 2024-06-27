@@ -77,7 +77,7 @@ func (r *resolveDataSourceConfiguration) resolve(item *resolveItem) {
 
 	if item.requestBody.schema != nil {
 		bodyArgName := makeBodyArgumentName(item.requestBody.schema, item.operationId)
-		fetchConfig.Body = utils.MakePlaceHolderVariable(fmt.Sprintf(requestBodyFormat, bodyArgName))
+		fetchConfig.Body = utils.MakePlaceHolderVariable(fmt.Sprintf(requestBodyFormat, utils.NormalizeName(bodyArgName)))
 		fetchConfig.UrlEncodeBody = item.requestBody.contentType == echo.MIMEApplicationForm
 	}
 
