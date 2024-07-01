@@ -45,6 +45,7 @@ func (a *actionPrisma) BuildDataSourceConfiguration(*ast.SchemaDocument) (config
 	}
 	config = &wgpb.DataSourceConfiguration{CustomDatabase: &wgpb.DataSourceCustom_Database{
 		DatabaseURL:         utils.MakeStaticVariable(prismaSchemaFilepath),
+		JsonInputVariables:  []string{consts.ScalarJSON},
 		EnvironmentVariable: a.environmentVariable,
 	}}
 	return

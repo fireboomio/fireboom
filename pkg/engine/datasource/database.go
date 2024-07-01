@@ -5,6 +5,7 @@
 package datasource
 
 import (
+	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/models"
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/plugins/i18n"
@@ -42,7 +43,8 @@ func (a *actionDatabase) Introspect() (graphqlSchema string, err error) {
 func (a *actionDatabase) BuildDataSourceConfiguration(*ast.SchemaDocument) (config *wgpb.DataSourceConfiguration, err error) {
 	databaseUrl, _ := a.ds.CustomDatabase.GetDatabaseUrl(a.ds.Kind, a.ds.Name)
 	config = &wgpb.DataSourceConfiguration{CustomDatabase: &wgpb.DataSourceCustom_Database{
-		DatabaseURL: utils.MakeStaticVariable(databaseUrl),
+		DatabaseURL:        utils.MakeStaticVariable(databaseUrl),
+		JsonInputVariables: []string{consts.ScalarJSON},
 	}}
 	return
 }
