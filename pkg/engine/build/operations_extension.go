@@ -89,7 +89,7 @@ func (o *operations) resolveExtensionSchema(schemaBytes []byte, extensionFile *E
 	_ = json.Unmarshal(schemaBytes, &additionalDefinitions)
 	for name, itemSchema := range additionalDefinitions.Definitions {
 		extensionFile.VariablesRefs = append(extensionFile.VariablesRefs, name)
-		o.operationsConfigData.Definitions[name] = openapi2conv.ToV3SchemaRef(itemSchema)
+		o.operationsConfigData.Definitions.Store(name, openapi2conv.ToV3SchemaRef(itemSchema))
 	}
 	schema.Value.Extensions = nil
 	return openapi2conv.ToV3SchemaRef(&schema)

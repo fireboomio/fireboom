@@ -14,10 +14,8 @@ import (
 	"fireboom-server/pkg/plugins/i18n"
 	"github.com/asaskevich/govalidator"
 	"go.uber.org/zap"
-	"golang.org/x/exp/maps"
 	"os"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -33,10 +31,9 @@ type ModelText[T any] struct {
 	RelyModel              *Model[T] `valid:"required_if_multiple"`
 	RelyModelWatchPath     []string  // 监听模型数据的字段路径
 
-	rwType         rwType
-	logger         *zap.Logger
-	readCache      map[string]*textCache
-	readCacheMutex *sync.Mutex
+	rwType    rwType
+	logger    *zap.Logger
+	readCache *utils.SyncMap[string, *textCache]
 }
 
 // ResetRootDirectory 重置目录字典数据
@@ -47,11 +44,9 @@ func (t *ModelText[T]) ResetRootDirectory() {
 
 // GetFirstCache 获取文本数据缓存，目前仅适用于EmbedTextRW
 func (t *ModelText[T]) GetFirstCache() (result []byte) {
-	if len(t.readCache) == 0 {
-		return
+	if value := t.readCache.FirstValue(); value != nil {
+		result = value.content
 	}
-
-	result = maps.Values(t.readCache)[0].content
 	return
 }
 
@@ -67,8 +62,7 @@ func (t *ModelText[T]) Init() {
 	}
 
 	if t.ReadCacheRequired || t.rwType == embedRW {
-		t.readCache = make(map[string]*textCache)
-		t.readCacheMutex = &sync.Mutex{}
+		t.readCache = &utils.SyncMap[string, *textCache]{}
 	}
 	t.logger = zap.L()
 	t.load()
@@ -160,9 +154,7 @@ func (t *ModelText[T]) Read(dataName string, optional ...string) (content string
 
 	modifiedTime := fileInfo.ModTime()
 	if t.ReadCacheRequired {
-		t.readCacheMutex.Lock()
-		defer t.readCacheMutex.Unlock()
-		if cache, ok := t.readCache[path]; ok && modifiedTime.Equal(cache.lastModified) {
+		if cache, ok := t.readCache.Load(path); ok && modifiedTime.Equal(cache.lastModified) {
 			content = string(cache.content)
 			return
 		}
@@ -176,7 +168,7 @@ func (t *ModelText[T]) Read(dataName string, optional ...string) (content string
 
 	content = string(contentBytes)
 	if t.ReadCacheRequired {
-		t.readCache[path] = &textCache{content: contentBytes, lastModified: modifiedTime}
+		t.readCache.Store(path, &textCache{content: contentBytes, lastModified: modifiedTime})
 	}
 	return
 }

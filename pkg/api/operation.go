@@ -234,14 +234,16 @@ func (o *operation) bindRoles(c echo.Context) (err error) {
 			Children: children,
 		},
 	}}}
-	user := o.baseHandler.GetUser(c)
-	var succeedPaths []string
-	var graphqlText string
-	var queryItem *build.QueryDocumentItem
+	var (
+		succeedPaths []string
+		graphqlText  string
+		queryItem    *build.QueryDocumentItem
+		user         = o.baseHandler.GetUser(c)
+	)
 	for _, item := range operations {
 		dataName := o.modelRoot.GetDataName(item)
-		itemResult := models.LoadOperationResult(dataName)
-		if itemResult == nil {
+		itemResult, itemOk := models.OperationResultMap.Load(dataName)
+		if !itemOk {
 			continue
 		}
 

@@ -199,8 +199,7 @@ func (t *templateContext) buildFromDefinedApiSchema(api, sdkRequiredApi *wgpb.Us
 		}
 	}
 
-	operationsConfigData := build.GeneratedOperationsConfigRoot.FirstData()
-	var maxLength int
+	maxLength, operationsConfigData := 0, build.GeneratedOperationsConfigRoot.FirstData()
 	for _, item := range api.Operations {
 		if itemLen := len(item.Name); itemLen > maxLength {
 			maxLength = itemLen
@@ -249,9 +248,7 @@ func (t *templateContext) buildFromDefinedApiSchema(api, sdkRequiredApi *wgpb.Us
 		factory.buildObjectFromDataSchema(operationSchema.Response, &objectField{Name: responseDataName, OperationInfo: itemOperationInfo, Root: operationModelResponse})
 	}
 
-	build.OperationsDefinitionRwMutex.Lock()
 	factory.buildDefinitions(build.GetOperationsDefinitions(), "Definitions")
-	build.OperationsDefinitionRwMutex.Unlock()
 	factory.optimizeFieldInfo()
 	factory.maxLengthMap[""] = maxLength
 	t.ObjectFieldArray = factory.sortObjectFieldArray()

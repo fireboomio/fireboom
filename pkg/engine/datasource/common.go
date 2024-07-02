@@ -155,11 +155,10 @@ func init() {
 		logger = zap.L()
 		datasourceModelName = models.DatasourceRoot.GetModelName()
 	})
-	reloadMutexMap := sync.Map{}
+	reloadMutexMap := &utils.SyncMap[string, *sync.Mutex]{}
 	// 设置刷新prisma缓存函数
 	utils.ReloadPrismaCache = func(dsName string) (err error) {
-		value, existed := reloadMutexMap.LoadOrStore(dsName, &sync.Mutex{})
-		reloadMutex := value.(*sync.Mutex)
+		reloadMutex, existed := reloadMutexMap.LoadOrStore(dsName, &sync.Mutex{})
 		reloadMutex.Lock()
 		defer reloadMutex.Unlock()
 		if existed {

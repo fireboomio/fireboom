@@ -17,9 +17,7 @@ import (
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
-	"math"
 	"strings"
-	"sync"
 )
 
 func init() {
@@ -72,7 +70,7 @@ func (o *operations) Resolve(builder *Builder) (err error) {
 		GraphqlOperationFiles:  make(map[string]*GraphqlOperationFile),
 		FunctionOperationFiles: make(map[string]*ExtensionOperationFile),
 		ProxyOperationFiles:    make(map[string]*ExtensionOperationFile),
-		Definitions:            make(openapi3.Schemas, math.MaxInt8),
+		Definitions:            &utils.SyncMap[string, *openapi3.SchemaRef]{},
 	}
 	o.builtOperationsConfigData = GeneratedOperationsConfigRoot.FirstData()
 	if o.builtOperationsConfigData == nil {
@@ -118,7 +116,7 @@ func (o *operations) extractOperationItem(item *models.Operation) (itemResult *w
 			o.operationsConfigData.ProxyOperationFiles, o.builtOperationsConfigData.ProxyOperationFiles)
 	}
 	if extracted && item.Enabled {
-		itemResult = models.LoadOperationResult(item.Path)
+		itemResult, extracted = models.OperationResultMap.Load(item.Path)
 		SearchRefDefinitions(nil, o.builtOperationsConfigData.Definitions, o.operationsConfigData.Definitions, defRefs...)
 	}
 	return
@@ -207,15 +205,13 @@ func (o *operations) resolveOperationHook(operationResult *wgpb.Operation) {
 	_ = json.Unmarshal(configBytes, &operationResult.HooksConfiguration)
 }
 
-var OperationsDefinitionRwMutex = sync.Mutex{}
-
 type (
 	OperationsConfig struct {
-		GraphqlOperationFiles  map[string]*GraphqlOperationFile   `json:"graphql_operation_files"`
-		FunctionOperationFiles map[string]*ExtensionOperationFile `json:"function_operation_files"`
-		ProxyOperationFiles    map[string]*ExtensionOperationFile `json:"proxy_operation_files"`
-		Invalids               []string                           `json:"invalids,omitempty"`
-		Definitions            openapi3.Schemas                   `json:"definitions"`
+		GraphqlOperationFiles  map[string]*GraphqlOperationFile            `json:"graphql_operation_files"`
+		FunctionOperationFiles map[string]*ExtensionOperationFile          `json:"function_operation_files"`
+		ProxyOperationFiles    map[string]*ExtensionOperationFile          `json:"proxy_operation_files"`
+		Invalids               []string                                    `json:"invalids,omitempty"`
+		Definitions            *utils.SyncMap[string, *openapi3.SchemaRef] `json:"definitions"`
 	}
 	BaseOperationFile struct {
 		FilePath            string                             `json:"file_path"`
@@ -240,19 +236,19 @@ func normalizeOperationName(path string) string {
 }
 
 // GetOperationsDefinitions 获取operation的出入参数schemas
-func GetOperationsDefinitions() (result openapi3.Schemas) {
-	return GeneratedOperationsConfigRoot.FirstData().Definitions
+func GetOperationsDefinitions() openapi3.Schemas {
+	return GeneratedOperationsConfigRoot.FirstData().Definitions.ToMap()
 }
 
 // SearchRefDefinitions 递归搜索schema定义的引用，减少schema的定义的冗余
-func SearchRefDefinitions(schema *openapi3.SchemaRef, searchRefs, requireRefs openapi3.Schemas, refStr ...string) {
+func SearchRefDefinitions(schema *openapi3.SchemaRef, searchRefs, requireRefs *utils.SyncMap[string, *openapi3.SchemaRef], refStr ...string) {
 	if len(refStr) > 0 {
 		var requireSchemas []*openapi3.SchemaRef
 		for _, ref := range refStr {
 			refSchemaName := strings.TrimPrefix(ref, interpolate.Openapi3SchemaRefPrefix)
-			searchSchema := searchRefs[refSchemaName]
-			if _, ok := requireRefs[refSchemaName]; !ok && searchSchema != nil {
-				requireRefs[refSchemaName] = searchSchema
+			searchSchema, searched := searchRefs.Load(refSchemaName)
+			if _, ok := requireRefs.Load(refSchemaName); !ok && searched {
+				requireRefs.Store(refSchemaName, searchSchema)
 				requireSchemas = append(requireSchemas, searchSchema)
 			}
 		}

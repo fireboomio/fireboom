@@ -16,7 +16,6 @@ import (
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -62,21 +61,8 @@ const fieldOriginContent = "originContent"
 var (
 	OperationRoot      *fileloader.Model[Operation]
 	OperationMethodMap map[wgpb.OperationType]string
-	operationResultMap sync.Map
+	OperationResultMap utils.SyncMap[string, *wgpb.Operation]
 )
-
-func StoreOperationResult(path string, result *wgpb.Operation) {
-	operationResultMap.Store(path, result)
-}
-
-func LoadOperationResult(path string) *wgpb.Operation {
-	value, ok := operationResultMap.Load(path)
-	if !ok {
-		return nil
-	}
-
-	return value.(*wgpb.Operation)
-}
 
 func init() {
 	OperationMethodMap = map[wgpb.OperationType]string{

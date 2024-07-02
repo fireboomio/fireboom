@@ -98,7 +98,7 @@ func (t *ModelText[T]) load() {
 		t.Title = rw.Name
 		path := utils.NormalizePath(t.Root, rw.Name+string(t.Extension))
 		embedBytes, _ := rw.EmbedFiles.ReadFile(path)
-		t.readCache[path] = &textCache{content: embedBytes}
+		t.readCache.Store(path, &textCache{content: embedBytes})
 	}
 	return
 }
@@ -166,10 +166,7 @@ func (t *ModelText[T]) writeFile(dataName string, writeFunc func(*os.File) error
 	}
 
 	if t.ReadCacheRequired {
-		t.readCacheMutex.Lock()
-		defer t.readCacheMutex.Unlock()
-
-		delete(t.readCache, path)
+		t.readCache.Delete(path)
 	}
 
 	file, actionErr := utils.CreateFile(path)

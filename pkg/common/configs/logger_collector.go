@@ -8,14 +8,13 @@
 package configs
 
 import (
+	"fireboom-server/pkg/common/utils"
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/exp/slices"
-	"sync"
 )
 
 var (
-	logCollectors                  []*LogCollector
-	collectorMutex                 = &sync.Mutex{}
+	logCollectors                  = &utils.SyncMap[*LogCollector, bool]{}
 	AddFileLoaderQuestionCollector func(string, func(string) map[string]any)
 )
 
@@ -26,10 +25,7 @@ type LogCollector struct {
 }
 
 func AddCollector(c *LogCollector) {
-	collectorMutex.Lock()
-	defer collectorMutex.Unlock()
-
-	logCollectors = append(logCollectors, c)
+	logCollectors.Store(c, true)
 }
 
 func analysis(entry zapcore.Entry, fields []zapcore.Field) error {
@@ -47,19 +43,20 @@ func analysis(entry zapcore.Entry, fields []zapcore.Field) error {
 	return nil
 }
 
-func handlerCollectors(entry zapcore.Entry, collectors []*LogCollector, fieldMap map[string]*zapcore.Field) {
-	for _, collector := range collectors {
+func handlerCollectors(entry zapcore.Entry, collectors *utils.SyncMap[*LogCollector, bool], fieldMap map[string]*zapcore.Field) {
+	collectors.Range(func(collector *LogCollector, _ bool) bool {
 		if !slices.Contains(collector.MatchLevel, entry.Level) {
-			continue
+			return true
 		}
 
 		value, ok := fieldMap[collector.IdentifyField]
 		if !ok {
-			continue
+			return true
 		}
 
 		delete(fieldMap, value.Key)
 		result := collector.Handle(entry, value, fieldMap)
 		WebsocketInstance.WriteWsMsgBodyForAll(result)
-	}
+		return true
+	})
 }

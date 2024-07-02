@@ -47,16 +47,10 @@ func eventbusSubscribeModel[T any](model *fileloader.Model[T]) {
 }
 
 func removeQuestion(model, name string) {
-	questionMutex.Lock()
-	defer questionMutex.Unlock()
-
-	var qs []*question
-	for _, item := range questions {
-		if item.Model == model && item.Name == name {
-			continue
+	questions.Range(func(k *question, _ bool) bool {
+		if k.Model == model && k.Name == name {
+			questions.Delete(k)
 		}
-
-		qs = append(qs, item)
-	}
-	questions = qs
+		return true
+	})
 }

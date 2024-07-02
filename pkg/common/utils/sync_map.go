@@ -1,19 +1,100 @@
 package utils
 
-import "sync"
+import (
+	json "github.com/json-iterator/go"
+	"sync"
+)
 
-// LoadFromSyncMap 根据范型转换sync.Map的value
-// 解决sync.Map返回的值没有具体类型的问题
-func LoadFromSyncMap[T any](syncMap *sync.Map, key string) (v T, ok bool) {
-	if syncMap == nil {
-		return
+type SyncMap[K comparable, V any] struct {
+	sync.Map
+}
+
+func (s *SyncMap[K, V]) MarshalJSON() ([]byte, error) {
+	if s == nil {
+		return nil, nil
 	}
 
-	data, ok := syncMap.Load(key)
+	return json.Marshal(s.ToMap())
+}
+
+func (s *SyncMap[K, V]) UnmarshalJSON(data []byte) error {
+	dataMap := make(map[K]V)
+	if err := json.Unmarshal(data, &dataMap); err != nil {
+		return err
+	}
+
+	*s = SyncMap[K, V]{}
+	for k, v := range dataMap {
+		s.Map.Store(k, v)
+	}
+	return nil
+}
+
+func (s *SyncMap[K, V]) Load(key K) (v V, ok bool) {
+	data, ok := s.Map.Load(key)
 	if !ok {
 		return
 	}
 
-	v, ok = data.(T)
+	v, ok = data.(V)
+	return
+}
+
+func (s *SyncMap[K, V]) LoadOrStore(key K, value V) (v V, ok bool) {
+	data, ok := s.Map.LoadOrStore(key, value)
+	if !ok {
+		return
+	}
+
+	v, ok = data.(V)
+	return
+}
+
+func (s *SyncMap[K, V]) Store(key K, value V) {
+	s.Map.Store(key, value)
+}
+
+func (s *SyncMap[K, V]) Range(f func(key K, value V) bool) {
+	s.Map.Range(func(key, value any) bool {
+		keyStr, keyOk := key.(K)
+		valObj, valOk := value.(V)
+		if !keyOk || !valOk {
+			return false
+		}
+		return f(keyStr, valObj)
+	})
+}
+
+func (s *SyncMap[K, V]) ToMap() (dataMap map[K]V) {
+	dataMap = make(map[K]V)
+	s.Range(func(key K, value V) bool {
+		dataMap[key] = value
+		return true
+	})
+	return
+}
+
+func (s *SyncMap[K, V]) Keys() (keys []K) {
+	keys = make([]K, 0)
+	s.Range(func(key K, _ V) bool {
+		keys = append(keys, key)
+		return true
+	})
+	return
+}
+
+func (s *SyncMap[K, V]) FirstValue() (v V) {
+	s.Range(func(_ K, value V) bool {
+		v = value
+		return false
+	})
+	return
+}
+
+func (s *SyncMap[K, V]) Clear() (keys []K) {
+	s.Range(func(key K, _ V) bool {
+		s.Map.Delete(key)
+		return true
+	})
 	return
 }

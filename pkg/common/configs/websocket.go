@@ -29,8 +29,7 @@ type (
 
 type (
 	Websocket struct {
-		Conns []*WebsocketConn
-		*sync.Mutex
+		Conns utils.SyncMap[*WebsocketConn, bool]
 	}
 	WebsocketConn struct {
 		Conn *websocket.Conn
@@ -53,18 +52,14 @@ func (ws *Websocket) Write(p []byte) (n int, err error) {
 }
 
 func (ws *Websocket) WriteWsMsgBodyForAll(body *WsMsgBody) {
-	if len(ws.Conns) == 0 {
-		return
-	}
-
-	ws.Lock()
-	defer ws.Unlock()
-
-	bodyBytes, _ := json.Marshal(body)
-	for _, item := range ws.Conns {
+	var bodyBytes []byte
+	ws.Conns.Range(func(item *WebsocketConn, _ bool) bool {
+		if bodyBytes == nil {
+			bodyBytes, _ = json.Marshal(body)
+		}
 		item.WriteMessage(bodyBytes)
-	}
-	return
+		return true
+	})
 }
 
 func (ws *WebsocketConn) WriteMessage(bodyBytes []byte) {
@@ -90,7 +85,7 @@ var (
 
 func init() {
 	utils.RegisterInitMethod(12, func() {
-		WebsocketInstance = &Websocket{Mutex: &sync.Mutex{}}
+		WebsocketInstance = &Websocket{}
 		addLoggerWriteSyncer(WebsocketInstance)
 	})
 }

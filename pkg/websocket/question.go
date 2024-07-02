@@ -7,8 +7,7 @@ package websocket
 
 import (
 	"fireboom-server/pkg/common/configs"
-	"sync"
-
+	"fireboom-server/pkg/common/utils"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -19,10 +18,7 @@ const (
 	questionField                     = "error"
 )
 
-var (
-	questions     []*question
-	questionMutex = &sync.Mutex{}
-)
+var questions utils.SyncMap[*question, bool]
 
 type question struct {
 	Level string         `json:"level"`
@@ -36,7 +32,7 @@ func init() {
 	configs.WsMsgHandlerMap[questionChannel] = func(msg *configs.WsMsgBody) any {
 		switch msg.Event {
 		case configs.PullEvent:
-			return questions
+			return questions.Keys()
 		}
 		return nil
 	}
@@ -67,15 +63,12 @@ func init() {
 }
 
 func appendQuestion(qs *question) {
-	questionMutex.Lock()
-	defer questionMutex.Unlock()
-
-	questions = append(questions, qs)
+	questions.Store(qs, true)
 }
 
 func clearQuestion() {
-	questionMutex.Lock()
-	defer questionMutex.Unlock()
-
-	questions = nil
+	questions.Range(func(k *question, _ bool) bool {
+		questions.Delete(k)
+		return true
+	})
 }

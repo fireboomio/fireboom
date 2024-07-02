@@ -81,7 +81,7 @@ func (p *Model[T]) getLockByKey(key, user string) (dataLocker *dataLock, err err
 		p.addEmptyDataLock(key)
 	}
 
-	dataLocker, ok := utils.LoadFromSyncMap[*dataLock](dataLockMap, key)
+	dataLocker, ok := dataLockMap.Load(key)
 	if !ok {
 		err = i18n.NewCustomErrorWithMode(p.modelName, nil, i18n.LoaderLockNotFoundError, key)
 		return
@@ -133,10 +133,9 @@ const (
 	SystemUser = "$$system$$"
 )
 
-var dataLockMap *sync.Map
+var dataLockMap utils.SyncMap[string, *dataLock]
 
 func init() {
-	dataLockMap = &sync.Map{}
 	go func() {
 		lockTimeout := time.Minute * autoUnlockIntervalMinute * -1
 		ticker := time.NewTicker(time.Second * autoUnlockTickerSecond)
@@ -144,8 +143,7 @@ func init() {
 			select {
 			case c := <-ticker.C:
 				c = c.Add(lockTimeout)
-				dataLockMap.Range(func(key, value any) bool {
-					lock := value.(*dataLock)
+				dataLockMap.Range(func(key string, lock *dataLock) bool {
 					autoResetAction := func(d *dataLock) error {
 						d.reset()
 						zap.S().Infof("%d分钟未操作[%s]自动解锁", autoUnlockIntervalMinute, key)

@@ -39,7 +39,7 @@ type (
 	}
 	VariableResolver struct {
 		SelectionResolver
-		ArgumentDefinitions openapi3.Schemas
+		ArgumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef]
 	}
 
 	CustomDirective interface {

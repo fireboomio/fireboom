@@ -56,7 +56,7 @@ type QueryDocumentItem struct {
 
 	itemDocument            *ast.QueryDocument
 	operationDefinition     *ast.OperationDefinition
-	usedArgumentDefinitions openapi3.Schemas
+	usedArgumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef]
 	operationSchema         apihandler.OperationSchema
 	variablesSchemas        openapi3.Schemas
 	variablesRefs           []string
@@ -115,7 +115,7 @@ func (i *QueryDocumentItem) PrintQueryDocument(writer io.Writer) error {
 }
 
 // 设置解析所需的必要参数，仅当需要完成整个文档解析时需要
-func (i *QueryDocumentItem) setResolveParameters(operation *wgpb.Operation, touchedArgumentDefinitions openapi3.Schemas, definitionFetch func(string) *ast.Definition,
+func (i *QueryDocumentItem) setResolveParameters(operation *wgpb.Operation, touchedArgumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef], definitionFetch func(string) *ast.Definition,
 	definitionFieldIndexes map[*ast.Definition]*definitionFieldOverview, fieldArgumentIndexes map[*ast.FieldDefinition]*fieldArgumentOverview) {
 	i.operation, i.usedArgumentDefinitions = operation, touchedArgumentDefinitions
 	i.definitionFetch, i.definitionFieldIndexes, i.fieldArgumentIndexes = definitionFetch, definitionFieldIndexes, fieldArgumentIndexes
@@ -650,14 +650,14 @@ func (i *QueryDocumentItem) buildSelectionArgumentSchema(isVariableArg bool, def
 			i.variablesRefVisited[schemaRef.Ref] = true
 		}
 	}
-	if _, ok := i.usedArgumentDefinitions[definition.Name]; ok {
+	if _, ok := i.usedArgumentDefinitions.Load(definition.Name); ok {
 		return
 	}
 
 	// 对象类型的入参需要递归进行处理
 	objectSchema := openapi3.NewObjectSchema()
 	objectSchema.Description = definition.Description
-	i.usedArgumentDefinitions[definition.Name] = &openapi3.SchemaRef{Value: objectSchema}
+	i.usedArgumentDefinitions.Store(definition.Name, &openapi3.SchemaRef{Value: objectSchema})
 	for _, field := range definition.Fields {
 		fieldPath := CopyAndAppendItem(path, field.Name, field.Type)
 		objectSchema.Properties[field.Name] = i.buildJsonschema(false, field.Description, field.Type, func(fieldDef *ast.Definition) *openapi3.SchemaRef {

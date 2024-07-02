@@ -87,7 +87,7 @@ func (o *operations) resolveGraphqlOperation(operation *models.Operation, graphq
 	}
 
 	// 处理graphql文档，修改operationResult并将入参定义保存
-	argumentDefinitionsItem := make(openapi3.Schemas)
+	argumentDefinitionsItem := &utils.SyncMap[string, *openapi3.SchemaRef]{}
 	queryItem.setResolveParameters(operationResult, argumentDefinitionsItem, o.definitionFetch,
 		o.definitionFieldIndexes, o.fieldArgumentIndexes)
 	queryItem.resolveOperationList()

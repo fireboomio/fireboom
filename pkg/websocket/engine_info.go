@@ -25,12 +25,11 @@ type onStartedHook struct {
 
 var (
 	onFirstStartedOnce  = sync.Once{}
-	onEveryStartedMutex = sync.Mutex{}
-	onFirstStartedHooks []onStartedHook
-	onEveryStartedHooks []onStartedHook
+	onFirstStartedHooks = &utils.SyncMap[*onStartedHook, bool]{}
+	onEveryStartedHooks = &utils.SyncMap[*onStartedHook, bool]{}
 )
 
-func executeHooks(hooks []onStartedHook) {
+func executeHooks(hooks []*onStartedHook) {
 	for _, hook := range hooks {
 		if hook.goroutine {
 			go hook.hook()
@@ -41,20 +40,18 @@ func executeHooks(hooks []onStartedHook) {
 }
 
 func AddOnFirstStartedHook(hook func(), order int, goroutine ...bool) {
-	onFirstStartedHooks = append(onFirstStartedHooks, onStartedHook{
+	onFirstStartedHooks.Store(&onStartedHook{
 		hook:      hook,
 		order:     order,
 		goroutine: len(goroutine) > 0 && goroutine[0],
-	})
+	}, true)
 }
 
 func AddOnEveryStartedHook(hook func(), goroutine ...bool) {
-	onEveryStartedMutex.Lock()
-	defer onEveryStartedMutex.Unlock()
-	onEveryStartedHooks = append(onEveryStartedHooks, onStartedHook{
+	onEveryStartedHooks.Store(&onStartedHook{
 		hook:      hook,
 		goroutine: len(goroutine) > 0 && goroutine[0],
-	})
+	}, true)
 }
 
 type engineInfo struct {
@@ -92,13 +89,12 @@ func init() {
 			case consts.EngineStartSucceed:
 				utils.SetWithLockViper(consts.EngineStartTime, entry.Time)
 				onFirstStartedOnce.Do(func() {
-					slices.SortFunc(onFirstStartedHooks, func(a, b onStartedHook) bool { return a.order < b.order })
-					executeHooks(onFirstStartedHooks)
+					hooks := onFirstStartedHooks.Keys()
+					slices.SortFunc(hooks, func(a, b *onStartedHook) bool { return a.order < b.order })
+					executeHooks(hooks)
 				})
-				onEveryStartedMutex.Lock()
-				defer onEveryStartedMutex.Unlock()
-				executeHooks(onEveryStartedHooks)
-				onEveryStartedHooks = onEveryStartedHooks[:0]
+				executeHooks(onEveryStartedHooks.Keys())
+				onEveryStartedHooks.Clear()
 			}
 
 			return &configs.WsMsgBody{

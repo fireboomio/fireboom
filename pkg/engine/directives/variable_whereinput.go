@@ -189,7 +189,7 @@ var (
 	whereInputRelationFilterTypeKeys = [][]string{{whereInputFilterCommonFieldTypeName}, {whereInputRelationFilterFieldWhereName}}
 )
 
-func (v *whereInput) resolveWhereInput(variableWhere *wgpb.VariableWhereInput, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInput(variableWhere *wgpb.VariableWhereInput, data []byte, schema *openapi3.SchemaRef, argumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef]) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -206,7 +206,7 @@ func (v *whereInput) resolveWhereInput(variableWhere *wgpb.VariableWhereInput, d
 	return
 }
 
-func (v *whereInput) resolveWhereInputFilter(variableFilter *wgpb.VariableWhereInputFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInputFilter(variableFilter *wgpb.VariableWhereInputFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef]) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -226,7 +226,7 @@ func (v *whereInput) resolveWhereInputFilter(variableFilter *wgpb.VariableWhereI
 	return
 }
 
-func (v *whereInput) resolveWhereInputScalarFilter(scalarFilter *wgpb.VariableWhereInputScalarFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInputScalarFilter(scalarFilter *wgpb.VariableWhereInputScalarFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef]) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -243,7 +243,7 @@ func (v *whereInput) resolveWhereInputScalarFilter(scalarFilter *wgpb.VariableWh
 	return
 }
 
-func (v *whereInput) resolveWhereInputRelationFilter(relationFilter *wgpb.VariableWhereInputRelationFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions openapi3.Schemas) (err error) {
+func (v *whereInput) resolveWhereInputRelationFilter(relationFilter *wgpb.VariableWhereInputRelationFilter, data []byte, schema *openapi3.SchemaRef, argumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef]) (err error) {
 	jsonparser.EachKey(data, func(i int, bytes []byte, _ jsonparser.ValueType, _ error) {
 		if err != nil {
 			return
@@ -261,10 +261,10 @@ func (v *whereInput) resolveWhereInputRelationFilter(relationFilter *wgpb.Variab
 	return
 }
 
-func searchFieldSchemaOnDefinitionProperties(argumentDefinitions openapi3.Schemas, schemaRef *openapi3.SchemaRef, field string) (*openapi3.SchemaRef, error) {
+func searchFieldSchemaOnDefinitionProperties(argumentDefinitions *utils.SyncMap[string, *openapi3.SchemaRef], schemaRef *openapi3.SchemaRef, field string) (*openapi3.SchemaRef, error) {
 	definitionName := strings.TrimPrefix(schemaRef.Ref, interpolate.Openapi3SchemaRefPrefix)
-	schemaRef = argumentDefinitions[definitionName]
-	if schemaRef == nil || schemaRef.Value == nil {
+	schemaRef, ok := argumentDefinitions.Load(definitionName)
+	if !ok || schemaRef.Value == nil {
 		return nil, fmt.Errorf(whereInputWhereInputMissTypeFormat, definitionName)
 	}
 

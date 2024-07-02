@@ -24,14 +24,13 @@ import (
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"net/http"
 	"strings"
-	"sync"
 )
 
 func DatasourceExtraRouter(_, datasourceRouter *echo.Group, baseHandler *base.Handler[models.Datasource], modelRoot *fileloader.Model[models.Datasource]) {
 	handler := &datasource{
 		baseHandler: baseHandler,
 		modelRoot:   modelRoot, modelName: modelRoot.GetModelName(),
-		queryEngines: &sync.Map{},
+		queryEngines: &utils.SyncMap[string, *engineClient.QueryEngine]{},
 	}
 	base.AddRouterMetas(modelRoot,
 		datasourceRouter.POST("/checkConnection", handler.checkConnection),
@@ -49,7 +48,7 @@ type (
 		baseHandler  *base.Handler[models.Datasource]
 		modelRoot    *fileloader.Model[models.Datasource]
 		modelName    string
-		queryEngines *sync.Map
+		queryEngines *utils.SyncMap[string, *engineClient.QueryEngine]
 	}
 	datasourcePing struct {
 		models.Datasource
@@ -262,7 +261,7 @@ func (d *datasource) graphqlQuery(c echo.Context) (err error) {
 		return
 	}
 
-	queryEngine, ok := utils.LoadFromSyncMap[*engineClient.QueryEngine](d.queryEngines, data.Name)
+	queryEngine, ok := d.queryEngines.Load(data.Name)
 	if !ok {
 		var prismaSchema string
 		prismaSchema, err = engineDatasource.CachePrismaSchemaText.Read(data.Name)

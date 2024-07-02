@@ -2,15 +2,10 @@ package utils
 
 import (
 	"fireboom-server/pkg/plugins/i18n"
-	"sync"
-
 	"golang.org/x/exp/slices"
 )
 
-var (
-	initMethods []*initMethod
-	initMutex   = &sync.Mutex{}
-)
+var initMethods SyncMap[*initMethod, bool]
 
 type initMethod struct {
 	order  int
@@ -21,23 +16,21 @@ type initMethod struct {
 // RegisterInitMethod 注册初始化函数，使得原本不可控的init函数得以按顺序执行
 // 编排系统启动时的初始化函数
 func RegisterInitMethod(order int, method func()) {
-	initMutex.Lock()
-	defer initMutex.Unlock()
-
-	initMethods = append(initMethods, &initMethod{
+	initMethods.Store(&initMethod{
 		order:  order,
 		method: method,
 		caller: i18n.GetCallerMode(),
-	})
+	}, true)
 }
 
 // ExecuteInitMethods 执行初始化函数，order优先，再按照caller排序
 func ExecuteInitMethods() {
-	slices.SortFunc(initMethods, func(a, b *initMethod) bool {
+	inits := initMethods.Keys()
+	slices.SortFunc(inits, func(a, b *initMethod) bool {
 		return a.order < b.order || a.order == b.order && a.caller < b.caller
 	})
 
-	for _, item := range initMethods {
+	for _, item := range inits {
 		item.method()
 	}
 }

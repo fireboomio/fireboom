@@ -207,7 +207,7 @@ func (s *EngineStart) runtimeDataSourceConfigurations(datasourceConfigurations [
 func (s *EngineStart) setStoreOperationByRuntimeData(path string, operation *wgpb.Operation, fileItem *build.BaseOperationFile, hook ...func(*models.Operation)) {
 	itemData, _ := models.OperationRoot.GetByDataName(path)
 	if itemData != nil {
-		models.StoreOperationResult(path, operation)
+		models.OperationResultMap.Store(path, operation)
 		itemData.Invalid = false
 		itemData.OperationType = fileItem.OperationType
 		itemData.AuthorizationConfig = fileItem.AuthorizationConfig
@@ -222,9 +222,6 @@ func (s *EngineStart) setStoreOperationByRuntimeData(path string, operation *wgp
 func (s *EngineStart) runtimeOperations() {
 	s.nodeConfig.Api.OperationSchemas = make(map[string]*apihandler.OperationSchema, len(s.nodeConfig.Api.Operations))
 	operationsConfig := build.GeneratedOperationsConfigRoot.FirstData()
-	if operationsConfig == nil {
-		return
-	}
 	for _, operation := range s.nodeConfig.Api.Operations {
 		s.runtimeOperationItem(operationsConfig, operation)
 	}
@@ -259,15 +256,13 @@ func (s *EngineStart) runtimeOperationItem(operationsConfig *build.OperationsCon
 	}
 	s.setStoreOperationByRuntimeData(operationPath, operation, &baseFile, optional...)
 
-	variablesDefs := make(openapi3.Schemas)
-	build.OperationsDefinitionRwMutex.Lock()
+	variablesDefs := &utils.SyncMap[string, *openapi3.SchemaRef]{}
 	build.SearchRefDefinitions(nil, operationsConfig.Definitions, variablesDefs, baseFile.VariablesRefs...)
-	build.OperationsDefinitionRwMutex.Unlock()
 	s.nodeConfig.Api.OperationSchemas[operationPath] = &apihandler.OperationSchema{
 		Variables:         baseFile.Variables,
 		InternalVariables: baseFile.InternalVariables,
 		Response:          baseFile.Response,
-		Definitions:       variablesDefs,
+		Definitions:       variablesDefs.ToMap(),
 	}
 }
 

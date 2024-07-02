@@ -46,10 +46,8 @@ func (ws *wsCoreServer) open(c echo.Context) error {
 		return err
 	}
 
-	ws.core.Lock()
 	conn := &configs.WebsocketConn{Conn: wsConn, Mutex: &sync.Mutex{}}
-	ws.core.Conns = append(ws.core.Conns, conn)
-	ws.core.Unlock()
+	ws.core.Conns.Store(conn, true)
 
 	defer ws.close(wsConn)
 	var receiveMsg []byte
@@ -97,19 +95,9 @@ func (ws *wsCoreServer) open(c echo.Context) error {
 }
 
 func (ws *wsCoreServer) close(conn *websocket.Conn) {
-	ws.core.Lock()
-	defer ws.core.Unlock()
-
-	var newConns []*configs.WebsocketConn
-	for _, item := range ws.core.Conns {
-		if item.Conn == conn {
-			_ = conn.Close()
-			continue
-		}
-
-		newConns = append(newConns, item)
+	if _, ok := ws.core.Conns.LoadAndDelete(conn); ok {
+		_ = conn.Close()
 	}
-	ws.core.Conns = newConns
 }
 
 func init() {
