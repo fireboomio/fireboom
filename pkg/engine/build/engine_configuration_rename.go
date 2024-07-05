@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"regexp"
 )
@@ -151,13 +152,13 @@ func (d *dataSourceRename) renameFields(definition *ast.Definition, isRootNode b
 			// 根类型时重命名所有子类型即Query/Mutation/Subscription下的graphql
 			node.TypeName = d.rootOperationTypeNameMap[definition.Name]
 			fieldRename := d.applyNamespace(field.Name, false)
-			d.engineConfig.resolveFieldConfigurations(field, fieldRename, node.TypeName, d.action)
+			d.engineConfig.resolveFieldConfiguration(field, fieldRename, node.TypeName, d.action)
 			field.Name = fieldRename
 			// 在描述中添加数据源特殊标识用作引用数据源的筛选
 			field.Description += fmt.Sprintf(datasourceFormat, d.name)
 		} else if len(field.Arguments) > 0 {
 			// 非根类型时若有入参也需要处理
-			d.engineConfig.resolveFieldConfigurations(field, field.Name, node.TypeName, d.action)
+			d.engineConfig.resolveFieldConfiguration(field, field.Name, node.TypeName, d.action)
 		}
 		node.FieldNames = append(node.FieldNames, field.Name)
 
@@ -169,7 +170,7 @@ func (d *dataSourceRename) renameFields(definition *ast.Definition, isRootNode b
 				d.fieldQuoteTypesMap[definition.Name] = append(d.fieldQuoteTypesMap[definition.Name], field.Type.Name())
 			}
 		}
-		d.renameArguments(field.Arguments)
+		d.engineConfig.saveFieldArgumentTypeNames(field.Name, node.TypeName, d.renameArguments(field.Arguments))
 	}
 
 	if isRootNode {
@@ -237,14 +238,18 @@ func (d *dataSourceRename) renameDirectives() {
 }
 
 // 重命名入参中的参数类型名称
-func (d *dataSourceRename) renameArguments(arguments ast.ArgumentDefinitionList) {
+func (d *dataSourceRename) renameArguments(arguments ast.ArgumentDefinitionList) []string {
 	if len(arguments) == 0 {
-		return
+		return nil
 	}
 
+	renamedTypes := make(map[string]bool)
 	for _, arg := range arguments {
-		d.renameType(arg.Type)
+		if d.renameType(arg.Type) {
+			renamedTypes[arg.Type.Name()] = true
+		}
 	}
+	return maps.Keys(renamedTypes)
 }
 
 // 将数据源名称添加前面

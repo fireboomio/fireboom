@@ -34,7 +34,7 @@ var (
 
 type (
 	Builder struct {
-		FieldHashes map[string]*LazyFieldHash
+		FieldHashes *utils.SyncMap[string, *LazyFieldHash]
 		Document    *ast.SchemaDocument
 		DefinedApi  *wgpb.UserDefinedApi
 	}

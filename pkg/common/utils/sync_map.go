@@ -41,12 +41,9 @@ func (s *SyncMap[K, V]) Load(key K) (v V, ok bool) {
 }
 
 func (s *SyncMap[K, V]) LoadOrStore(key K, value V) (v V, ok bool) {
-	data, ok := s.Map.LoadOrStore(key, value)
-	if !ok {
-		return
-	}
-
+	data, existed := s.Map.LoadOrStore(key, value)
 	v, ok = data.(V)
+	ok = ok && existed
 	return
 }
 
@@ -86,6 +83,15 @@ func (s *SyncMap[K, V]) Keys() (keys []K) {
 func (s *SyncMap[K, V]) FirstValue() (v V) {
 	s.Range(func(_ K, value V) bool {
 		v = value
+		return false
+	})
+	return
+}
+
+func (s *SyncMap[K, V]) IsEmpty() (b bool) {
+	b = true
+	s.Range(func(_ K, value V) bool {
+		b = false
 		return false
 	})
 	return

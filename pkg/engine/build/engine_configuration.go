@@ -38,11 +38,13 @@ type engineConfiguration struct {
 	modelName              string
 	engineConfig           *wgpb.EngineConfiguration
 	typeConfigurationFlags map[string]bool
+	fieldArgumentTypeNames map[string][]string
 }
 
 func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 	e.engineConfig = &wgpb.EngineConfiguration{}
 	e.typeConfigurationFlags = make(map[string]bool, math.MaxUint8)
+	e.fieldArgumentTypeNames = make(map[string][]string, math.MaxUint8)
 
 	sources := models.DatasourceRoot.ListByCondition(func(item *models.Datasource) bool { return item.Enabled })
 	if len(sources) == 0 {
@@ -213,9 +215,11 @@ func (e *engineConfiguration) writeDocument(doc *ast.SchemaDocument, file *os.Fi
 
 // 将带有入参的graphql查询定义按指定格式记录
 // 后续引擎处理graphql响应时需要用到
-func (e *engineConfiguration) resolveFieldConfigurations(field *ast.FieldDefinition, fieldRename, typeName string, itemAction datasource.Action) {
-	var requiresFields []string
-	var argsConfig []*wgpb.ArgumentConfiguration
+func (e *engineConfiguration) resolveFieldConfiguration(field *ast.FieldDefinition, fieldRename, typeName string, itemAction datasource.Action) {
+	var (
+		requiresFields  []string
+		argumentConfigs []*wgpb.ArgumentConfiguration
+	)
 	for _, arg := range field.Arguments {
 		if arg.Type.NonNull {
 			// requiresFields = append(requiresFields, arg.Name)
@@ -225,7 +229,7 @@ func (e *engineConfiguration) resolveFieldConfigurations(field *ast.FieldDefinit
 			renderConfig = wgpb.ArgumentRenderConfiguration_RENDER_ARGUMENT_AS_JSON_VALUE
 		}
 
-		argsConfig = append(argsConfig, &wgpb.ArgumentConfiguration{
+		argumentConfigs = append(argumentConfigs, &wgpb.ArgumentConfiguration{
 			Name:                arg.Name,
 			SourceType:          wgpb.ArgumentSource_FIELD_ARGUMENT,
 			SourcePath:          []string{},
@@ -240,7 +244,7 @@ func (e *engineConfiguration) resolveFieldConfigurations(field *ast.FieldDefinit
 		TypeName:               typeName,
 		FieldName:              fieldRename,
 		Path:                   []string{fieldName},
-		ArgumentsConfiguration: argsConfig,
+		ArgumentsConfiguration: argumentConfigs,
 		RequiresFields:         requiresFields,
 	}
 
@@ -248,6 +252,15 @@ func (e *engineConfiguration) resolveFieldConfigurations(field *ast.FieldDefinit
 		customField.Handle(fieldConfiguration)
 	}
 	e.engineConfig.FieldConfigurations = append(e.engineConfig.FieldConfigurations, fieldConfiguration)
+}
+
+// 保存字段参数类型名称，后续用于hash判断重复
+func (e *engineConfiguration) saveFieldArgumentTypeNames(fieldRename, typeName string, argumentRenamedTypes []string) {
+	if len(argumentRenamedTypes) == 0 {
+		return
+	}
+
+	e.fieldArgumentTypeNames[utils.JoinStringWithDot(typeName, fieldRename)] = argumentRenamedTypes
 }
 
 // 将添加了数据源命名的类型按指定格式记录
@@ -274,30 +287,41 @@ func (e *engineConfiguration) calculateRootFieldHash(builder *Builder, fieldDefi
 		return
 	}
 
-	builder.FieldHashes = make(map[string]*LazyFieldHash, math.MaxUint8)
+	builder.FieldHashes = &utils.SyncMap[string, *LazyFieldHash]{}
 	for dsIndex := range e.engineConfig.DatasourceConfigurations {
 		dsConfig := e.engineConfig.DatasourceConfigurations[dsIndex]
 		for nodeIndex := range dsConfig.RootNodes {
 			rootNode := dsConfig.RootNodes[nodeIndex]
 			for i := range rootNode.FieldNames {
 				fieldIndex, fieldName := i, rootNode.FieldNames[i]
-				builder.FieldHashes[fieldName] = &LazyFieldHash{
+				builder.FieldHashes.Store(fieldName, &LazyFieldHash{
 					lazyFunc: func() string {
 						buf := pool.GetBytesBuffer()
 						defer pool.PutBytesBuffer(buf)
 						document := &ast.SchemaDocument{}
 						format := formatter.NewFormatter(buf, formatter.WithIndent(""))
-						quotes, ok := rootNode.Quotes[int32(fieldIndex)]
-						if ok {
-							for _, i := range quotes.Indexes {
-								document.Definitions = append(document.Definitions, fieldDefinitions[dsConfig.ChildNodes[i].TypeName])
+						fieldConfigNames := []string{utils.JoinStringWithDot(rootNode.TypeName, fieldName)}
+						if quotes, ok := rootNode.Quotes[int32(fieldIndex)]; ok {
+							for _, quoteIndex := range quotes.Indexes {
+								childNode := dsConfig.ChildNodes[quoteIndex]
+								document.Definitions = append(document.Definitions, fieldDefinitions[childNode.TypeName])
+								for _, childFieldName := range childNode.FieldNames {
+									fieldConfigNames = append(fieldConfigNames, utils.JoinStringWithDot(childNode.TypeName, childFieldName))
+								}
+							}
+						}
+						for _, fieldConfigName := range fieldConfigNames {
+							for _, argTypeName := range e.fieldArgumentTypeNames[fieldConfigName] {
+								if argTypeDefinition := fieldDefinitions[argTypeName]; !slices.Contains(document.Definitions, argTypeDefinition) {
+									document.Definitions = append(document.Definitions, argTypeDefinition)
+								}
 							}
 						}
 						format.FormatSchemaDocument(document)
 						buf.WriteString(fieldName)
 						return fmt.Sprintf("%x", md5.Sum(buf.Bytes()))
 					},
-				}
+				})
 			}
 		}
 	}

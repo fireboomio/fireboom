@@ -167,7 +167,6 @@ func (d *datasource) getDmmf(c echo.Context) (err error) {
 	unmarshalFunc := func(content string) error {
 		var dmmfDoc *dmmf.Document
 		_ = json.Unmarshal([]byte(content), &dmmfDoc)
-		base.SetHeaderCacheControlNoCache(c)
 		return c.JSON(http.StatusOK, dmmfDoc)
 	}
 

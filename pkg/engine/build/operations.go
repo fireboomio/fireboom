@@ -34,7 +34,7 @@ const (
 type operations struct {
 	modelName    string
 	rootDocument *ast.SchemaDocument
-	fieldHashes  map[string]*LazyFieldHash
+	fieldHashes  *utils.SyncMap[string, *LazyFieldHash]
 	results      []*wgpb.Operation
 
 	graphqlFragments       string

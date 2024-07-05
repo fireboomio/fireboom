@@ -523,5 +523,6 @@ func SetHeaderContentDisposition(c echo.Context, filename string) {
 }
 
 func SetHeaderCacheControlNoCache(c echo.Context) {
+	c.Request().Header.Del("If-Modified-Since")
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
 }

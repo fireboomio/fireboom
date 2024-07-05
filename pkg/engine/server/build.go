@@ -34,7 +34,10 @@ type EngineBuild struct {
 
 func (b *EngineBuild) release() {
 	build.GeneratedGraphqlConfigRoot.ClearCache()
-	b.builder = nil
+	if b.builder != nil {
+		b.builder.FieldHashes.Clear()
+		b.builder = nil
+	}
 }
 
 // GenerateGraphqlConfig 编译并生成引擎所需配置文件

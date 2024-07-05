@@ -43,7 +43,7 @@ func (o *operations) extractGraphqlOperation(operation *models.Operation,
 	}
 
 	for field, hash := range operation.SelectedFieldHashes {
-		if value, ok := o.fieldHashes[field]; !ok || value.Hash() != hash {
+		if value, ok := o.fieldHashes.Load(field); !ok || value.Hash() != hash {
 			return
 		}
 	}
@@ -127,7 +127,7 @@ func (o *operations) resolveGraphqlOperation(operation *models.Operation, graphq
 }
 
 func (o *operations) setSelectedFieldHashes(operation *models.Operation, dsQuotes map[string]*wgpb.DatasourceQuote) {
-	if len(o.fieldHashes) == 0 || len(dsQuotes) == 0 {
+	if o.fieldHashes.IsEmpty() || len(dsQuotes) == 0 {
 		return
 	}
 
@@ -135,7 +135,7 @@ func (o *operations) setSelectedFieldHashes(operation *models.Operation, dsQuote
 	for name, quote := range dsQuotes {
 		for _, field := range quote.Fields {
 			fieldName := utils.JoinString("_", name, field)
-			if value, ok := o.fieldHashes[fieldName]; ok {
+			if value, ok := o.fieldHashes.Load(fieldName); ok {
 				operation.SelectedFieldHashes[fieldName] = value.Hash()
 			}
 		}
