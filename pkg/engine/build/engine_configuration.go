@@ -34,29 +34,38 @@ func init() {
 	})
 }
 
-type engineConfiguration struct {
-	modelName              string
-	engineConfig           *wgpb.EngineConfiguration
-	typeConfigurationFlags map[string]bool
-	fieldArgumentTypeNames map[string][]string
-}
+type (
+	rootDefinitionInfo struct {
+		definition   *ast.Definition
+		fieldIndexes map[string]int
+	}
+	engineConfiguration struct {
+		modelName              string
+		engineConfig           *wgpb.EngineConfiguration
+		typeConfigurationFlags map[string]bool
+		fieldArgumentTypeNames map[string][]string
+		rootDefinitionInfos    map[string]*rootDefinitionInfo
+	}
+)
 
 func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
-	e.engineConfig = &wgpb.EngineConfiguration{}
-	e.typeConfigurationFlags = make(map[string]bool, math.MaxUint8)
-	e.fieldArgumentTypeNames = make(map[string][]string, math.MaxUint8)
-
 	sources := models.DatasourceRoot.ListByCondition(func(item *models.Datasource) bool { return item.Enabled })
 	if len(sources) == 0 {
 		logger.Warn("empty datasource")
 		return
 	}
 
-	directiveMap := make(map[string]*ast.DirectiveDefinition)
-	rootDefinitionMap, otherDefinitionMap := make(map[string]*ast.Definition), make(map[string]*ast.Definition, math.MaxInt8)
+	e.engineConfig = &wgpb.EngineConfiguration{}
+	e.typeConfigurationFlags = make(map[string]bool, math.MaxUint8)
+	e.fieldArgumentTypeNames = make(map[string][]string, math.MaxUint8)
+	e.rootDefinitionInfos = make(map[string]*rootDefinitionInfo)
+	directiveMap, otherDefinitionMap := make(map[string]*ast.DirectiveDefinition), make(map[string]*ast.Definition, math.MaxInt8)
 	// 添加根类型Query/Mutation/Subscription
 	for _, name := range datasource.RootObjectNames {
-		rootDefinitionMap[name] = &ast.Definition{Kind: ast.Object, Name: name}
+		e.rootDefinitionInfos[name] = &rootDefinitionInfo{
+			definition:   &ast.Definition{Kind: ast.Object, Name: name},
+			fieldIndexes: make(map[string]int),
+		}
 	}
 
 	var itemAction datasource.Action
@@ -114,8 +123,11 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 				itemDefinitionName = itemRootOperation
 			}
 
-			if root, ok := rootDefinitionMap[itemDefinitionName]; ok {
-				root.Fields = append(root.Fields, itemDefinition.Fields...)
+			if rootDefInfo, ok := e.rootDefinitionInfos[itemDefinitionName]; ok {
+				for _, field := range itemDefinition.Fields {
+					rootDefInfo.fieldIndexes[field.Name] = len(rootDefInfo.definition.Fields)
+					rootDefInfo.definition.Fields = append(rootDefInfo.definition.Fields, field)
+				}
 				continue
 			}
 
@@ -138,12 +150,12 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 	var operationTypes ast.OperationTypeDefinitionList
 	definitions := make(ast.DefinitionList, 0, len(otherDefinitionMap)+len(datasource.RootObjectNames))
 	for _, name := range datasource.RootObjectNames {
-		rootDefinition := rootDefinitionMap[name]
-		if len(rootDefinition.Fields) == 0 {
+		rootDefInfo := e.rootDefinitionInfos[name]
+		if len(rootDefInfo.definition.Fields) == 0 {
 			continue
 		}
 
-		definitions = append(definitions, rootDefinition)
+		definitions = append(definitions, rootDefInfo.definition)
 		operationTypes = append(operationTypes, &ast.OperationTypeDefinition{
 			Type: name, Operation: ast.Operation(strings.ToLower(name)),
 		})
@@ -292,33 +304,40 @@ func (e *engineConfiguration) calculateRootFieldHash(builder *Builder, fieldDefi
 		dsConfig := e.engineConfig.DatasourceConfigurations[dsIndex]
 		for nodeIndex := range dsConfig.RootNodes {
 			rootNode := dsConfig.RootNodes[nodeIndex]
+			rootDefInfo, rootDefFound := e.rootDefinitionInfos[rootNode.TypeName]
+			if !rootDefFound {
+				continue
+			}
 			for i := range rootNode.FieldNames {
 				fieldIndex, fieldName := i, rootNode.FieldNames[i]
+				rootFieldIndex, rootFieldFound := rootDefInfo.fieldIndexes[fieldName]
+				if !rootFieldFound {
+					continue
+				}
 				builder.FieldHashes.Store(fieldName, &LazyFieldHash{
 					lazyFunc: func() string {
-						buf := pool.GetBytesBuffer()
-						defer pool.PutBytesBuffer(buf)
-						document := &ast.SchemaDocument{}
-						format := formatter.NewFormatter(buf, formatter.WithIndent(""))
-						fieldConfigNames := []string{utils.JoinStringWithDot(rootNode.TypeName, fieldName)}
+						definitionNames := e.fieldArgumentTypeNames[utils.JoinStringWithDot(rootNode.TypeName, fieldName)]
 						if quotes, ok := rootNode.Quotes[int32(fieldIndex)]; ok {
 							for _, quoteIndex := range quotes.Indexes {
 								childNode := dsConfig.ChildNodes[quoteIndex]
-								document.Definitions = append(document.Definitions, fieldDefinitions[childNode.TypeName])
+								definitionNames = append(definitionNames, childNode.TypeName)
 								for _, childFieldName := range childNode.FieldNames {
-									fieldConfigNames = append(fieldConfigNames, utils.JoinStringWithDot(childNode.TypeName, childFieldName))
+									definitionNames = append(definitionNames, e.fieldArgumentTypeNames[utils.JoinStringWithDot(childNode.TypeName, childFieldName)]...)
 								}
 							}
 						}
-						for _, fieldConfigName := range fieldConfigNames {
-							for _, argTypeName := range e.fieldArgumentTypeNames[fieldConfigName] {
-								if argTypeDefinition := fieldDefinitions[argTypeName]; !slices.Contains(document.Definitions, argTypeDefinition) {
-									document.Definitions = append(document.Definitions, argTypeDefinition)
-								}
+
+						document := &ast.SchemaDocument{Definitions: []*ast.Definition{{
+							Kind: ast.Object, Name: rootNode.TypeName, Fields: []*ast.FieldDefinition{rootDefInfo.definition.Fields[rootFieldIndex]},
+						}}}
+						for _, name := range definitionNames {
+							if definition, ok := fieldDefinitions[name]; ok && !slices.Contains(document.Definitions, definition) {
+								document.Definitions = append(document.Definitions, definition)
 							}
 						}
-						format.FormatSchemaDocument(document)
-						buf.WriteString(fieldName)
+						buf := pool.GetBytesBuffer()
+						defer pool.PutBytesBuffer(buf)
+						formatter.NewFormatter(buf, formatter.WithIndent("")).FormatSchemaDocument(document)
 						return fmt.Sprintf("%x", md5.Sum(buf.Bytes()))
 					},
 				})
