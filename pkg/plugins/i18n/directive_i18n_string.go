@@ -19,7 +19,6 @@ func _() {
 	_ = x[FromClaimDesc-10201]
 	_ = x[FromClaimArgNameDesc-10202]
 	_ = x[FromClaimArgCustomJsonPathDesc-10203]
-	_ = x[FromClaimArgRemoveIfNoneMatchDesc-10204]
 	_ = x[FromHeaderDesc-10301]
 	_ = x[InjectCurrentDateTimeDesc-0]
 	_ = x[InjectEnvironmentVariableDesc-0]
@@ -63,7 +62,7 @@ func _() {
 }
 
 const (
-	_Directive_ZhCn_name = "作用于标量选择集上，将字段赋值给@internal声明的变量作用在字段上，用于格式化日期枚举值，系统内置的标准格式，如 ISO8601自定义格式，需遵循Golang规范，例如 2006-01-02 15:04:05作用于变量上，用于注入用户信息用于String变量，注入OIDC Claim对象声明的值，如USERID等用于任意变量，name=CUSTOM时生效，以数组形式指定json path，从CustomClaims中提取数据用于判断是否删除入参，当不满足条件时删除作用于String变量上，用于注入请求头中的字段作用于变量上，用于声明变量，和_join和export一起使用作用于OPERATION上，将其声明为内部函数，不对外暴露作用于变量上，用于入参校验用于数字类型变量，变量>minimum用于数字类型变量，变量<maximum用于数组变量，len(变量)≥minItems用于数组变量，len(变量)≤maxItems用于数组变量，为true时每项值不能重复用于String变量，len(变量)≤maxLength用于数组变量，len(变量) ≤ maxItems用于String变量，校验字符串是否匹配正则同pattern，声明了几种特殊正则枚举作用于OPERATION上，声明API的RBAC权限任意匹配，用户角色与API角色有交集时，可访问（常用）全部匹配，用户角色包含API角色时，可访问非全部匹配，当任意匹配或互斥匹配时，可访问互斥匹配，用户角色与API角色互斥时，可访问作用于MUTATION OPERATION上，指定当前变更为事务操作等待时间超时时间隔离级别作用于对象/数组类型的选择集上，将其拍扁示例用法：info.name用作将参数动态转换成查询条件反向筛选筛选条件筛选字段普通筛选关联筛选筛选类型忽略大小写嵌套条件作用于变量上，根据表达式注入参数，可以从arguments，request.header, request.body, environment获取参数作用于OPERATION上，禁止graphql并行解析作用于标量选择集上，自定义字段，可以在钩子和返回值中看到作用于标量选择集上，根据条件跳过参数填充"
+	_Directive_ZhCn_name = "作用于标量选择集上，将字段赋值给@internal声明的变量作用在字段上，用于格式化日期枚举值，系统内置的标准格式，如 ISO8601自定义格式，需遵循Golang规范，例如 2006-01-02 15:04:05作用于变量上，用于注入用户信息用于String变量，注入OIDC Claim对象声明的值，如USERID等用于任意变量，name=CUSTOM时生效，以数组形式指定json path，从CustomClaims中提取数据作用于String变量上，用于注入请求头中的字段作用于变量上，用于声明变量，和_join和export一起使用作用于OPERATION上，将其声明为内部函数，不对外暴露作用于变量上，用于入参校验用于数字类型变量，变量>minimum用于数字类型变量，变量<maximum用于数组变量，len(变量)≥minItems用于数组变量，len(变量)≤maxItems用于数组变量，为true时每项值不能重复用于String变量，len(变量)≤maxLength用于数组变量，len(变量) ≤ maxItems用于String变量，校验字符串是否匹配正则同pattern，声明了几种特殊正则枚举作用于OPERATION上，声明API的RBAC权限任意匹配，用户角色与API角色有交集时，可访问（常用）全部匹配，用户角色包含API角色时，可访问非全部匹配，当任意匹配或互斥匹配时，可访问互斥匹配，用户角色与API角色互斥时，可访问作用于MUTATION OPERATION上，指定当前变更为事务操作等待时间超时时间隔离级别作用于对象/数组类型的选择集上，将其拍扁示例用法：info.name用作将参数动态转换成查询条件反向筛选筛选条件筛选字段普通筛选关联筛选筛选类型忽略大小写嵌套条件作用于变量上，根据表达式注入参数，可以从arguments，request.header, request.body, environment获取参数作用于OPERATION上，禁止graphql并行解析作用于标量选择集上，自定义字段，可以在钩子和返回值中看到作用于标量选择集上，根据条件跳过参数填充"
 )
 
 var (
@@ -75,44 +74,43 @@ var (
 		10201: _Directive_ZhCn_name[235:280],
 		10202: _Directive_ZhCn_name[280:350],
 		10203: _Directive_ZhCn_name[350:457],
-		10204: _Directive_ZhCn_name[457:517],
-		10301: _Directive_ZhCn_name[517:577],
-		10401: _Directive_ZhCn_name[577:648],
-		10501: _Directive_ZhCn_name[648:717],
-		10601: _Directive_ZhCn_name[717:756],
-		10602: _Directive_ZhCn_name[756:797],
-		10603: _Directive_ZhCn_name[797:838],
-		10604: _Directive_ZhCn_name[838:881],
-		10605: _Directive_ZhCn_name[881:924],
-		10606: _Directive_ZhCn_name[924:976],
-		10607: _Directive_ZhCn_name[976:1020],
-		10608: _Directive_ZhCn_name[1020:1065],
-		10609: _Directive_ZhCn_name[1065:1119],
-		10610: _Directive_ZhCn_name[1119:1165],
-		10701: _Directive_ZhCn_name[1165:1211],
-		10702: _Directive_ZhCn_name[1211:1286],
-		10703: _Directive_ZhCn_name[1286:1343],
-		10704: _Directive_ZhCn_name[1343:1406],
-		10705: _Directive_ZhCn_name[1406:1466],
-		10801: _Directive_ZhCn_name[1466:1532],
-		10802: _Directive_ZhCn_name[1532:1544],
-		10803: _Directive_ZhCn_name[1544:1556],
-		10804: _Directive_ZhCn_name[1556:1568],
-		10901: _Directive_ZhCn_name[1568:1626],
-		10902: _Directive_ZhCn_name[1626:1650],
-		11001: _Directive_ZhCn_name[1650:1692],
-		11002: _Directive_ZhCn_name[1692:1704],
-		11003: _Directive_ZhCn_name[1704:1716],
-		11004: _Directive_ZhCn_name[1716:1728],
-		11005: _Directive_ZhCn_name[1728:1740],
-		11006: _Directive_ZhCn_name[1740:1752],
-		11007: _Directive_ZhCn_name[1752:1764],
-		11008: _Directive_ZhCn_name[1764:1779],
-		11009: _Directive_ZhCn_name[1779:1791],
-		11101: _Directive_ZhCn_name[1791:1916],
-		11201: _Directive_ZhCn_name[1916:1965],
-		11301: _Directive_ZhCn_name[1965:2049],
-		11401: _Directive_ZhCn_name[2049:2109],
+		10301: _Directive_ZhCn_name[457:517],
+		10401: _Directive_ZhCn_name[517:588],
+		10501: _Directive_ZhCn_name[588:657],
+		10601: _Directive_ZhCn_name[657:696],
+		10602: _Directive_ZhCn_name[696:737],
+		10603: _Directive_ZhCn_name[737:778],
+		10604: _Directive_ZhCn_name[778:821],
+		10605: _Directive_ZhCn_name[821:864],
+		10606: _Directive_ZhCn_name[864:916],
+		10607: _Directive_ZhCn_name[916:960],
+		10608: _Directive_ZhCn_name[960:1005],
+		10609: _Directive_ZhCn_name[1005:1059],
+		10610: _Directive_ZhCn_name[1059:1105],
+		10701: _Directive_ZhCn_name[1105:1151],
+		10702: _Directive_ZhCn_name[1151:1226],
+		10703: _Directive_ZhCn_name[1226:1283],
+		10704: _Directive_ZhCn_name[1283:1346],
+		10705: _Directive_ZhCn_name[1346:1406],
+		10801: _Directive_ZhCn_name[1406:1472],
+		10802: _Directive_ZhCn_name[1472:1484],
+		10803: _Directive_ZhCn_name[1484:1496],
+		10804: _Directive_ZhCn_name[1496:1508],
+		10901: _Directive_ZhCn_name[1508:1566],
+		10902: _Directive_ZhCn_name[1566:1590],
+		11001: _Directive_ZhCn_name[1590:1632],
+		11002: _Directive_ZhCn_name[1632:1644],
+		11003: _Directive_ZhCn_name[1644:1656],
+		11004: _Directive_ZhCn_name[1656:1668],
+		11005: _Directive_ZhCn_name[1668:1680],
+		11006: _Directive_ZhCn_name[1680:1692],
+		11007: _Directive_ZhCn_name[1692:1704],
+		11008: _Directive_ZhCn_name[1704:1719],
+		11009: _Directive_ZhCn_name[1719:1731],
+		11101: _Directive_ZhCn_name[1731:1856],
+		11201: _Directive_ZhCn_name[1856:1905],
+		11301: _Directive_ZhCn_name[1905:1989],
+		11401: _Directive_ZhCn_name[1989:2049],
 	}
 )
 

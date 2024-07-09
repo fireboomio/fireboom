@@ -143,7 +143,6 @@ func (o *reflectObjectFactory) reflectServerConfig() {
 	authProviderKindSchemaRef := o.buildInt32EnumSchema(wgpb.AuthProviderKind_value, wgpb.AuthProviderKind_AuthProviderGithub)
 	claimTypeSchemaRef := o.buildInt32EnumSchema(wgpb.ClaimType_value, wgpb.ClaimType_ISSUER)
 	variableKindSchemaRef := o.buildInt32EnumSchema(wgpb.ConfigurationVariableKind_value, wgpb.ConfigurationVariableKind_STATIC_CONFIGURATION_VARIABLE)
-	claimRemoveIfNoneMatchTypeSchemaRef := o.buildInt32EnumSchema(wgpb.ClaimRemoveIfNoneMatchType_value, wgpb.ClaimRemoveIfNoneMatchType_Header)
 	dataSourceKindSchemaRef := o.buildInt32EnumSchema(wgpb.DataSourceKind_value, wgpb.DataSourceKind_STATIC)
 	dateOffsetUnitSchemaRef := o.buildInt32EnumSchema(wgpb.DateOffsetUnit_value, wgpb.DateOffsetUnit_YEAR)
 	httpMethodSchemaRef := o.buildInt32EnumSchema(wgpb.HTTPMethod_value, wgpb.HTTPMethod_GET)
@@ -166,7 +165,6 @@ func (o *reflectObjectFactory) reflectServerConfig() {
 		&enumRewrite{parent: wgpb.ApiCacheConfig{}, property: kindProperty, schema: apiCacheKindSchemaRef},
 		&enumRewrite{parent: wgpb.AuthProvider{}, property: kindProperty, schema: authProviderKindSchemaRef},
 		&enumRewrite{parent: wgpb.ClaimConfig{}, property: "claimType", schema: claimTypeSchemaRef},
-		&enumRewrite{parent: wgpb.ClaimRemoveIfNoneMatch{}, property: "type", schema: claimRemoveIfNoneMatchTypeSchemaRef},
 		&enumRewrite{parent: wgpb.VariableWhereInputScalarFilter{}, property: "type", schema: ScalarFilterTypeSchemaRef},
 		&enumRewrite{parent: wgpb.VariableWhereInputRelationFilter{}, property: "type", schema: relationFilterTypeSchemaRef},
 		&enumRewrite{parent: wgpb.ConfigurationVariable{}, property: kindProperty, schema: variableKindSchemaRef},

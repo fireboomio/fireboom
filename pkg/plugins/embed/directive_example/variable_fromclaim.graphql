@@ -1,5 +1,5 @@
 query myQuery ($userId: String! @fromClaim(name: USERID), $name: String! @fromClaim(name: NAME),
-  $now: DateTime @injectCurrentDateTime(format: ISO8601, offset: {value: 100, unit: YEAR}) @fromClaim(name: ROLES,  removeIfNoneMatch: {type: Environment, name: "super_role_code"})
+  $now: DateTime @injectCurrentDateTime(format: ISO8601, offset: {value: 100, unit: YEAR})
 ) {
   data: findFirstStudent(where: {OR: [{userId: {equals: $userId}, name: {equals: $name}}, {createdAt: {lte: $now}}]}) {
     userId

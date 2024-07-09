@@ -11,21 +11,15 @@ import (
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
 	json "github.com/json-iterator/go"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"golang.org/x/exp/slices"
 )
 
 const (
-	fromClaimName                           = "fromClaim"
-	fromClaimArgNameType                    = "Claim"
-	fromClaimArgCustomJsonPathName          = "customJsonPath"
-	fromClaimArgRemoveIfNoneMatchName       = "removeVariableIfNoneMatch"
-	fromClaimArgRemoveIfNoneMatchType       = "ClaimRemoveIfNoneMatch"
-	fromClaimRemoveIfNoneMatchFieldTypeName = "type"
-	fromClaimRemoveIfNoneMatchFieldTypeType = "ClaimRemoveIfNoneMatchType"
+	fromClaimName                  = "fromClaim"
+	fromClaimArgNameType           = "Claim"
+	fromClaimArgCustomJsonPathName = "customJsonPath"
 
 	customClaimNotSupportedType = "customClaim [%s] not support inject type %s"
 )
@@ -49,52 +43,24 @@ func (v *fromClaim) Directive() *ast.DirectiveDefinition {
 				Name:        fromClaimArgCustomJsonPathName,
 				Type:        ast.ListType(ast.NamedType(consts.ScalarString, nil), nil),
 			},
-			{
-				Description: i18n.FromClaimArgRemoveIfNoneMatchDesc.String(),
-				Name:        fromClaimArgRemoveIfNoneMatchName,
-				Type:        ast.NamedType(fromClaimArgRemoveIfNoneMatchType, nil),
-			},
 		},
 	}
 }
 
 func (v *fromClaim) Definitions() ast.DefinitionList {
-	var nameEnumValues, removeIfNoneEnumValues ast.EnumValueList
+	var nameEnumValues ast.EnumValueList
 	for k, v := range wgpb.ClaimType_value {
 		nameEnumValues = append(nameEnumValues, &ast.EnumValueDefinition{
 			Name:        k,
 			Description: claimEnumValueDescriptionMap[wgpb.ClaimType(v)],
 		})
 	}
-	for k := range wgpb.ClaimRemoveIfNoneMatchType_value {
-		removeIfNoneEnumValues = append(removeIfNoneEnumValues, &ast.EnumValueDefinition{Name: k})
-	}
 
-	return ast.DefinitionList{
-		{
-			Kind:       ast.Enum,
-			Name:       fromClaimArgNameType,
-			EnumValues: nameEnumValues,
-		},
-		{
-			Kind:       ast.Enum,
-			Name:       fromClaimRemoveIfNoneMatchFieldTypeType,
-			EnumValues: removeIfNoneEnumValues,
-		},
-		{
-			Kind: ast.InputObject,
-			Name: fromClaimArgRemoveIfNoneMatchType,
-			Fields: ast.FieldList{
-				{
-					Name: fromClaimRemoveIfNoneMatchFieldTypeName,
-					Type: ast.NonNullNamedType(fromClaimRemoveIfNoneMatchFieldTypeType, nil),
-				}, {
-					Name: commonArgName,
-					Type: ast.NonNullNamedType(consts.ScalarString, nil),
-				},
-			},
-		},
-	}
+	return ast.DefinitionList{{
+		Kind:       ast.Enum,
+		Name:       fromClaimArgNameType,
+		EnumValues: nameEnumValues,
+	}}
 }
 
 func (v *fromClaim) Resolve(resolver *VariableResolver) (_, skip bool, err error) {
@@ -112,14 +78,6 @@ func (v *fromClaim) Resolve(resolver *VariableResolver) (_, skip bool, err error
 
 	skip = true
 	claimConfig := &wgpb.ClaimConfig{ClaimType: wgpb.ClaimType(claimType), VariablePathComponents: resolver.Path}
-	removeIfNoneValue, ok := resolver.Arguments[fromClaimArgRemoveIfNoneMatchName]
-	if ok {
-		removeIfNoneType := gjson.Get(removeIfNoneValue, fromClaimRemoveIfNoneMatchFieldTypeName).String()
-		removeIfNoneValue, _ = sjson.Set(removeIfNoneValue, fromClaimRemoveIfNoneMatchFieldTypeName, wgpb.ClaimRemoveIfNoneMatchType_value[removeIfNoneType])
-		if err = json.Unmarshal([]byte(removeIfNoneValue), &claimConfig.RemoveIfNoneMatch); err != nil {
-			return
-		}
-	}
 	resolver.Operation.AuthorizationConfig.Claims = append(resolver.Operation.AuthorizationConfig.Claims, claimConfig)
 	resolver.Operation.AuthenticationConfig = &wgpb.OperationAuthenticationConfig{AuthRequired: true}
 	if claimConfig.ClaimType != wgpb.ClaimType_CUSTOM {

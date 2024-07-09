@@ -32,7 +32,6 @@ const (
 	FromClaimDesc Directive = iota + 10201
 	FromClaimArgNameDesc
 	FromClaimArgCustomJsonPathDesc
-	FromClaimArgRemoveIfNoneMatchDesc
 )
 
 const FromHeaderDesc Directive = iota + 10301
