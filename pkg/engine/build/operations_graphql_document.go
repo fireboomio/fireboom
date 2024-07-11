@@ -188,6 +188,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 			if ok {
 				fieldDefinition := definition.Fields[fieldDefIndex]
 				if !datasource.ContainsRootDefinition(definition.Name, fieldDefinition.Type.Name()) &&
+					(len(fieldDefinition.Arguments) > 0 || len(field.SelectionSet) == 0) &&
 					slices.ContainsFunc(savedSet, func(selection ast.Selection) bool {
 						savedField, saved := selection.(*ast.Field)
 						return saved && savedField.Name == field.Name
