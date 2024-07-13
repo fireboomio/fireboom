@@ -90,6 +90,9 @@ func (s *SyncMap[K, V]) FirstValue() (v V) {
 
 func (s *SyncMap[K, V]) IsEmpty() (b bool) {
 	b = true
+	if s == nil {
+		return
+	}
 	s.Range(func(_ K, value V) bool {
 		b = false
 		return false
