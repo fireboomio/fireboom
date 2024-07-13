@@ -41,12 +41,12 @@ type Model[T any] struct {
 	renameWatchers map[string][]func(string, string, ...string) error // 监听模型字段值重命名
 
 	loadErrored bool
-	rwType      rwType          // 类型
-	logger      *zap.Logger     // 日志
-	modelName   string          // 模型名称，结构体的名称
-	modelLock   *sync.Mutex     // 数据表锁
-	dataCache   map[string]*T   // 数据缓存
-	textItems   []*ModelText[T] // 依赖子项
+	rwType      rwType                     // 类型
+	logger      *zap.Logger                // 日志
+	modelName   string                     // 模型名称，结构体的名称
+	modelLock   *sync.Mutex                // 数据表锁
+	dataCache   *utils.SyncMap[string, *T] // 数据缓存
+	textItems   []*ModelText[T]            // 依赖子项
 }
 
 type (
@@ -132,12 +132,13 @@ func (p *Model[T]) ClearCache() {
 	p.modelLock.Lock()
 	defer p.modelLock.Unlock()
 
-	for key := range p.dataCache {
-		delete(p.dataCache, key)
+	p.dataCache.Range(func(key string, value *T) bool {
+		p.dataCache.Delete(key)
 		dataLockMap.Delete(p.GetPath(key))
 		_ = p.callRemoveAction(key)
 		p.afterDelete(nil, key, SystemUser)
-	}
+		return true
+	})
 }
 
 // InsertOrUpdate 直接插入或更新，适用于系统配置文件的更新
@@ -416,9 +417,9 @@ func (p *Model[T]) ListByDataNames(dataNames []string) (result []*T) {
 // ListByCondition 返回数据列表，自定义查询条件
 func (p *Model[T]) ListByCondition(condition ...func(*T) bool) (result []*T) {
 	result = make([]*T, 0)
-	for _, data := range p.dataCache {
+	p.dataCache.Range(func(key string, data *T) bool {
 		if !p.filter(data) {
-			continue
+			return true
 		}
 
 		if len(condition) > 0 {
@@ -429,12 +430,13 @@ func (p *Model[T]) ListByCondition(condition ...func(*T) bool) (result []*T) {
 				}
 			}
 			if !match {
-				continue
+				return true
 			}
 		}
 
 		result = append(result, data)
-	}
+		return true
+	})
 	slices.SortFunc(result, p.sortLess)
 	return
 }

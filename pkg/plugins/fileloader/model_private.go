@@ -30,13 +30,13 @@ func (p *Model[T]) initData(lazyLogger ...func() *zap.Logger) {
 	p.setModelName()
 	rootDirectories[p.modelName] = p.Root
 	p.modelLock = &sync.Mutex{}
-	p.dataCache = make(map[string]*T)
+	p.dataCache = &utils.SyncMap[string, *T]{}
 
 	p.removeWatchers = make(map[string][]func(string, ...string) error)
 	p.renameWatchers = make(map[string][]func(string, string, ...string) error)
 
 	errs := p.load()
-	succeed := len(p.dataCache)
+	succeed := p.dataCache.Size()
 	fields := []zap.Field{zap.String("model", p.modelName), zap.Int("succeed", succeed)}
 	if len(errs) > 0 {
 		fields = append(fields, zap.Int("failed", len(errs)))
@@ -143,7 +143,7 @@ func (p *Model[T]) readToCache(path string, readFunc func(string) ([]byte, error
 		return
 	}
 
-	p.addDataFromCache(dataName, data)
+	p.addDataToCache(dataName, data)
 	p.addEmptyDataLock(dataFilepath)
 	return
 }
@@ -231,7 +231,7 @@ func (p *Model[T]) storeModel(data *T) (err error) {
 		return
 	}
 
-	p.addDataFromCache(dataName, data)
+	p.addDataToCache(dataName, data)
 	path := p.GetPath(dataName)
 	p.addEmptyDataLock(path)
 	dataBytes, err := p.marshal(data)
@@ -243,16 +243,16 @@ func (p *Model[T]) storeModel(data *T) (err error) {
 	return
 }
 
-func (p *Model[T]) addDataFromCache(dataName string, data *T) {
-	p.dataCache[dataName] = data
+func (p *Model[T]) addDataToCache(dataName string, data *T) {
+	p.dataCache.Store(dataName, data)
 }
 
 func (p *Model[T]) removeDataFromCache(dataName string) {
-	delete(p.dataCache, dataName)
+	p.dataCache.Delete(dataName)
 }
 
 func (p *Model[T]) getDataFromCache(dataName string) (data *T, ok bool) {
-	data, ok = p.dataCache[dataName]
+	data, ok = p.dataCache.Load(dataName)
 	ok = ok && p.filter(data)
 	return
 }

@@ -46,11 +46,11 @@ func (p *Model[T]) onUpdate(src, dst *T, user string) error {
 }
 
 func (p *Model[T]) afterInit(errs []error) {
-	if len(errs) > 0 || len(p.dataCache) == 0 || p.DataHook == nil || p.DataHook.AfterInit == nil {
+	if len(errs) > 0 || p.dataCache.IsEmpty() || p.DataHook == nil || p.DataHook.AfterInit == nil {
 		return
 	}
 
-	p.DataHook.AfterInit(p.dataCache)
+	p.DataHook.AfterInit(p.dataCache.ToMap())
 }
 
 func (p *Model[T]) ignoreMutate(err error, user string) bool {

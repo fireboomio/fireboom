@@ -131,7 +131,7 @@ func (t *ModelText[T]) path(dataName string, offset int, optional ...string) (st
 		return utils.NormalizePath(t.Root, basename), nil
 	case *SingleTextRW[T]:
 		// 名称等于rw.name获取在依赖项缓存数据中存在
-		if dataName != rw.Name && (t.RelyModel == nil || t.RelyModel.dataCache[dataName] == nil) {
+		if dataName != rw.Name && (t.RelyModel == nil || !t.RelyModel.dataCache.Contains(dataName)) {
 			return "", i18n.NewCustomErrorWithMode(t.Title, nil, i18n.LoaderDataFilepathError, rw.Name, dataName)
 		}
 		return utils.NormalizePath(t.Root, rw.Name+string(t.Extension)), nil
