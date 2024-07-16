@@ -43,7 +43,7 @@ func (v *fromHeader) Resolve(resolver *VariableResolver) (_, skip bool, err erro
 	resolver.Operation.VariablesConfiguration.InjectVariables = append(resolver.Operation.VariablesConfiguration.InjectVariables, &wgpb.VariableInjectionConfiguration{
 		VariablePathComponents: resolver.Path,
 		VariableKind:           wgpb.InjectVariableKind_FROM_HEADER,
-		ValueTypeName:          resolver.Schema.Value.Type,
+		ValueTypeName:          getRealVariableTypeName(resolver.Schema),
 		FromHeaderName:         value,
 	})
 	skip = true

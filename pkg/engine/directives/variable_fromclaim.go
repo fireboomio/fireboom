@@ -12,8 +12,10 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	json "github.com/json-iterator/go"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/wundergraph/wundergraph/pkg/interpolate"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"golang.org/x/exp/slices"
+	"strings"
 )
 
 const (
@@ -95,14 +97,16 @@ func (v *fromClaim) Resolve(resolver *VariableResolver) (_, skip bool, err error
 		return
 	}
 
-	customName, schemaValueType := resolver.Path[0], resolver.Schema.Value.Type
+	customName, schemaValueType := resolver.Path[0], getRealVariableTypeName(resolver.Schema)
 	customType, ok := customTypeMap[schemaValueType]
 	if !ok {
 		err = fmt.Errorf(customClaimNotSupportedType, customName, schemaValueType)
 		return
 	}
 
-	customClaim.Required = slices.Contains(resolver.Schema.Value.Required, customName)
+	if schemaValue := resolver.Schema.Value; schemaValue != nil {
+		customClaim.Required = slices.Contains(schemaValue.Required, customName)
+	}
 	customClaim.Name = customName
 	customClaim.Type = customType
 	claimConfig.Custom = &customClaim
@@ -126,4 +130,11 @@ func init() {
 
 	claimEnumValueDescriptionMap = make(map[wgpb.ClaimType]string)
 	claimEnumValueDescriptionMap[wgpb.ClaimType_ROLES] = `ROLES is string array, Please use in [in, notIn].`
+}
+
+func getRealVariableTypeName(schemaRef *openapi3.SchemaRef) string {
+	if schemaRef.Value != nil {
+		return schemaRef.Value.Type
+	}
+	return strings.TrimPrefix(schemaRef.Ref, interpolate.Openapi3SchemaRefPrefix)
 }

@@ -482,7 +482,7 @@ func (i *QueryDocumentItem) resolveVariableDefinitions(operation *ast.OperationD
 			return
 		}
 
-		if defaultValue := item.DefaultValue; defaultValue != nil {
+		if defaultValue := item.DefaultValue; defaultValue != nil && itemSchemaRef.Value != nil {
 			itemSchemaRef.Value.Default = defaultValue.String()
 		}
 
@@ -644,7 +644,7 @@ func (i *QueryDocumentItem) resolveVariableDirectives(directiveList ast.Directiv
 }
 
 func (i *QueryDocumentItem) buildSelectionArgumentSchema(isVariableArg bool, definition *ast.Definition, path ...string) (schemaRef *openapi3.SchemaRef) {
-	schemaRef = &openapi3.SchemaRef{Ref: interpolate.Openapi3SchemaRefPrefix + definition.Name, Value: openapi3.NewSchema()}
+	schemaRef = &openapi3.SchemaRef{Ref: interpolate.Openapi3SchemaRefPrefix + definition.Name}
 	if isVariableArg {
 		if _, ok := i.variablesRefVisited[schemaRef.Ref]; !ok {
 			i.variablesRefs = append(i.variablesRefs, schemaRef.Ref)
@@ -658,6 +658,7 @@ func (i *QueryDocumentItem) buildSelectionArgumentSchema(isVariableArg bool, def
 	// 对象类型的入参需要递归进行处理
 	objectSchema := openapi3.NewObjectSchema()
 	objectSchema.Description = definition.Description
+	objectSchema.Nullable = strings.Contains(definition.Name, nullableRequiredKey)
 	i.usedArgumentDefinitions.Store(definition.Name, &openapi3.SchemaRef{Value: objectSchema})
 	for _, field := range definition.Fields {
 		fieldPath := CopyAndAppendItem(path, field.Name, field.Type)
@@ -685,10 +686,14 @@ func (i *QueryDocumentItem) buildJsonschema(hasSubFields bool, fieldDescription 
 	}
 
 	if fieldType.Elem != nil {
-		schemaRef.Value.Nullable = !fieldType.Elem.NonNull
+		if schemaRef.Value != nil {
+			schemaRef.Value.Nullable = !fieldType.Elem.NonNull
+		}
 		schemaRef = wrapArraySchemaRef(schemaRef)
 	}
-	schemaRef.Value.Nullable, schemaRef.Value.Description = !fieldType.NonNull, description
+	if schemaRef.Value != nil {
+		schemaRef.Value.Nullable, schemaRef.Value.Description = !fieldType.NonNull, description
+	}
 	return
 }
 

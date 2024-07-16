@@ -56,7 +56,7 @@ func (v *injectRuleValue) Resolve(resolver *VariableResolver) (unableInput, skip
 	injectRuleVariable := &wgpb.VariableInjectionConfiguration{
 		VariablePathComponents: resolver.Path,
 		VariableKind:           wgpb.InjectVariableKind_RULE_EXPRESSION,
-		ValueTypeName:          resolver.Schema.Value.Type,
+		ValueTypeName:          getRealVariableTypeName(resolver.Schema),
 		RuleExpression:         value,
 	}
 	resolver.Operation.RuleExpressionExisted = true

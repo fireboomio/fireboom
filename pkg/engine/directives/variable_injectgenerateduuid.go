@@ -31,7 +31,7 @@ func (v *injectGeneratedUUID) Resolve(resolver *VariableResolver) (_, skip bool,
 	resolver.Operation.VariablesConfiguration.InjectVariables = append(resolver.Operation.VariablesConfiguration.InjectVariables, &wgpb.VariableInjectionConfiguration{
 		VariablePathComponents: resolver.Path,
 		VariableKind:           wgpb.InjectVariableKind_UUID,
-		ValueTypeName:          resolver.Schema.Value.Type,
+		ValueTypeName:          getRealVariableTypeName(resolver.Schema),
 	})
 	skip = true
 	return
