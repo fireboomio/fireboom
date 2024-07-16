@@ -73,8 +73,9 @@ func (v *injectCurrentDateTime) Resolve(resolver *VariableResolver) (_, skip boo
 	}
 	variableConfig := &wgpb.VariableInjectionConfiguration{
 		VariablePathComponents: resolver.Path,
-		DateFormat:             dateFormat,
 		VariableKind:           wgpb.InjectVariableKind_DATE_TIME,
+		ValueTypeName:          resolver.Schema.Value.Type,
+		DateFormat:             dateFormat,
 	}
 	if dateOffset, ok := resolver.Arguments[dateTimeArgOffsetName]; ok {
 		unit := gjson.Get(dateOffset, datetimeArgOffsetUnitName).String()
