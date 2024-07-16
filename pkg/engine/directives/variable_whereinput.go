@@ -268,7 +268,7 @@ func searchFieldSchemaOnDefinitionProperties(argumentDefinitions *utils.SyncMap[
 		return nil, fmt.Errorf(whereInputWhereInputMissTypeFormat, definitionName)
 	}
 
-	if schemaRef = schemaRef.Value.Properties[field]; schemaRef == nil || schemaRef.Value == nil {
+	if schemaRef = schemaRef.Value.Properties[field]; schemaRef == nil || schemaRef.Value == nil && schemaRef.Ref == "" {
 		return nil, fmt.Errorf(whereInputWhereInputMissFieldFormat, field, definitionName)
 	}
 	return schemaRef, nil
