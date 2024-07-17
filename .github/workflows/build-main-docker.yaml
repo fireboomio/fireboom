@@ -63,7 +63,7 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: fireboomapi/fireboom:dev_without-web
+          tags: fireboomapi/fireboom_without-web:dev
           cache-from: type=gha
           cache-to: type=gha,mode=max
       

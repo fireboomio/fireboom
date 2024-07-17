@@ -59,6 +59,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            fireboomapi/fireboom:${{ github.ref_name }}_without-web
+            fireboomapi/fireboom_without-web:${{ github.ref_name }}
+            fireboomapi/fireboom_without-web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
