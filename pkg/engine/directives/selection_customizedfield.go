@@ -50,6 +50,7 @@ func (s *customizedField) Definitions() ast.DefinitionList {
 	for k := range scalarToSchemaMap {
 		typeEnumValues = append(typeEnumValues, &ast.EnumValueDefinition{Name: k})
 	}
+	typeEnumValues = append(typeEnumValues, &ast.EnumValueDefinition{Name: utils.UppercaseFirst(openapi3.TypeArray)})
 	return ast.DefinitionList{{
 		Kind:       ast.Enum,
 		Name:       customizedFieldArgTypeType,
@@ -63,15 +64,22 @@ func (s *customizedField) Resolve(resolver *SelectionResolver) (err error) {
 		err = fmt.Errorf(argumentRequiredFormat, customizedFieldArgType)
 		return
 	}
-	if resolver.Schema, ok = BuildSchemaRefForScalar(value, false); !ok {
-		err = fmt.Errorf(argumentValueNotSupportedFormat, value, customizedFieldArgType)
-		return
+	isArray := value == utils.UppercaseFirst(openapi3.TypeArray)
+	if !isArray {
+		if resolver.Schema, ok = BuildSchemaRefForScalar(value, false); !ok {
+			err = fmt.Errorf(argumentValueNotSupportedFormat, value, customizedFieldArgType)
+			return
+		}
 	}
 	desc, ok := resolver.Arguments[customizedFieldArgDesc]
 	if ok {
 		schemaValue := *resolver.Schema.Value
 		schemaValue.Description = desc
 		resolver.Schema.Value = &schemaValue
+	}
+	if isArray && resolver.Schema.Value.Type != openapi3.TypeArray {
+		schema := *resolver.Schema
+		resolver.Schema.Value = &openapi3.Schema{Type: openapi3.TypeArray, Items: &schema}
 	}
 	return
 }

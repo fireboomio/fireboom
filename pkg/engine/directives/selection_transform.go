@@ -90,7 +90,7 @@ loop:
 
 			arrayVisited = true
 			schema.Value = schema.Value.Items.Value
-			if index > 0 {
+			if index > 0 || index == 0 && postTransformation.From[len(postTransformation.From)-1] != utils.ArrayPath {
 				postTransformation.From = append(postTransformation.From, utils.ArrayPath)
 			}
 		default:
