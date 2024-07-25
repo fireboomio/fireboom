@@ -25,21 +25,26 @@ const (
 	dateTimeArgOffsetType     = "DateOffset"
 	dateTimeArgOffsetUnitType = "DateOffsetUnit"
 	datetimeArgOffsetUnitName = "unit"
+	dateTimeArgToUnixName     = "toUnix"
+	dateTimeArgToUnixType     = "DateToUnix"
 )
 
 type injectCurrentDateTime struct{}
 
 func (v *injectCurrentDateTime) Directive() *ast.DirectiveDefinition {
-	formatArgs := dateTimeFormatArguments()
-	formatArgs = append(formatArgs, &ast.ArgumentDefinition{
+	directiveArgs := dateTimeFormatArguments()
+	directiveArgs = append(directiveArgs, &ast.ArgumentDefinition{
 		Name: dateTimeArgOffsetName,
 		Type: ast.NamedType(dateTimeArgOffsetType, nil),
+	}, &ast.ArgumentDefinition{
+		Name: dateTimeArgToUnixName,
+		Type: ast.NamedType(dateTimeArgToUnixType, nil),
 	})
 	return &ast.DirectiveDefinition{
 		Description: appendIfExistExampleGraphql(i18n.InjectCurrentDateTimeDesc.String()),
 		Name:        injectCurrentDateTimeName,
 		Locations:   []ast.DirectiveLocation{ast.LocationVariableDefinition},
-		Arguments:   formatArgs,
+		Arguments:   directiveArgs,
 	}
 }
 
@@ -48,6 +53,10 @@ func (v *injectCurrentDateTime) Definitions() ast.DefinitionList {
 	var unitEnumValues ast.EnumValueList
 	for k := range wgpb.DateOffsetUnit_value {
 		unitEnumValues = append(unitEnumValues, &ast.EnumValueDefinition{Name: k})
+	}
+	var dateToUnixEnumValues ast.EnumValueList
+	for k := range wgpb.DateToUnix_value {
+		dateToUnixEnumValues = append(dateToUnixEnumValues, &ast.EnumValueDefinition{Name: k})
 	}
 	definitions = append(definitions,
 		&ast.Definition{
@@ -62,6 +71,10 @@ func (v *injectCurrentDateTime) Definitions() ast.DefinitionList {
 			Kind:       ast.Enum,
 			Name:       dateTimeArgOffsetUnitType,
 			EnumValues: unitEnumValues,
+		}, &ast.Definition{
+			Kind:       ast.Enum,
+			Name:       dateTimeArgToUnixType,
+			EnumValues: dateToUnixEnumValues,
 		})
 	return definitions
 }
@@ -83,6 +96,10 @@ func (v *injectCurrentDateTime) Resolve(resolver *VariableResolver) (_, skip boo
 		if err = json.Unmarshal([]byte(dateOffset), &variableConfig.DateOffset); err != nil {
 			return
 		}
+	}
+	if dateToUnix, ok := resolver.Arguments[dateTimeArgToUnixName]; ok {
+		unix := wgpb.DateToUnix(wgpb.DateToUnix_value[dateToUnix])
+		variableConfig.DateToUnix = &unix
 	}
 
 	resolver.Operation.VariablesConfiguration.InjectVariables = append(resolver.Operation.VariablesConfiguration.InjectVariables, variableConfig)
