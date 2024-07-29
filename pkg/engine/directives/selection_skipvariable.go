@@ -20,9 +20,10 @@ type skipVariable struct{}
 
 func (s *skipVariable) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: prependMockAllowed(appendIfExistExampleGraphql(i18n.SkipVariableDesc.String())),
-		Name:        skipVariableName,
-		Locations:   []ast.DirectiveLocation{ast.LocationField},
+		IsRepeatable: true,
+		Description:  prependMockAllowed(appendIfExistExampleGraphql(i18n.SkipVariableDesc.String())),
+		Name:         skipVariableName,
+		Locations:    []ast.DirectiveLocation{ast.LocationField},
 		Arguments: ast.ArgumentDefinitionList{{
 			Name: skipVariableArgName,
 			Type: ast.NonNullListType(&ast.Type{NamedType: consts.ScalarString}, nil),

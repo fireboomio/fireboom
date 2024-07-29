@@ -163,6 +163,7 @@ definitions:
     - 10518
     - 10519
     - 10520
+    - 10521
     - 10601
     - 10602
     - 10603
@@ -225,6 +226,7 @@ definitions:
     - FileContentEmptyError
     - DirectoryReadError
     - LoaderFileReadError
+    - LoaderFileNotExistError
     - LoaderFileUnmarshalError
     - LoaderDataExistEditorError
     - LoaderDataExistError
@@ -323,12 +325,39 @@ definitions:
         $ref: '#/definitions/models.sdkType'
       updateTime:
         type: string
-      upperFirst:
+      upperFirstBasename:
         type: boolean
       version:
         type: string
     type: object
   models.Storage:
+    properties:
+      accessKeyID:
+        $ref: '#/definitions/wgpb.ConfigurationVariable'
+      bucketLocation:
+        $ref: '#/definitions/wgpb.ConfigurationVariable'
+      bucketName:
+        $ref: '#/definitions/wgpb.ConfigurationVariable'
+      createTime:
+        type: string
+      deleteTime:
+        type: string
+      enabled:
+        type: boolean
+      endpoint:
+        $ref: '#/definitions/wgpb.ConfigurationVariable'
+      name:
+        type: string
+      secretAccessKey:
+        $ref: '#/definitions/wgpb.ConfigurationVariable'
+      updateTime:
+        type: string
+      uploadProfiles:
+        additionalProperties:
+          $ref: '#/definitions/wgpb.S3UploadProfile'
+        type: object
+      useSSL:
+        type: boolean
     type: object
   models.StorageFile:
     properties:
@@ -389,6 +418,61 @@ definitions:
     - File
     - Directory
     - SymbolicLink
+  wgpb.ConfigurationVariable:
+    properties:
+      environmentVariableDefaultValue:
+        description: '[omitempty]'
+        type: string
+      environmentVariableName:
+        description: '[omitempty]'
+        type: string
+      kind:
+        $ref: '#/definitions/wgpb.ConfigurationVariableKind'
+      placeholderVariableName:
+        description: '[omitempty]'
+        type: string
+      staticVariableContent:
+        description: '[omitempty]'
+        type: string
+    type: object
+  wgpb.ConfigurationVariableKind:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ConfigurationVariableKind_STATIC_CONFIGURATION_VARIABLE
+    - ConfigurationVariableKind_ENV_CONFIGURATION_VARIABLE
+    - ConfigurationVariableKind_PLACEHOLDER_CONFIGURATION_VARIABLE
+  wgpb.S3UploadProfile:
+    properties:
+      allowedFileExtensions:
+        items:
+          type: string
+        type: array
+      allowedMimeTypes:
+        items:
+          type: string
+        type: array
+      hooks:
+        $ref: '#/definitions/wgpb.S3UploadProfileHooksConfiguration'
+      maxAllowedFiles:
+        type: integer
+      maxAllowedUploadSizeBytes:
+        type: integer
+      metadataJSONSchema:
+        type: string
+      requireAuthentication:
+        type: boolean
+    type: object
+  wgpb.S3UploadProfileHooksConfiguration:
+    properties:
+      postUpload:
+        type: boolean
+      preUpload:
+        type: boolean
+    type: object
 info:
   contact: {}
 paths:
@@ -917,6 +1001,22 @@ paths:
           description: 成功
       tags:
       - engine
+  /env/getEnvValue/{key}:
+    get:
+      description: '"GetEnvValue"'
+      parameters:
+      - description: key
+        in: path
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      tags:
+      - env
   /globalOperation/authenticationHookOptions:
     get:
       description: '"authenticationHookOptions"'

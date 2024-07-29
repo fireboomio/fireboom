@@ -101,5 +101,5 @@ func registerContextBaseRouters(contextRouter *echo.Group) {
 	base.RegisterBaseRouter(contextRouter, models.GlobalOperationRoot, api.GlobalOperationExtraRouter)
 
 	base.RegisterBaseRouter(contextRouter, configs.GlobalSettingRoot)
-	base.RegisterBaseRouter(contextRouter, configs.EnvEffectiveRoot)
+	base.RegisterBaseRouter(contextRouter, configs.EnvEffectiveRoot, api.EnvExtraRouter)
 }

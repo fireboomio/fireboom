@@ -834,6 +834,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/env/getEnvValue/{key}": {
+            "get": {
+                "description": "\"GetEnvValue\"",
+                "tags": [
+                    "env"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "key",
+                        "name": "key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/globalOperation/authenticationHookOptions": {
             "get": {
                 "description": "\"authenticationHookOptions\"",
@@ -2058,6 +2083,7 @@ const docTemplate = `{
                 10518,
                 10519,
                 10520,
+                10521,
                 10601,
                 10602,
                 10603,
@@ -2120,6 +2146,7 @@ const docTemplate = `{
                 "FileContentEmptyError",
                 "DirectoryReadError",
                 "LoaderFileReadError",
+                "LoaderFileNotExistError",
                 "LoaderFileUnmarshalError",
                 "LoaderDataExistEditorError",
                 "LoaderDataExistError",
@@ -2240,7 +2267,7 @@ const docTemplate = `{
                 "updateTime": {
                     "type": "string"
                 },
-                "upperFirst": {
+                "upperFirstBasename": {
                     "type": "boolean"
                 },
                 "version": {
@@ -2249,7 +2276,48 @@ const docTemplate = `{
             }
         },
         "models.Storage": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "accessKeyID": {
+                    "$ref": "#/definitions/wgpb.ConfigurationVariable"
+                },
+                "bucketLocation": {
+                    "$ref": "#/definitions/wgpb.ConfigurationVariable"
+                },
+                "bucketName": {
+                    "$ref": "#/definitions/wgpb.ConfigurationVariable"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "deleteTime": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "endpoint": {
+                    "$ref": "#/definitions/wgpb.ConfigurationVariable"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secretAccessKey": {
+                    "$ref": "#/definitions/wgpb.ConfigurationVariable"
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "uploadProfiles": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/wgpb.S3UploadProfile"
+                    }
+                },
+                "useSSL": {
+                    "type": "boolean"
+                }
+            }
         },
         "models.StorageFile": {
             "type": "object",
@@ -2335,6 +2403,86 @@ const docTemplate = `{
                 "Directory",
                 "SymbolicLink"
             ]
+        },
+        "wgpb.ConfigurationVariable": {
+            "type": "object",
+            "properties": {
+                "environmentVariableDefaultValue": {
+                    "description": "[omitempty]",
+                    "type": "string"
+                },
+                "environmentVariableName": {
+                    "description": "[omitempty]",
+                    "type": "string"
+                },
+                "kind": {
+                    "$ref": "#/definitions/wgpb.ConfigurationVariableKind"
+                },
+                "placeholderVariableName": {
+                    "description": "[omitempty]",
+                    "type": "string"
+                },
+                "staticVariableContent": {
+                    "description": "[omitempty]",
+                    "type": "string"
+                }
+            }
+        },
+        "wgpb.ConfigurationVariableKind": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ConfigurationVariableKind_STATIC_CONFIGURATION_VARIABLE",
+                "ConfigurationVariableKind_ENV_CONFIGURATION_VARIABLE",
+                "ConfigurationVariableKind_PLACEHOLDER_CONFIGURATION_VARIABLE"
+            ]
+        },
+        "wgpb.S3UploadProfile": {
+            "type": "object",
+            "properties": {
+                "allowedFileExtensions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "allowedMimeTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hooks": {
+                    "$ref": "#/definitions/wgpb.S3UploadProfileHooksConfiguration"
+                },
+                "maxAllowedFiles": {
+                    "type": "integer"
+                },
+                "maxAllowedUploadSizeBytes": {
+                    "type": "integer"
+                },
+                "metadataJSONSchema": {
+                    "type": "string"
+                },
+                "requireAuthentication": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "wgpb.S3UploadProfileHooksConfiguration": {
+            "type": "object",
+            "properties": {
+                "postUpload": {
+                    "type": "boolean"
+                },
+                "preUpload": {
+                    "type": "boolean"
+                }
+            }
         }
     }
 }`

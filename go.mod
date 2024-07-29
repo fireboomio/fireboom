@@ -30,7 +30,7 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
-	github.com/vektah/gqlparser/v2 v2.5.1
+	github.com/vektah/gqlparser/v2 v2.5.16
 	github.com/wundergraph/graphql-go-tools v1.66.3
 	github.com/wundergraph/wundergraph v0.0.0-00010101000000-000000000000
 	go.uber.org/multierr v1.8.0
@@ -168,7 +168,7 @@ replace (
 	github.com/flowchartsman/handlebars/v3 => github.com/fireboomio/handlebars/v3 v3.0.0-20230407011829-1693185f0572
 	github.com/getkin/kin-openapi => github.com/fireboomio/kin-openapi v0.0.0-20240110095352-e1b4433e41a8
 	github.com/prisma/prisma-client-go => github.com/fireboomio/prisma-client-go v0.0.0-20240614073744-961bb930abe4
-	github.com/wundergraph/graphql-go-tools => github.com/fireboomio/graphql-go-tools v0.0.0-20240725064148-481dc148ee1d
+	github.com/wundergraph/graphql-go-tools => github.com/fireboomio/graphql-go-tools v0.0.0-20240729081956-650114bb91e7
 	github.com/wundergraph/wundergraph => ./wundergraphGitSubmodule
 
 )
