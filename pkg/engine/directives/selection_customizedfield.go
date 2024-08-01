@@ -14,6 +14,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/vektah/gqlparser/v2/ast"
 	wdgast "github.com/wundergraph/graphql-go-tools/pkg/ast"
+	"github.com/wundergraph/graphql-go-tools/pkg/engine/resolve"
 	"github.com/wundergraph/wundergraph/pkg/apihandler"
 	"strings"
 )
@@ -22,6 +23,7 @@ const (
 	customizedFieldName        = "customizedField"
 	customizedFieldArgType     = "type"
 	customizedFieldArgDesc     = "desc"
+	customizedFieldArgItems    = "items"
 	customizedFieldArgTypeType = "CustomizedFieldType"
 )
 
@@ -41,6 +43,10 @@ func (s *customizedField) Directive() *ast.DirectiveDefinition {
 				Name: customizedFieldArgDesc,
 				Type: ast.NamedType(consts.ScalarString, nil),
 			},
+			{
+				Name: customizedFieldArgItems,
+				Type: ast.NamedType(customizedFieldArgTypeType, nil),
+			},
 		},
 	}
 }
@@ -59,25 +65,28 @@ func (s *customizedField) Definitions() ast.DefinitionList {
 }
 
 func (s *customizedField) Resolve(resolver *SelectionResolver) (err error) {
-	value, ok := resolver.Arguments[customizedFieldArgType]
+	valueType, ok := resolver.Arguments[customizedFieldArgType]
 	if !ok {
 		err = fmt.Errorf(argumentRequiredFormat, customizedFieldArgType)
 		return
 	}
-	isArray := value == utils.UppercaseFirst(openapi3.TypeArray)
-	if !isArray {
-		if resolver.Schema, ok = BuildSchemaRefForScalar(value, false); !ok {
-			err = fmt.Errorf(argumentValueNotSupportedFormat, value, customizedFieldArgType)
+	isArray := valueType == utils.UppercaseFirst(openapi3.TypeArray)
+	items, itemsOk := resolver.Arguments[customizedFieldArgItems]
+	if itemsOk = itemsOk && isArray; itemsOk {
+		valueType = items
+	}
+	if !isArray || itemsOk {
+		if resolver.Schema, ok = BuildSchemaRefForScalar(valueType, false); !ok {
+			err = fmt.Errorf(argumentValueNotSupportedFormat, valueType, customizedFieldArgType)
 			return
 		}
 	}
-	desc, ok := resolver.Arguments[customizedFieldArgDesc]
-	if ok {
+	if desc, descOk := resolver.Arguments[customizedFieldArgDesc]; descOk {
 		schemaValue := *resolver.Schema.Value
 		schemaValue.Description = desc
 		resolver.Schema.Value = &schemaValue
 	}
-	if isArray && resolver.Schema.Value.Type != openapi3.TypeArray {
+	if isArray && resolver.Schema != nil && resolver.Schema.Value.Type != openapi3.TypeArray {
 		schema := *resolver.Schema
 		resolver.Schema.Value = &openapi3.Schema{Type: openapi3.TypeArray, Items: &schema}
 	}
@@ -134,14 +143,15 @@ func init() {
 	prismaTypeToFieldArgType["bytes"] = consts.ScalarBytes
 	prismaTypeToFieldArgType["decimal"] = consts.ScalarDecimal
 	prismaTypeToFieldArgType["uuid"] = consts.ScalarUUID
-	apihandler.AddBuildFieldDirectiveFunc(func(_, prismaType string) (directiveName string, args []apihandler.DirectiveArgument) {
+	prismaTypeToFieldArgType[openapi3.TypeArray] = utils.UppercaseFirst(openapi3.TypeArray)
+	apihandler.AddBuildFieldDirectiveFunc(func(_ string, rawValueType *resolve.QueryRawValueType) (directiveName string, args []apihandler.DirectiveArgument) {
 		directiveName = customizedFieldName
-		argType, ok := prismaTypeToFieldArgType[prismaType]
+		argType, ok := prismaTypeToFieldArgType[rawValueType.Type]
 		if !ok {
 			argType = consts.ScalarString
 			args = append(args, apihandler.DirectiveArgument{
 				Name:  customizedFieldArgDesc,
-				Value: fmt.Sprintf("unsupported prisma type [%s]", prismaType),
+				Value: fmt.Sprintf("unsupported prisma type [%s]", rawValueType.Type),
 			})
 		}
 		args = append(args, apihandler.DirectiveArgument{
@@ -149,6 +159,13 @@ func init() {
 			Value:     argType,
 			ValueKind: wdgast.ValueKindEnum,
 		})
+		if rawValueType.Items != nil {
+			args = append(args, apihandler.DirectiveArgument{
+				Name:      customizedFieldArgItems,
+				Value:     prismaTypeToFieldArgType[rawValueType.Items.Type],
+				ValueKind: wdgast.ValueKindEnum,
+			})
+		}
 		return
 	})
 }
