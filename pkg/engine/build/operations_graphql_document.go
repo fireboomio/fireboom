@@ -714,8 +714,7 @@ func (i *QueryDocumentItem) buildJsonschemaWithDefinition(hasSubFields bool, fie
 		}
 
 		emptySchema := schemaRef.Value
-		if i.handleAdditionTypeOnDescription(emptySchema, objectBuild, path...) {
-			emptySchema.Description = fieldTypeDefinition.Description
+		if i.handleAdditionTypeOnDescription(fieldTypeDefinition.Description, emptySchema, objectBuild, path...) {
 			emptySchema.Title = fieldTypeName
 			break
 		}
@@ -746,8 +745,8 @@ func (i *QueryDocumentItem) buildJsonschemaWithDefinition(hasSubFields bool, fie
 	return
 }
 
-func (i *QueryDocumentItem) handleAdditionTypeOnDescription(schema *openapi3.Schema, objectBuild jsonschemaObjectBuildFunc, path ...string) (matched bool) {
-	additionType, clearedDescription := datasource.MatchAdditionalType(schema.Description)
+func (i *QueryDocumentItem) handleAdditionTypeOnDescription(fieldTypeDefinitionDescription string, schema *openapi3.Schema, objectBuild jsonschemaObjectBuildFunc, path ...string) (matched bool) {
+	additionType, clearedDescription := datasource.MatchAdditionalType(fieldTypeDefinitionDescription)
 	if matched = len(additionType) > 0; matched {
 		schema.Type = openapi3.TypeObject
 		schema.Description = clearedDescription

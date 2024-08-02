@@ -396,6 +396,10 @@ func (o *objectInfoFactory) buildObjectFromDataSchema(schemaRef *openapi3.Schema
 		additionalProperties := schema.AdditionalProperties
 		if additionalProperties.Schema != nil {
 			additionalHandle(additionalProperties.Schema)
+			if len(schema.Title) > 0 {
+				info.DocumentPath = []string{schema.Title}
+				info.typeRef = schema.Title
+			}
 		} else if additionalProperties.Has != nil && *additionalProperties.Has {
 			info.Additional = &objectFieldType{}
 			if len(schema.Title) > 0 {
