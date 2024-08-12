@@ -351,7 +351,7 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 		i.reportErrorWithPath(fieldDefinitionMissFormat, fieldName, argPath...)
 		return
 	}
-	if fieldDefinition.Kind != ast.InputObject {
+	if fieldDefinition.Kind != ast.InputObject && !(fieldDefinition.Kind == ast.Enum && argValue.Kind == ast.ListValue) {
 		return
 	}
 
