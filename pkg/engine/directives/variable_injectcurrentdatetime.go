@@ -66,6 +66,8 @@ func (v *injectCurrentDateTime) Definitions() ast.DefinitionList {
 				{Name: "previous", Type: ast.NamedType(consts.ScalarBoolean, nil)},
 				{Name: "value", Type: ast.NonNullNamedType(consts.ScalarInt, nil)},
 				{Name: datetimeArgOffsetUnitName, Type: ast.NonNullNamedType(dateTimeArgOffsetUnitType, nil)},
+				{Name: dateTimeArgFormat, Type: ast.NamedType(dateTimeArgFormatEnumName, nil)},
+				{Name: dateTimeArgCustomFormat, Type: ast.NamedType(consts.ScalarString, nil)},
 			},
 		}, &ast.Definition{
 			Kind:       ast.Enum,
@@ -91,6 +93,16 @@ func (v *injectCurrentDateTime) Resolve(resolver *VariableResolver) (_, skip boo
 		DateFormat:             dateFormat,
 	}
 	if dateOffset, ok := resolver.Arguments[dateTimeArgOffsetName]; ok {
+		var offsetFormat string
+		if format := gjson.Get(dateOffset, dateTimeArgFormat).String(); format != "" {
+			offsetFormat = dateFormatMap[format]
+		}
+		if format := gjson.Get(dateOffset, dateTimeArgCustomFormat).String(); format != "" {
+			offsetFormat = format
+		}
+		if offsetFormat != "" {
+			dateOffset, _ = sjson.Set(dateOffset, dateTimeArgFormat, offsetFormat)
+		}
 		unit := gjson.Get(dateOffset, datetimeArgOffsetUnitName).String()
 		dateOffset, _ = sjson.Set(dateOffset, datetimeArgOffsetUnitName, wgpb.DateOffsetUnit_value[unit])
 		if err = json.Unmarshal([]byte(dateOffset), &variableConfig.DateOffset); err != nil {
