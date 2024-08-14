@@ -68,12 +68,12 @@ func (v *injectRuleValue) Resolve(resolver *VariableResolver) (unableInput, skip
 func init() {
 	registerDirective(injectRuleValueName, &injectRuleValue{})
 	apihandler.GvalFullLanguage = gval.Full(gval.Ident(), gval.Parentheses(),
-		gval.Function("isEmpty", utils.IsZeroValue),
+		gval.Function("isEmpty", isZeroValueSkipBool),
 		gval.Function("isAllEmpty", func(args ...any) bool {
-			return !slices.ContainsFunc(args, func(v any) bool { return !utils.IsZeroValue(v) })
+			return !slices.ContainsFunc(args, func(v any) bool { return !isZeroValueSkipBool(v) })
 		}),
 		gval.Function("isAnyEmpty", func(args ...any) bool {
-			return slices.ContainsFunc(args, utils.IsZeroValue)
+			return slices.ContainsFunc(args, isZeroValueSkipBool)
 		}),
 		gval.Function("stringContains", func(a, b string) bool {
 			return strings.Contains(a, b)
@@ -85,4 +85,11 @@ func init() {
 		}),
 	)
 	apihandler.GvalIsEmptyValue = utils.IsZeroValue
+}
+
+func isZeroValueSkipBool(v any) bool {
+	if _, ok := v.(bool); ok {
+		return false
+	}
+	return utils.IsZeroValue(v)
 }
