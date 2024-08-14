@@ -14,6 +14,7 @@ import (
 	"fireboom-server/pkg/engine/datasource"
 	"fireboom-server/pkg/engine/directives"
 	"fmt"
+	"github.com/buger/jsonparser"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
@@ -473,7 +474,7 @@ func (i *QueryDocumentItem) resolveVariableDefinitions(operation *ast.OperationD
 	schemas, interpolationSchemas := make(openapi3.Schemas), make(openapi3.Schemas)
 	for _, item := range operation.VariableDefinitions {
 		itemVariableName, itemVariablePath := item.Variable, []string{item.Variable}
-		if i.ensureVariableDefinitionSaved(item.Directives, itemVariablePath, item.Type) {
+		if i.ensureVariableDefinitionSaved(item.Directives, itemVariablePath, item.Type, item.DefaultValue) {
 			savedVariableDefinitions = append(savedVariableDefinitions, item)
 		}
 		itemSchemaRef, ok := i.variablesSchemas[itemVariableName]
@@ -586,7 +587,7 @@ func (i *QueryDocumentItem) makeSelectionResolver(path []string) *directives.Sel
 }
 
 // 解析传递参数上的指令
-func (i *QueryDocumentItem) ensureVariableDefinitionSaved(directiveList ast.DirectiveList, path []string, variableType *ast.Type) bool {
+func (i *QueryDocumentItem) ensureVariableDefinitionSaved(directiveList ast.DirectiveList, path []string, variableType *ast.Type, defaultValue *ast.Value) bool {
 	variable := path[0]
 	if _, ok := i.variablesSchemas[variable]; ok {
 		return true
@@ -595,9 +596,19 @@ func (i *QueryDocumentItem) ensureVariableDefinitionSaved(directiveList ast.Dire
 		return true
 	}
 
-	i.variablesSchemas[variable] = i.buildJsonschema(false, "", variableType, func(definition *ast.Definition) *openapi3.SchemaRef {
+	variableSchema := i.buildJsonschema(false, "", variableType, func(definition *ast.Definition) *openapi3.SchemaRef {
 		return i.buildSelectionArgumentSchema(true, definition, path...)
 	}, path...)
+	i.variablesSchemas[variable] = variableSchema
+	if defaultValue == nil {
+		return false
+	}
+
+	if i.operation.HookVariableDefaultValues == nil {
+		i.operation.HookVariableDefaultValues = []byte(`{}`)
+	}
+	variableDefaultValueBytes := []byte(defaultValue.String())
+	i.operation.HookVariableDefaultValues, _ = jsonparser.Set(i.operation.HookVariableDefaultValues, variableDefaultValueBytes, variable)
 	return false
 }
 
