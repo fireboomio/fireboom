@@ -344,6 +344,11 @@ func (i *QueryDocumentItem) checkArgumentChildValueList(argName string, argValue
 			i.reportError(nullableRequiredErrorFormat, fieldName, utils.JoinStringWithDot(argPath...))
 			return
 		}
+		if argDefType.Elem != nil && argValue.Kind == ast.ListValue {
+			for index, child := range argValue.Children {
+				i.checkArgumentChildValueList(fmt.Sprintf(`[%d]`, index), child.Value, argDefDescription, argDefType.Elem, fieldIsNullValue, argPath...)
+			}
+		}
 		return
 	}
 
