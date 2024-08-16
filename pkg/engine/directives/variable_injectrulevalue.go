@@ -61,7 +61,7 @@ func (v *injectRuleValue) Resolve(resolver *VariableResolver) (unableInput, skip
 	}
 	resolver.Operation.RuleExpressionExisted = true
 	resolver.Operation.VariablesConfiguration.InjectVariables = append(resolver.Operation.VariablesConfiguration.InjectVariables, injectRuleVariable)
-	unableInput, skip = true, true
+	skip = true
 	return
 }
 
