@@ -6,7 +6,7 @@
 5. Proxy钩子支持上传/下载功能
 6. Graphql跨源关联添加_join_mutation用于跨源变更操作
 7. 添加支持多数据源事务管理(仅数据库类型)
-8. 实现opentracing链路追踪并接入Prisma实现接口和SQL可观测的链路
+8. 实现opentracing链路追踪并接入Prisma实现接口和SQL可观测的链路(jaegertracing/all-in-one:latest)
 9. 指令@Skip和@include添加参数ifRule使用表达式跳过或包含selection
 10. 指令@export可以导出任何非空字段为true值参数
 11. 添加指令@injectRuleValue用于注入参数可替换前置钩子功能
