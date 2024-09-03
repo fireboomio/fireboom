@@ -313,6 +313,10 @@ definitions:
         type: string
       icon:
         type: string
+      keywords:
+        items:
+          type: string
+        type: array
       language:
         type: string
       name:
@@ -1333,6 +1337,35 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - storage
+  /storageClient/{dataName}/presignUpload:
+    get:
+      description: '"获取上传地址"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: dirname
+        in: query
+        name: dirname
+        type: string
+      - description: filename
+        in: query
+        name: filename
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
         "400":
           description: Bad Request
           schema:

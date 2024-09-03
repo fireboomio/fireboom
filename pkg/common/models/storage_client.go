@@ -217,6 +217,26 @@ func (s *StorageClientCache) StatObject(ctx context.Context, storage *Storage, f
 	return
 }
 
+func (s *StorageClientCache) PresignPutObject(ctx context.Context, storage *Storage, dirname, filename string) (signedUrl string, err error) {
+	client, err := s.buildClient(storage)
+	if err != nil {
+		return
+	}
+
+	if dirname != "" {
+		filename = utils.NormalizePath(dirname, filename)
+	}
+	filename = strings.TrimPrefix(filename, "/")
+	bucketName := utils.GetVariableString(storage.BucketName)
+	URL, err := client.PresignedPutObject(ctx, bucketName, filename, signedUrlExpires)
+	if err != nil {
+		return
+	}
+
+	signedUrl = URL.String()
+	return
+}
+
 func (s *StorageClientCache) PresignGetObject(ctx context.Context, storage *Storage, filename string) (signedUrl string, err error) {
 	client, err := s.buildClient(storage)
 	if err != nil {

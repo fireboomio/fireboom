@@ -1375,6 +1375,50 @@
                 }
             }
         },
+        "/storageClient/{dataName}/presignUpload": {
+            "get": {
+                "description": "\"获取上传地址\"",
+                "tags": [
+                    "storage"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataName",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "dirname",
+                        "name": "dirname",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filename",
+                        "name": "filename",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.CustomError"
+                        }
+                    }
+                }
+            }
+        },
         "/storageClient/{dataName}/remove": {
             "post": {
                 "description": "\"移除\"",
@@ -2237,6 +2281,12 @@
                 },
                 "icon": {
                     "type": "string"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "language": {
                     "type": "string"

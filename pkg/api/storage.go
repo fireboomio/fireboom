@@ -23,6 +23,7 @@ func StorageExtraRouter(rootRouter, storageRouter *echo.Group, baseHandler *base
 	clientRouter.POST("/ping", handler.ping)
 	clientRouter.POST(base.DataNamePath+"/mkdir", handler.mkdir)
 	clientRouter.POST(base.DataNamePath+"/upload", handler.upload)
+	clientRouter.GET(base.DataNamePath+"/presignUpload", handler.presignUpload)
 	clientRouter.POST(base.DataNamePath+"/remove", handler.remove)
 	clientRouter.POST(base.DataNamePath+"/rename", handler.rename)
 	clientRouter.GET(base.DataNamePath+"/list", handler.list)
@@ -85,7 +86,7 @@ func (s *storage) mkdir(c echo.Context) (err error) {
 // @Param dataName path string true "dataName"
 // @Param dirname query string true "dirname"
 // @Param file formData file true "file"
-// @Success 200  "OK"
+// @Success 200 "OK"
 // @Failure 400 {object} i18n.CustomError
 // @Router /storageClient/{dataName}/upload [post]
 func (s *storage) upload(c echo.Context) (err error) {
@@ -109,10 +110,34 @@ func (s *storage) upload(c echo.Context) (err error) {
 }
 
 // @Tags storage
+// @Description "获取上传地址"
+// @Param dataName path string true "dataName"
+// @Param dirname query string false "dirname"
+// @Param filename query string true "filename"
+// @Success 200 {string} string "OK"
+// @Failure 400 {object} i18n.CustomError
+// @Router /storageClient/{dataName}/presignUpload [get]
+func (s *storage) presignUpload(c echo.Context) (err error) {
+	data, filename, err := s.getStorageAndQueryParam(c, consts.QueryParamFilename, true)
+	if err != nil {
+		return
+	}
+
+	dirname := c.QueryParam(consts.QueryParamDirname)
+	signedUrl, err := s.clientCache.PresignPutObject(c.Request().Context(), data, dirname, filename)
+	if err != nil {
+		err = i18n.NewCustomErrorWithMode(s.modelName, err, i18n.StorageTouchError)
+		return
+	}
+
+	return c.String(http.StatusOK, signedUrl)
+}
+
+// @Tags storage
 // @Description "移除"
 // @Param dataName path string true "dataName"
 // @Param filename query string true "filename"
-// @Success 200  "OK"
+// @Success 200 "OK"
 // @Failure 400 {object} i18n.CustomError
 // @Router /storageClient/{dataName}/remove [post]
 func (s *storage) remove(c echo.Context) (err error) {
@@ -134,7 +159,7 @@ func (s *storage) remove(c echo.Context) (err error) {
 // @Description "重命名"
 // @Param dataName path string true "dataName"
 // @Param data body fileloader.DataMutation true "DataMutation"
-// @Success 200  "OK"
+// @Success 200 "OK"
 // @Failure 400 {object} i18n.CustomError
 // @Router /storageClient/{dataName}/rename [post]
 func (s *storage) rename(c echo.Context) (err error) {
@@ -194,7 +219,7 @@ func (s *storage) detail(c echo.Context) (err error) {
 
 	file, err := s.clientCache.StatObject(c.Request().Context(), data, filename)
 	if err != nil {
-		err = i18n.NewCustomErrorWithMode(s.modelName, err, i18n.StorageListError)
+		err = i18n.NewCustomErrorWithMode(s.modelName, err, i18n.StorageDetailError)
 		return
 	}
 
