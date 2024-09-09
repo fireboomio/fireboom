@@ -28,17 +28,18 @@ const (
 )
 
 type Sdk struct {
-	Name               string  `json:"name"`
-	Enabled            bool    `json:"enabled"`
-	Type               sdkType `json:"type"`
-	Language           string  `json:"language"`
-	Extension          string  `json:"extension"`
-	GitUrl             string  `json:"gitUrl"`
-	GitBranch          string  `json:"gitBranch"`
-	GitCommitHash      string  `json:"gitCommitHash"`
-	OutputPath         string  `json:"outputPath"`
-	CodePackage        string  `json:"codePackage"`
-	UpperFirstBasename bool    `json:"upperFirstBasename"`
+	Name               string   `json:"name"`
+	Enabled            bool     `json:"enabled"`
+	Type               sdkType  `json:"type"`
+	Language           string   `json:"language"`
+	Extension          string   `json:"extension"`
+	GitUrl             string   `json:"gitUrl"`
+	GitBranch          string   `json:"gitBranch"`
+	GitCommitHash      string   `json:"gitCommitHash"`
+	OutputPath         string   `json:"outputPath"`
+	CodePackage        string   `json:"codePackage"`
+	UpperFirstBasename bool     `json:"upperFirstBasename"`
+	Keywords           []string `json:"keywords"`
 
 	CreateTime  string `json:"createTime"`
 	UpdateTime  string `json:"updateTime"`

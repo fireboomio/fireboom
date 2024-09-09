@@ -163,4 +163,14 @@ func init() {
 
 		return defaultValue
 	})
+	// 获取值或默认值
+	handlebars.RegisterHelper("filterFieldsByKeywords", func(fields []*objectField, keywords []string) []*objectField {
+		var result []*objectField
+		for _, item := range fields {
+			if slices.Contains(keywords, item.Name) {
+				result = append(result, item)
+			}
+		}
+		return result
+	})
 }

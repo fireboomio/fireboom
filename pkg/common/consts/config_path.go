@@ -51,7 +51,7 @@ const (
 	HookGlobalParent         = "global"
 	HookAuthenticationParent = "authentication"
 	HookOperationParent      = "operation"
-	HookStorageParent        = "storage"
+	HookStorageProfileParent = "upload"
 	HookCustomizeParent      = "customize"
 	HookProxyParent          = "proxy"
 	HookFunctionParent       = "function"

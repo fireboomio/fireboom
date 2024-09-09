@@ -71,6 +71,7 @@ type (
 
 		OnceMap   map[string]any
 		LengthMap map[string]any
+		Sdk       *models.Sdk
 	}
 )
 
@@ -168,6 +169,7 @@ func (t *templateContext) generateTemplate(sdk *models.Sdk) {
 	}
 
 	t.OnceMap = make(map[string]any)
+	t.Sdk = sdk
 	ignoredFiles := getIgnoredFiles(utils.NormalizePath(outputPath, ignoreFile))
 	existIgnoredFiles := len(ignoredFiles) > 0
 	if existIgnoredFiles {

@@ -41,7 +41,7 @@ type (
 		endpoints   map[string]*endpointMetadata
 	}
 	baseRequestBody struct {
-		Wg baseRequestBodyWg `json:"__wg"`
+		Wg baseRequestBodyWg `json:"__wg,omitempty"`
 	}
 	baseRequestBodyWg struct {
 		ClientRequest hooks.WunderGraphRequest `json:"clientRequest"`
@@ -288,7 +288,7 @@ func (o *reflectObjectFactory) reflectBaseHook() {
 	hookParentSchema.Title = "HookParent"
 	hookParentSchema.Enum = append(hookParentSchema.Enum,
 		consts.HookGeneratedParent, consts.HookGlobalParent, consts.HookAuthenticationParent,
-		consts.HookOperationParent, consts.HookStorageParent, consts.HookCustomizeParent,
+		consts.HookOperationParent, consts.HookStorageProfileParent, consts.HookCustomizeParent,
 		consts.HookProxyParent, consts.HookFunctionParent, consts.HookFragmentsParent)
 	o.buildObjectFromDataSchema(&openapi3.SchemaRef{Value: hookParentSchema}, &objectField{})
 
@@ -378,9 +378,9 @@ func (o *reflectObjectFactory) reflectOperationHook() {
 
 // 生成上传钩子相关的jsonschema
 func (o *reflectObjectFactory) reflectUploadHook() {
-	o.reflectStructSchema(uploadHookPayload{}, consts.HookStorageParent)
-	o.reflectStructSchema(hooks.UploadHookResponse{}, consts.HookStorageParent)
-	o.reflectStructSchema(s3uploadclient.UploadedFiles{}, consts.HookStorageParent)
+	o.reflectStructSchema(uploadHookPayload{}, consts.HookStorageProfileParent)
+	o.reflectStructSchema(hooks.UploadHookResponse{}, consts.HookStorageProfileParent)
+	o.reflectStructSchema(s3uploadclient.UploadedFiles{}, consts.HookStorageProfileParent)
 
 	uploadHookSchema := openapi3.NewStringSchema()
 	uploadHookSchema.Title = utils.GetTypeName(consts.PreUpload)

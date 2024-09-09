@@ -331,7 +331,8 @@ func (o *objectInfoFactory) optimizeFieldInfo() {
 	for _, field := range o.objectFieldMap {
 		o.buildObjectFieldItemRef(field)
 		slices.SortFunc(field.Fields, func(a *objectField, b *objectField) bool {
-			return a.Name < b.Name
+			aa, bb := cast.ToInt(a.Required), cast.ToInt(b.Required)
+			return aa > bb || aa == bb && a.Name < b.Name
 		})
 	}
 

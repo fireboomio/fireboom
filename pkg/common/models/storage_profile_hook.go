@@ -60,7 +60,7 @@ func buildS3UploadProfileHook(hook consts.UploadHook, enabledFunc func(item *wgp
 			if codePackage != "" {
 				outputPath = utils.NormalizePath(outputPath, codePackage)
 			}
-			outputPath = utils.NormalizePath(outputPath, consts.HookStorageParent)
+			outputPath = utils.NormalizePath(outputPath, consts.HookStorageProfileParent)
 		}
 		item.Root = outputPath
 		item.UpperFirstBasename = upperFirstBasename
