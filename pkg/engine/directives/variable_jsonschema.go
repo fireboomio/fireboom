@@ -9,6 +9,7 @@ import (
 	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/plugins/i18n"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/goccy/go-json"
 	"github.com/spf13/cast"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -21,8 +22,8 @@ const (
 type (
 	jsonSchema         struct{}
 	jsonSchemaArgument struct {
+		astType      *ast.Type
 		description  string
-		namedType    string
 		updateSchema func(string, *openapi3.Schema)
 	}
 )
@@ -32,8 +33,8 @@ func (v *jsonSchema) Directive() *ast.DirectiveDefinition {
 	for k, v := range jsonSchemaArgMap {
 		arguments = append(arguments, &ast.ArgumentDefinition{
 			Name:        k,
+			Type:        v.astType,
 			Description: v.description,
-			Type:        ast.NamedType(v.namedType, nil),
 		})
 	}
 	return &ast.DirectiveDefinition{
@@ -70,6 +71,8 @@ func (v *jsonSchema) Resolve(resolver *VariableResolver) (_, skip bool, err erro
 
 const (
 	title            = "title"
+	format           = "format"
+	enum             = "enum"
 	description      = "description"
 	multipleOf       = "multipleOf"
 	maximum          = "maximum"
@@ -101,54 +104,62 @@ func init() {
 	jsonSchemaArgMap = make(map[string]*jsonSchemaArgument)
 	jsonSchemaArgMap[title] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.Title = value },
-		namedType:    consts.ScalarString,
+		astType:      ast.NamedType(consts.ScalarString, nil),
+	}
+	jsonSchemaArgMap[format] = &jsonSchemaArgument{
+		updateSchema: func(value string, schema *openapi3.Schema) { schema.Format = value },
+		astType:      ast.NamedType(consts.ScalarString, nil),
+	}
+	jsonSchemaArgMap[enum] = &jsonSchemaArgument{
+		updateSchema: func(value string, schema *openapi3.Schema) { _ = json.Unmarshal([]byte(value), &schema.Enum) },
+		astType:      ast.ListType(ast.NamedType(consts.ScalarString, nil), nil),
 	}
 	jsonSchemaArgMap[description] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.Description = value },
-		namedType:    consts.ScalarString,
+		astType:      ast.NamedType(consts.ScalarString, nil),
 	}
 	jsonSchemaArgMap[multipleOf] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) {
 			castValue := cast.ToFloat64(value)
 			schema.MultipleOf = &castValue
 		},
-		namedType: consts.ScalarFloat,
+		astType: ast.NamedType(consts.ScalarFloat, nil),
 	}
 	jsonSchemaArgMap[maximum] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) {
 			castValue := cast.ToFloat64(value)
 			schema.Max = &castValue
 		},
-		namedType:   consts.ScalarFloat,
+		astType:     ast.NamedType(consts.ScalarFloat, nil),
 		description: i18n.JsonschemaArgMaximumDesc.String(),
 	}
 	jsonSchemaArgMap[exclusiveMaximum] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.ExclusiveMax = cast.ToBool(value) },
-		namedType:    consts.ScalarBoolean,
+		astType:      ast.NamedType(consts.ScalarBoolean, nil),
 	}
 	jsonSchemaArgMap[minimum] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) {
 			castValue := cast.ToFloat64(value)
 			schema.Min = &castValue
 		},
-		namedType:   consts.ScalarFloat,
+		astType:     ast.NamedType(consts.ScalarFloat, nil),
 		description: i18n.JsonschemaArgMinimumDesc.String(),
 	}
 	jsonSchemaArgMap[exclusiveMinimum] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.ExclusiveMin = cast.ToBool(value) },
-		namedType:    consts.ScalarBoolean,
+		astType:      ast.NamedType(consts.ScalarBoolean, nil),
 	}
 	jsonSchemaArgMap[maxLength] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) {
 			castValue := cast.ToUint64(value)
 			schema.MaxLength = &castValue
 		},
-		namedType:   consts.ScalarInt,
+		astType:     ast.NamedType(consts.ScalarInt, nil),
 		description: i18n.JsonschemaArgMaxLengthDesc.String(),
 	}
 	jsonSchemaArgMap[minLength] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.MinLength = cast.ToUint64(value) },
-		namedType:    consts.ScalarInt,
+		astType:      ast.NamedType(consts.ScalarInt, nil),
 		description:  i18n.JsonschemaArgMinLengthDesc.String(),
 	}
 	jsonSchemaArgMap[maxItems] = &jsonSchemaArgument{
@@ -156,29 +167,29 @@ func init() {
 			castValue := cast.ToUint64(value)
 			schema.MaxItems = &castValue
 		},
-		namedType:   consts.ScalarInt,
+		astType:     ast.NamedType(consts.ScalarInt, nil),
 		description: i18n.JsonschemaArgMaxItemsDesc.String(),
 	}
 	jsonSchemaArgMap[minItems] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.MinItems = cast.ToUint64(value) },
-		namedType:    consts.ScalarInt,
+		astType:      ast.NamedType(consts.ScalarInt, nil),
 		description:  i18n.JsonschemaArgMinItemsDesc.String(),
 	}
 	jsonSchemaArgMap[uniqueItems] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.UniqueItems = cast.ToBool(value) },
-		namedType:    consts.ScalarBoolean,
+		astType:      ast.NamedType(consts.ScalarBoolean, nil),
 		description:  i18n.JsonschemaArgUniqueItemsDesc.String(),
 	}
 	jsonSchemaArgMap[pattern] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) { schema.Pattern = value },
-		namedType:    consts.ScalarString,
+		astType:      ast.NamedType(consts.ScalarString, nil),
 		description:  i18n.JsonschemaArgPatternDesc.String(),
 	}
 	jsonSchemaArgMap[commonPattern] = &jsonSchemaArgument{
 		updateSchema: func(value string, schema *openapi3.Schema) {
 			schema.Pattern = jsonSchemaCommonPatternEnumMap[value]
 		},
-		namedType:   jsonSchemaArgCommonPatternEnumName,
+		astType:     ast.NamedType(jsonSchemaArgCommonPatternEnumName, nil),
 		description: i18n.JsonschemaArgCommonPatternDesc.String(),
 	}
 }
