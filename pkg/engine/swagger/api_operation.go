@@ -12,6 +12,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/wundergraph/wundergraph/pkg/apihandler"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"strings"
 )
@@ -93,11 +94,13 @@ func (s *document) makeApiOperationParameters(requestSchemaRef *openapi3.SchemaR
 		return
 	}
 
-	result = make(openapi3.Parameters, 0)
-	for name, schemaRef := range requestSchemaRef.Value.Properties {
-		param := openapi3.NewQueryParameter(name)
-		param.Schema = schemaRef
-		param.Required = slices.Contains(requestSchemaRef.Value.Required, name)
+	keys := maps.Keys(requestSchemaRef.Value.Properties)
+	slices.Sort(keys)
+	result = make(openapi3.Parameters, 0, len(keys))
+	for _, key := range keys {
+		param := openapi3.NewQueryParameter(key)
+		param.Schema = requestSchemaRef.Value.Properties[key]
+		param.Required = slices.Contains(requestSchemaRef.Value.Required, key)
 		result = append(result, &openapi3.ParameterRef{Value: param})
 	}
 	return
