@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // ReadFileAsUTF8 以UTF8格式读取文件
@@ -46,22 +47,23 @@ func ReadFile(path string) (content []byte, err error) {
 	}
 	defer func() { _ = file.Close() }()
 
-	fileScanner := bufio.NewScanner(file)
-	fileScannerBuffer := make([]byte, 0, 64*1024)
-	fileScanner.Buffer(fileScannerBuffer, 1024*1024)
-
 	var (
+		lineBytes     []byte
 		contentBuffer bytes.Buffer
-		scanInvoked   bool
 	)
-	for fileScanner.Scan() {
-		if scanInvoked {
-			contentBuffer.WriteByte('\n')
+	reader := bufio.NewReaderSize(file, 64*1024)
+	for {
+		lineBytes, err = reader.ReadBytes('\n')
+		if err != nil && err != io.EOF {
+			return
 		}
-		_, _ = contentBuffer.Write(fileScanner.Bytes())
-		scanInvoked = true
+		_, _ = contentBuffer.Write(lineBytes)
+		if err == io.EOF {
+			err = nil
+			break
+		}
 	}
-	content, err = contentBuffer.Bytes(), fileScanner.Err()
+	content = contentBuffer.Bytes()
 	return
 }
 
@@ -73,17 +75,28 @@ func ReadWithCondition(path string, skipFunc, breakFunc func(int, string) bool) 
 	}
 	defer func() { _ = file.Close() }()
 
-	var lineNumber int
-	fileScanner := bufio.NewScanner(file)
-	for fileScanner.Scan() {
-		lineNumber++
-		text := fileScanner.Text()
-		if skipFunc != nil && skipFunc(lineNumber, text) {
-			continue
+	var (
+		lineNumber       int
+		lineWithoutDelim string
+	)
+	reader := bufio.NewReaderSize(file, 64*1024)
+	for {
+		lineWithoutDelim, err = reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return
 		}
 
-		content = append(content, text)
-		if breakFunc != nil && breakFunc(lineNumber, text) {
+		lineNumber++
+		lineWithoutDelim = strings.TrimRight(lineWithoutDelim, "\n")
+		if skipFunc != nil && skipFunc(lineNumber, lineWithoutDelim) {
+			continue
+		}
+		content = append(content, lineWithoutDelim)
+		if breakFunc != nil && breakFunc(lineNumber, lineWithoutDelim) {
+			break
+		}
+		if err == io.EOF {
+			err = nil
 			break
 		}
 	}
