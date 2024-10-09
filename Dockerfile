@@ -6,7 +6,7 @@ RUN sh scripts/build.sh
 FROM fireboomapi/base-runner-fireboom:latest AS final
 WORKDIR /app
 COPY --from=builder /build/release/fireboom /usr/local/bin/fireboom
-VOLUME [ "store", "upload", "exported", "generated-sdk", "authentication.key", "license.key", "custom-go", "custom-ts", "custom-python", "custom-java" ]
+#VOLUME [ "store", "upload", "exported", "generated-sdk", "authentication.key", "license.key", "custom-go", "custom-ts", "custom-python", "custom-java" ]
 EXPOSE 9123 9991
 
 # ENV FB_API_PUBLIC_URL="http://localhost:9991"
