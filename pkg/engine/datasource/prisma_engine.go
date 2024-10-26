@@ -73,6 +73,10 @@ func Migrate(ctx context.Context, migrateSchema, dataModelFilepath string) (err 
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
+	rpcExt := database.JsonRPCExtension{CmdArgs: []string{"--datamodel=" + dataModelFilepath}}
+	if _, _, env, _ := fetchEnvironmentVariable(dataModelFilepath); env != "" {
+		rpcExt.CmdEnvs = []string{env}
+	}
 	_, err = BuildEngine().Migrate(ctx, "schemaPush", params, database.JsonRPCExtension{
 		CmdArgs: []string{"--datamodel=" + dataModelFilepath},
 	})

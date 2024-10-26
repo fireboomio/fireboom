@@ -9,8 +9,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
+
+const maxBufferCapacity = 1024 * 1024
 
 // ReadFileAsUTF8 以UTF8格式读取文件
 func ReadFileAsUTF8(path string) (dstBytes []byte, err error) {
@@ -47,23 +48,22 @@ func ReadFile(path string) (content []byte, err error) {
 	}
 	defer func() { _ = file.Close() }()
 
+	fileScanner := bufio.NewScanner(file)
+	fileScannerBuffer := make([]byte, 0, maxBufferCapacity)
+	fileScanner.Buffer(fileScannerBuffer, maxBufferCapacity)
+
 	var (
-		lineBytes     []byte
 		contentBuffer bytes.Buffer
+		scanInvoked   bool
 	)
-	reader := bufio.NewReaderSize(file, 64*1024)
-	for {
-		lineBytes, err = reader.ReadBytes('\n')
-		if err != nil && err != io.EOF {
-			return
+	for fileScanner.Scan() {
+		if scanInvoked {
+			contentBuffer.WriteByte('\n')
 		}
-		_, _ = contentBuffer.Write(lineBytes)
-		if err == io.EOF {
-			err = nil
-			break
-		}
+		_, _ = contentBuffer.Write(fileScanner.Bytes())
+		scanInvoked = true
 	}
-	content = contentBuffer.Bytes()
+	content, err = contentBuffer.Bytes(), fileScanner.Err()
 	return
 }
 
@@ -75,28 +75,19 @@ func ReadWithCondition(path string, skipFunc, breakFunc func(int, string) bool) 
 	}
 	defer func() { _ = file.Close() }()
 
-	var (
-		lineNumber       int
-		lineWithoutDelim string
-	)
-	reader := bufio.NewReaderSize(file, 64*1024)
-	for {
-		lineWithoutDelim, err = reader.ReadString('\n')
-		if err != nil && err != io.EOF {
-			return
-		}
-
+	var lineNumber int
+	fileScanner := bufio.NewScanner(file)
+	fileScannerBuffer := make([]byte, 0, maxBufferCapacity)
+	fileScanner.Buffer(fileScannerBuffer, maxBufferCapacity)
+	for fileScanner.Scan() {
 		lineNumber++
-		lineWithoutDelim = strings.TrimRight(lineWithoutDelim, "\n")
-		if skipFunc != nil && skipFunc(lineNumber, lineWithoutDelim) {
+		text := fileScanner.Text()
+		if skipFunc != nil && skipFunc(lineNumber, text) {
 			continue
 		}
-		content = append(content, lineWithoutDelim)
-		if breakFunc != nil && breakFunc(lineNumber, lineWithoutDelim) {
-			break
-		}
-		if err == io.EOF {
-			err = nil
+
+		content = append(content, text)
+		if breakFunc != nil && breakFunc(lineNumber, text) {
 			break
 		}
 	}
