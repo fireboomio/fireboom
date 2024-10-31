@@ -24,13 +24,12 @@ func init() {
 	actionMap[wgpb.DataSourceKind_SQLITE] = generateDatabaseFunc
 }
 
-const (
-	ignoreEmptyDatabaseError = "The introspected database was empty."
-	introspectSchemaFormat   = `datasource db {
+var ignoreEmptyDatabaseError = fmt.Sprintf("[P%d]%s", i18n.PrismaError_P4001, i18n.PrismaError_P4001.Error())
+
+const introspectSchemaFormat = `datasource db {
   provider = "%s"
   url      = "%s"
 }`
-)
 
 type actionDatabase struct {
 	ds *models.Datasource
