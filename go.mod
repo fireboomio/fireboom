@@ -10,6 +10,7 @@ require (
 	github.com/getkin/kin-openapi v0.120.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-openapi/jsonpointer v0.19.6
+	github.com/goccy/go-json v0.10.2
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/invopop/jsonschema v0.7.0
@@ -65,7 +66,6 @@ require (
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/go-redis/cache/v8 v8.4.1 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
@@ -168,6 +168,6 @@ replace (
 	github.com/flowchartsman/handlebars/v3 => github.com/fireboomio/handlebars/v3 v3.0.0-20230407011829-1693185f0572
 	github.com/getkin/kin-openapi => github.com/fireboomio/kin-openapi v0.0.0-20240110095352-e1b4433e41a8
 	github.com/prisma/prisma-client-go => github.com/fireboomio/prisma-client-go v0.0.0-20240614073744-961bb930abe4
-	github.com/wundergraph/graphql-go-tools => github.com/fireboomio/graphql-go-tools v0.0.0-20240906084833-9d754bc747d6
+	github.com/wundergraph/graphql-go-tools => github.com/fireboomio/graphql-go-tools v0.0.0-20241101081953-5de6406c15e8
 	github.com/wundergraph/wundergraph => ./wundergraphGitSubmodule
 )
