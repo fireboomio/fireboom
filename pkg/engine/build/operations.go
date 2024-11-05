@@ -166,9 +166,11 @@ func (o *operations) mergeGlobalOperation(operation *models.Operation, operation
 	if operation.ConfigCustomized {
 		operationResult.CacheConfig = operation.CacheConfig
 		operationResult.LiveQueryConfig = operation.LiveQueryConfig
+		operationResult.GraphqlTransformEnabled = operation.GraphqlTransformEnabled
 	} else {
 		operationResult.CacheConfig = globalOperation.CacheConfig
 		operationResult.LiveQueryConfig = globalOperation.LiveQueryConfig
+		operationResult.GraphqlTransformEnabled = globalOperation.GraphqlTransformEnabled
 	}
 
 	if operationResult.AuthenticationConfig != nil {

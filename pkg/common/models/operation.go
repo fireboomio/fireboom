@@ -33,10 +33,11 @@ type Operation struct {
 	RateLimit          *wgpb.OperationRateLimit          `json:"rateLimit"`
 	Semaphore          *wgpb.OperationSemaphore          `json:"semaphore"`
 
-	ConfigCustomized     bool                                `json:"configCustomized"`
-	CacheConfig          *wgpb.OperationCacheConfig          `json:"cacheConfig"`
-	LiveQueryConfig      *wgpb.OperationLiveQueryConfig      `json:"liveQueryConfig"`
-	AuthenticationConfig *wgpb.OperationAuthenticationConfig `json:"authenticationConfig"`
+	ConfigCustomized        bool                                `json:"configCustomized"`
+	CacheConfig             *wgpb.OperationCacheConfig          `json:"cacheConfig"`
+	LiveQueryConfig         *wgpb.OperationLiveQueryConfig      `json:"liveQueryConfig"`
+	AuthenticationConfig    *wgpb.OperationAuthenticationConfig `json:"authenticationConfig"`
+	GraphqlTransformEnabled bool                                `json:"graphqlTransformEnabled"`
 
 	Invalid             bool                               `json:"-"`
 	Internal            bool                               `json:"-"`

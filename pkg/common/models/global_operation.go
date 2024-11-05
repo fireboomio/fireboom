@@ -17,6 +17,7 @@ import (
 type GlobalOperation struct {
 	CacheConfig              *wgpb.OperationCacheConfig                                 `json:"cacheConfig"`
 	LiveQueryConfig          *wgpb.OperationLiveQueryConfig                             `json:"liveQueryConfig"`
+	GraphqlTransformEnabled  bool                                                       `json:"graphqlTransformEnabled"`
 	AuthenticationConfigs    map[wgpb.OperationType]*wgpb.OperationAuthenticationConfig `json:"authenticationConfigs"`
 	ApiAuthenticationHooks   map[consts.MiddlewareHook]bool                             `json:"apiAuthenticationHooks"`
 	GlobalHttpTransportHooks map[consts.MiddlewareHook]bool                             `json:"globalHttpTransportHooks"`
