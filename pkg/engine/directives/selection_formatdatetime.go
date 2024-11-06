@@ -26,7 +26,7 @@ type formatDateTime struct{}
 
 func (s *formatDateTime) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: prependMockAllowed(appendIfExistExampleGraphql(i18n.FormatDateTimeDesc.String())),
+		Description: prependMockWorked(appendIfExistExampleGraphql(i18n.FormatDateTimeDesc.String())),
 		Name:        formatDateTimeName,
 		Locations:   []ast.DirectiveLocation{ast.LocationField},
 		Arguments:   dateTimeFormatArguments(),

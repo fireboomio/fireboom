@@ -44,7 +44,7 @@ type transform struct{}
 
 func (s *transform) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: appendIfExistExampleGraphql(i18n.TransformDesc.String()),
+		Description: prependMockSwitch(appendIfExistExampleGraphql(i18n.TransformDesc.String())),
 		Name:        transformName,
 		Locations:   []ast.DirectiveLocation{ast.LocationField},
 		Arguments: ast.ArgumentDefinitionList{{

@@ -17,7 +17,7 @@ type disallowParallel struct{}
 
 func (o *disallowParallel) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: prependMockAllowed(appendIfExistExampleGraphql(i18n.DisallowParallelDesc.String())),
+		Description: prependMockWorked(appendIfExistExampleGraphql(i18n.DisallowParallelDesc.String())),
 		Name:        disallowParallelName,
 		Locations:   []ast.DirectiveLocation{ast.LocationQuery, ast.LocationMutation},
 	}

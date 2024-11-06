@@ -96,3 +96,5 @@ const InjectRuleValueDesc Directive = iota + 11101
 const DisallowParallelDesc Directive = iota + 11201
 const CustomizedFieldDesc Directive = iota + 11301
 const SkipVariableDesc Directive = iota + 11401
+const AsyncResolveDesc Directive = iota + 11501
+const FirstRawResultDesc Directive = iota + 11601

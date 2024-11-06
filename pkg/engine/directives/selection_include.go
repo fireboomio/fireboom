@@ -28,7 +28,7 @@ type include struct{}
 
 func (s *include) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: prependMockAllowed(""),
+		Description: prependMockWorked(""),
 		Name:        includeName,
 		Locations:   []ast.DirectiveLocation{ast.LocationField, ast.LocationFragmentSpread, ast.LocationInlineFragment},
 		Arguments: ast.ArgumentDefinitionList{{

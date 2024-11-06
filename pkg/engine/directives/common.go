@@ -68,7 +68,8 @@ const (
 	argumentValueNotSupportedFormat = `value [%s] in argument [%s] not supported`
 	exampleFlag                     = `
 @example `
-	mockAllowedFlag = `[mockAllowed]`
+	mockWorkedFlag = `[mockWorked]`
+	mockSwitchFlag = `[mockSwitch]`
 )
 
 var (
@@ -149,8 +150,12 @@ func appendIfExistExampleGraphql(desc string) string {
 	return desc + exampleFlag + content
 }
 
-func prependMockAllowed(desc string) string {
-	return mockAllowedFlag + desc
+func prependMockWorked(desc string) string {
+	return mockWorkedFlag + desc
+}
+
+func prependMockSwitch(desc string) string {
+	return mockSwitchFlag + desc
 }
 
 // ResolveDirectiveArguments 解析指令参数并返回map

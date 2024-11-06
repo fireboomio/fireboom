@@ -6,6 +6,7 @@
 package directives
 
 import (
+	"fireboom-server/pkg/plugins/i18n"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -15,8 +16,9 @@ type firstRawResult struct{}
 
 func (s *firstRawResult) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Name:      firstRawResultName,
-		Locations: []ast.DirectiveLocation{ast.LocationField},
+		Description: prependMockWorked(appendIfExistExampleGraphql(i18n.FirstRawResultDesc.String())),
+		Name:        firstRawResultName,
+		Locations:   []ast.DirectiveLocation{ast.LocationField},
 	}
 }
 

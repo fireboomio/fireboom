@@ -21,7 +21,7 @@ type skipVariable struct{}
 func (s *skipVariable) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
 		IsRepeatable: true,
-		Description:  prependMockAllowed(appendIfExistExampleGraphql(i18n.SkipVariableDesc.String())),
+		Description:  prependMockWorked(appendIfExistExampleGraphql(i18n.SkipVariableDesc.String())),
 		Name:         skipVariableName,
 		Locations:    []ast.DirectiveLocation{ast.LocationField},
 		Arguments: ast.ArgumentDefinitionList{{

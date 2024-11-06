@@ -16,7 +16,7 @@ type internal struct{}
 
 func (v *internal) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: prependMockAllowed(appendIfExistExampleGraphql(i18n.InternalDesc.String())),
+		Description: prependMockWorked(appendIfExistExampleGraphql(i18n.InternalDesc.String())),
 		Name:        internalName,
 		Locations:   []ast.DirectiveLocation{ast.LocationVariableDefinition},
 	}

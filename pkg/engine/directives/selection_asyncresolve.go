@@ -6,6 +6,7 @@
 package directives
 
 import (
+	"fireboom-server/pkg/plugins/i18n"
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -17,8 +18,9 @@ type asyncResolve struct{}
 
 func (s *asyncResolve) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Name:      asyncResolveName,
-		Locations: []ast.DirectiveLocation{ast.LocationField},
+		Description: prependMockWorked(appendIfExistExampleGraphql(i18n.AsyncResolveDesc.String())),
+		Name:        asyncResolveName,
+		Locations:   []ast.DirectiveLocation{ast.LocationField},
 	}
 }
 

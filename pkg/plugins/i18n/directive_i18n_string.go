@@ -59,10 +59,12 @@ func _() {
 	_ = x[DisallowParallelDesc-11201]
 	_ = x[CustomizedFieldDesc-11301]
 	_ = x[SkipVariableDesc-11401]
+	_ = x[AsyncResolveDesc-11501]
+	_ = x[FirstRawResultDesc-11601]
 }
 
 const (
-	_Directive_ZhCn_name = "作用于标量选择集上，将字段赋值给@internal声明的变量作用在字段上，用于格式化日期枚举值，系统内置的标准格式，如 ISO8601自定义格式，需遵循Golang规范，例如 2006-01-02 15:04:05作用于变量上，用于注入用户信息用于String变量，注入OIDC Claim对象声明的值，如USERID等用于任意变量，name=CUSTOM时生效，以数组形式指定json path，从CustomClaims中提取数据作用于String变量上，用于注入请求头中的字段作用于变量上，用于声明变量，和_join和export一起使用作用于OPERATION上，将其声明为内部函数，不对外暴露作用于变量上，用于入参校验用于数字类型变量，变量>minimum用于数字类型变量，变量<maximum用于数组变量，len(变量)≥minItems用于数组变量，len(变量)≤maxItems用于数组变量，为true时每项值不能重复用于String变量，len(变量)≤maxLength用于数组变量，len(变量) ≤ maxItems用于String变量，校验字符串是否匹配正则同pattern，声明了几种特殊正则枚举作用于OPERATION上，声明API的RBAC权限任意匹配，用户角色与API角色有交集时，可访问（常用）全部匹配，用户角色包含API角色时，可访问非全部匹配，当任意匹配或互斥匹配时，可访问互斥匹配，用户角色与API角色互斥时，可访问作用于MUTATION OPERATION上，指定当前变更为事务操作等待时间超时时间隔离级别作用于对象/数组类型的选择集上，将其拍扁示例用法：info.name用作将参数动态转换成查询条件反向筛选筛选条件筛选字段普通筛选关联筛选筛选类型忽略大小写嵌套条件作用于变量上，根据表达式注入参数，可以从arguments，request.header, request.body, environment获取参数作用于OPERATION上，禁止graphql并行解析作用于标量选择集上，自定义字段，可以在钩子和返回值中看到作用于标量选择集上，根据条件跳过参数填充"
+	_Directive_ZhCn_name = "作用于标量选择集上，将字段赋值给@internal声明的变量作用在字段上，用于格式化日期枚举值，系统内置的标准格式，如 ISO8601自定义格式，需遵循Golang规范，例如 2006-01-02 15:04:05作用于变量上，用于注入用户信息用于String变量，注入OIDC Claim对象声明的值，如USERID等用于任意变量，name=CUSTOM时生效，以数组形式指定json path，从CustomClaims中提取数据作用于String变量上，用于注入请求头中的字段作用于变量上，用于声明变量，和_join和export一起使用作用于OPERATION上，将其声明为内部函数，不对外暴露作用于变量上，用于入参校验用于数字类型变量，变量>minimum用于数字类型变量，变量<maximum用于数组变量，len(变量)≥minItems用于数组变量，len(变量)≤maxItems用于数组变量，为true时每项值不能重复用于String变量，len(变量)≤maxLength用于数组变量，len(变量) ≤ maxItems用于String变量，校验字符串是否匹配正则同pattern，声明了几种特殊正则枚举作用于OPERATION上，声明API的RBAC权限任意匹配，用户角色与API角色有交集时，可访问（常用）全部匹配，用户角色包含API角色时，可访问非全部匹配，当任意匹配或互斥匹配时，可访问互斥匹配，用户角色与API角色互斥时，可访问作用于MUTATION OPERATION上，指定当前变更为事务操作等待时间超时时间隔离级别作用于对象/数组类型的选择集上，将其拍扁示例用法：info.name用作将参数动态转换成查询条件反向筛选筛选条件筛选字段普通筛选关联筛选筛选类型忽略大小写嵌套条件作用于变量上，根据表达式注入参数，可以从arguments，request.header, request.body, environment获取参数作用于OPERATION上，禁止graphql并行解析作用于标量选择集上，自定义字段，可以在钩子和返回值中看到作用于标量选择集上，根据条件跳过参数填充作用于标量选择集上，并行解析数组提升响应速度作用于标量选择集上，用于提取首个 QueryRaw/ExecuteRaw 响应"
 )
 
 var (
@@ -111,6 +113,8 @@ var (
 		11201: _Directive_ZhCn_name[1856:1905],
 		11301: _Directive_ZhCn_name[1905:1989],
 		11401: _Directive_ZhCn_name[1989:2049],
+		11501: _Directive_ZhCn_name[2049:2115],
+		11601: _Directive_ZhCn_name[2115:2190],
 	}
 )
 

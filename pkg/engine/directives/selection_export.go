@@ -24,7 +24,7 @@ type export struct{}
 
 func (s *export) Directive() *ast.DirectiveDefinition {
 	return &ast.DirectiveDefinition{
-		Description: prependMockAllowed(appendIfExistExampleGraphql(i18n.ExportDesc.String())),
+		Description: prependMockWorked(appendIfExistExampleGraphql(i18n.ExportDesc.String())),
 		Name:        exportName,
 		Locations:   []ast.DirectiveLocation{ast.LocationField},
 		Arguments: ast.ArgumentDefinitionList{{
