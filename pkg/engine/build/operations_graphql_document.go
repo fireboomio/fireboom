@@ -173,11 +173,11 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 			savedSet = append(savedSet, item)
 		case *ast.Field:
 			var (
-				itemName                    string
-				itemPath                    []string
-				itemNonNull                 bool
-				itemSchemaRef               *openapi3.SchemaRef
-				itemCustomizedDirectiveName string
+				itemName               string
+				itemPath               []string
+				itemNonNull            bool
+				itemSchemaRef          *openapi3.SchemaRef
+				resolvedDirectiveNames []string
 			)
 			if field.Alias != "" {
 				itemName = field.Alias
@@ -219,7 +219,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 					// 当碰到对象schema需要继续递归处理
 					resultSchema, field.SelectionSet = i.resolveSelectionSet(datasourceQuote, field.SelectionSet, definition, itemPath...)
 					resultSchema.Value.Description = definition.Description
-					if fieldOriginName == "queryRaw" {
+					if directives.FieldQueryRawWrapArrayRequired(field.Directives, fieldOriginName) {
 						resultSchema = wrapArraySchemaRef(resultSchema)
 					}
 					return
@@ -227,10 +227,9 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 				itemNonNull = fieldDefinition.Type.NonNull
 				i.resolveSelectionArguments(field.Name, field.Arguments, fieldDefinition, path...)
 			} else {
-				var itemError error
 				itemPath = CopyAndAppendItem(path, itemName)
 				resolver := i.makeSelectionResolver(itemPath)
-				itemCustomizedDirectiveName, itemError = directives.FieldCustomizedDefinition(field.Directives, resolver)
+				itemCustomizedDirectiveName, itemError := directives.FieldCustomizedDefinition(field.Directives, resolver)
 				if itemError != nil {
 					i.reportError(directiveResolveErrorFormat, itemCustomizedDirectiveName, itemError)
 					return
@@ -239,11 +238,12 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 					i.reportErrorWithPath(selectionFieldMissFormat, field.Name, path...)
 					return
 				}
+				resolvedDirectiveNames = append(resolvedDirectiveNames, itemCustomizedDirectiveName)
 			}
 
 			selectionSchema.Properties[itemName] = itemSchemaRef
 			originNullable := itemSchemaRef.Value.Nullable
-			i.resolveSelectionDirectives(field.Directives, itemPath, itemSchemaRef, itemCustomizedDirectiveName)
+			i.resolveSelectionDirectives(field.Directives, itemPath, itemSchemaRef, resolvedDirectiveNames...)
 			if itemNonNull && !(!originNullable && itemSchemaRef.Value.Nullable) {
 				selectionSchema.Required = append(selectionSchema.Required, itemName)
 			}
@@ -553,13 +553,13 @@ func (i *QueryDocumentItem) resolveOperationDirectives() {
 }
 
 // 解析查询字段上的指令
-func (i *QueryDocumentItem) resolveSelectionDirectives(directiveList ast.DirectiveList, path []string, schemaRef *openapi3.SchemaRef, itemCustomizedDirectiveName string) {
+func (i *QueryDocumentItem) resolveSelectionDirectives(directiveList ast.DirectiveList, path []string, schemaRef *openapi3.SchemaRef, resolvedDirectiveNames ...string) {
 	if len(directiveList) == 0 || i.resolveErrored() {
 		return
 	}
 
 	for _, directiveItem := range directiveList {
-		if directiveItem.Name == itemCustomizedDirectiveName {
+		if slices.Contains(resolvedDirectiveNames, directiveItem.Name) {
 			continue
 		}
 		directiveResolve := directives.GetSelectionDirectiveByName(directiveItem.Name)

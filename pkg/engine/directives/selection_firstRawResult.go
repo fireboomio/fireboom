@@ -30,6 +30,20 @@ func (s *firstRawResult) Resolve(resolver *SelectionResolver) (err error) {
 	return
 }
 
+func FieldQueryRawWrapArrayRequired(directives ast.DirectiveList, fieldOriginName string) bool {
+	wrapArrayRequired := fieldOriginName == "queryRaw" || fieldOriginName == "optional_queryRaw"
+	if wrapArrayRequired {
+		for _, item := range directives {
+			directive := selectionDirectiveMap[item.Name]
+			if _, ok := directive.(*firstRawResult); ok {
+				wrapArrayRequired = false
+				break
+			}
+		}
+	}
+	return wrapArrayRequired
+}
+
 func init() {
 	registerDirective(firstRawResultName, &firstRawResult{})
 }
