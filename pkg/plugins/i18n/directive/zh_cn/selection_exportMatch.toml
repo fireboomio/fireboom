@@ -1,0 +1,1 @@
+ExportMatchDesc = "作用于标量选择集上，匹配@export的变量用于解决N+1查询问题"

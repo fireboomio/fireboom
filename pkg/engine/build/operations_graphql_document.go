@@ -229,6 +229,9 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 			} else {
 				itemPath = CopyAndAppendItem(path, itemName)
 				resolver := i.makeSelectionResolver(itemPath)
+				if len(field.SelectionSet) > 0 {
+					resolver.Schema, field.SelectionSet = i.resolveSelectionSet(datasourceQuote, field.SelectionSet, i.definitionFetch(consts.ScalarJSON), itemPath...)
+				}
 				itemCustomizedDirectiveName, itemError := directives.FieldCustomizedDefinition(field.Directives, resolver)
 				if itemError != nil {
 					i.reportError(directiveResolveErrorFormat, itemCustomizedDirectiveName, itemError)

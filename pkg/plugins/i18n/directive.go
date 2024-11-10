@@ -20,7 +20,7 @@ func SwitchDirectiveLocale(locale string) bool {
 
 type Directive uint16
 
-const ExportDesc Directive = iota
+const ExportDesc Directive = iota + 10001
 
 const (
 	FormatDateTimeDesc Directive = iota + 10101
@@ -98,3 +98,4 @@ const CustomizedFieldDesc Directive = iota + 11301
 const SkipVariableDesc Directive = iota + 11401
 const AsyncResolveDesc Directive = iota + 11501
 const FirstRawResultDesc Directive = iota + 11601
+const ExportMatchDesc Directive = iota + 11701

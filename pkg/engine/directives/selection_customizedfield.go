@@ -75,7 +75,7 @@ func (s *customizedField) Resolve(resolver *SelectionResolver) (err error) {
 	if itemsOk = itemsOk && isArray; itemsOk {
 		valueType = items
 	}
-	if !isArray || itemsOk {
+	if (!isArray || itemsOk) && resolver.Schema == nil {
 		if resolver.Schema, ok = BuildSchemaRefForScalar(valueType, false); !ok {
 			err = fmt.Errorf(argumentValueNotSupportedFormat, valueType, customizedFieldArgType)
 			return

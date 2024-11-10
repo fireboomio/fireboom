@@ -139,7 +139,8 @@ loop:
 	var resolveMath *wgpb.PostResolveTransformationMath
 	endWithArrayPath := resolver.Path[len(resolver.Path)-1] == utils.ArrayPath
 	if mathOk {
-		if !arrayVisited && !endWithArrayPath {
+		// 中间/开头/结尾均不不存在数组
+		if !arrayVisited && !endWithArrayPath && schema.Value.Type != openapi3.TypeArray {
 			err = fmt.Errorf(transformArgExpectTypeFormat, transformArgMathName, openapi3.TypeArray)
 			return
 		}
