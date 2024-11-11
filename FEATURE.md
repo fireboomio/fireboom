@@ -49,6 +49,7 @@
 ## 升级功能:
 1. 指令 @jsonschema 支持 format 和 enum 用于修改参数的类型，和指令 @hookVariable 结合更佳
 2. 指令 @transform 新增参数 math(SUM/AVG/MAX/MIN/COUNT/FIRST/LAST)用于对数组元素进行计算，SUM/AVG/MAX/MIN 仅支持数字，FIRST 常用于取首个元素，针对一对多查询但只需取首个元素时使用
+3. 指令 @customizedField 可以作用于 JSON 字段，实现自定义字段的返回值
 
 ## 破坏变更:
 1. query_raw 和 optional_query_raw 查询默认均解析成数组，可以通过 @firstRawResult 改变内省且取首个元素（计算 total 时常用）
