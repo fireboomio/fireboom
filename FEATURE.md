@@ -59,3 +59,25 @@
 2. 解决读取超长文件行错误的问题（当 schema definitions 非常大时出现）
 3. 解决 Prisma 数据源为空时未能生成内省文件的问题（因为翻译错误内容但原有判断逻辑未修改导致）
 4. Web 页面 Graphql Mock 预览数据时，修复以下被错误清除的 Variable/Selection, 指令 @hookVariable 修饰参数但参数有被 Graphql 使用，指令 @customizedField 修饰 Selection 但字段存在定义中
+
+# 版本v2.2.2
+## 新增功能:
+1. 现在可以使用相同字段来实现关联查询/统计并通过别名区分，举例如下(Identity和_count.Card分别是关联查询和关联统计，并且通过别名实现不同条件下的数据返回)：
+```graphql
+query($username: String!) {
+  findManyUser(where: {username: {equals: $username}}) {
+    id
+    username
+    nickname
+    createdAt
+    header: Identity(take: 1, where: {type: {equals: header}}) {id}
+    member: Identity(take: 1, where: {type: {equals: member}}) {id}
+    enabledCardCount: _count @transform(get: "enabled") {
+      enabled: Card(where: {enabled: {equals: true}})
+    }
+    disabledCardCount: _count @transform(get: "disabled") {
+      disabled: Card(where: {enabled: {equals: false}})
+    }
+  }
+}
+```

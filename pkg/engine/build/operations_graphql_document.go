@@ -192,7 +192,7 @@ func (i *QueryDocumentItem) resolveSelectionSet(datasourceQuote string, selectio
 					(len(fieldDefinition.Arguments) > 0 || len(field.SelectionSet) == 0) &&
 					slices.ContainsFunc(savedSet, func(selection ast.Selection) bool {
 						savedField, saved := selection.(*ast.Field)
-						return saved && savedField.Name == field.Name
+						return saved && savedField.Name == field.Name && savedField.Alias == field.Alias
 					}) {
 					i.reportErrorWithPath(fieldTouchRepeatFormat, field.Name, path...)
 					return

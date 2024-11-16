@@ -1,6 +1,6 @@
 // Package directives
 /*
- 实现VariableDirective接口，只能定义在LocationVariableDefinition上
+ 实现SelectionDirective接口，只能定义在LocationField上
  Resolve 标识参数内部传递，与@export组合使用
 */
 package directives
