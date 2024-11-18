@@ -78,6 +78,9 @@ func init() {
 		gval.Function("stringContains", func(a, b string) bool {
 			return strings.Contains(a, b)
 		}),
+		gval.Function("stringFormat", func(a string, args ...any) string {
+			return fmt.Sprintf(a, args...)
+		}),
 		gval.Function("arrayContains", func(a []any, b any) bool {
 			return slices.ContainsFunc(a, func(aa any) bool {
 				return fmt.Sprintf("%v", aa) == fmt.Sprintf("%v", b)
