@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -27,10 +28,12 @@ type ModelText[T any] struct {
 	UpperFirstBasename     bool      // 是否大写文件名(由sdk决定)
 	ExtensionIgnored       bool
 	ReadCacheRequired      bool      // 使用读缓存
+	SkipRelyModelUpdate    bool      // 变更不影响依赖的数据
 	RelyModelActionIgnored bool      // 忽略操作变更函数的注册
 	RelyModel              *Model[T] `valid:"required_if_multiple"`
 	RelyModelWatchPath     []string  // 监听模型数据的字段路径
 
+	once      sync.Once
 	rwType    rwType
 	logger    *zap.Logger
 	readCache *utils.SyncMap[string, *textCache]
@@ -51,21 +54,23 @@ func (t *ModelText[T]) GetFirstCache() (result []byte) {
 }
 
 func (t *ModelText[T]) Init() {
-	if t.RelyModel != nil {
-		t.RelyModel.textItems = append(t.RelyModel.textItems, t)
-	}
+	t.once.Do(func() {
+		if t.RelyModel != nil {
+			t.RelyModel.textItems = append(t.RelyModel.textItems, t)
+		}
 
-	t.rwType = t.TextRW.textRWType()
-	_, err := govalidator.ValidateStruct(t)
-	if err = filterIgnoreUnsupportedTypeError(err); err != nil {
-		panic(err)
-	}
+		t.rwType = t.TextRW.textRWType()
+		_, err := govalidator.ValidateStruct(t)
+		if err = filterIgnoreUnsupportedTypeError(err); err != nil {
+			panic(err)
+		}
 
-	if t.ReadCacheRequired || t.rwType == embedRW {
-		t.readCache = &utils.SyncMap[string, *textCache]{}
-	}
-	t.logger = zap.L()
-	t.load()
+		if t.ReadCacheRequired || t.rwType == embedRW {
+			t.readCache = &utils.SyncMap[string, *textCache]{}
+		}
+		t.logger = zap.L()
+		t.load()
+	})
 }
 
 // Enabled 结合enabled和RelyModel中数据判断是有效
@@ -91,17 +96,19 @@ func (t *ModelText[T]) WriteCustom(dataName, user string, writeFunc func(*os.Fil
 	}
 
 	if t.RelyModel == nil {
-		return t.writeFile(dataName, writeFunc)
+		return t.writeFile(dataName, writeFunc, optional...)
 	}
 
-	defer func() {
-		data, _ := t.RelyModel.GetByDataName(dataName)
-		if data == nil {
-			return
-		}
-		t.RelyModel.afterUpdate(err, data, &DataModifies{}, user, optional...)
-	}()
-	writeAction := func(d *dataLock) error { return t.writeFile(dataName, writeFunc) }
+	if !t.SkipRelyModelUpdate {
+		defer func() {
+			data, _ := t.RelyModel.GetByDataName(dataName)
+			if data == nil {
+				return
+			}
+			t.RelyModel.afterUpdate(err, data, &DataModifies{}, user, optional...)
+		}()
+	}
+	writeAction := func(d *dataLock) error { return t.writeFile(dataName, writeFunc, optional...) }
 	err = t.RelyModel.actionWithLock(t.RelyModel.GetPath(dataName), user, writeAction, t.RelyModel.existedEditorMatch(user))
 	return
 }

@@ -22,8 +22,12 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"golang.org/x/exp/slices"
+	"io"
+	"io/fs"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func OperationExtraRouter(_, operationRouter *echo.Group, baseHandler *base.Handler[models.Operation], modelRoot *fileloader.Model[models.Operation]) {
@@ -32,11 +36,16 @@ func OperationExtraRouter(_, operationRouter *echo.Group, baseHandler *base.Hand
 		modelRoot,
 		models.RoleRoot,
 		models.OperationGraphql,
+		models.OperationGraphqlHistory,
 		baseHandler,
 		make(map[string]string),
 	}
 	operationRouter.GET("/graphql"+base.DataNamePath, handler.getGraphqlText)
 	operationRouter.POST("/graphql"+base.DataNamePath, handler.updateGraphqlText)
+	operationRouter.GET("/graphqlHistoryList"+base.DataNamePath, handler.getGraphqlHistoryList)
+	operationRouter.GET("/graphqlHistory"+base.DataNamePath, handler.getGraphqlHistoryText)
+	operationRouter.POST("/graphqlHistory"+base.DataNamePath, handler.backupGraphqlHistoryText)
+	operationRouter.PUT("/graphqlHistory"+base.DataNamePath, handler.rollbackGraphqlHistoryText)
 	operationRouter.POST("/function"+base.DataNamePath, handler.updateFunctionText)
 	operationRouter.POST("/proxy"+base.DataNamePath, handler.updateProxyText)
 	operationRouter.GET("/hookOptions"+base.DataNamePath, handler.getHookOptions)
@@ -50,12 +59,13 @@ func OperationExtraRouter(_, operationRouter *echo.Group, baseHandler *base.Hand
 
 type (
 	operation struct {
-		modelName      string
-		modelRoot      *fileloader.Model[models.Operation]
-		roleRoot       *fileloader.Model[models.Role]
-		graphqlText    *fileloader.ModelText[models.Operation]
-		baseHandler    *base.Handler[models.Operation]
-		graphqlHashMap map[string]string
+		modelName          string
+		modelRoot          *fileloader.Model[models.Operation]
+		roleRoot           *fileloader.Model[models.Role]
+		graphqlText        *fileloader.ModelText[models.Operation]
+		graphqlHistoryText *fileloader.ModelText[models.Operation]
+		baseHandler        *base.Handler[models.Operation]
+		graphqlHashMap     map[string]string
 	}
 	paramQueryRole struct {
 		RbacType string `json:"rbacType"`
@@ -111,6 +121,132 @@ func (o *operation) updateGraphqlText(c echo.Context) (err error) {
 	}
 
 	o.graphqlHashMap[dataName] = fmt.Sprintf("%x", sha256.Sum256(body))
+	return c.NoContent(http.StatusOK)
+}
+
+// @Tags operation
+// @Description "getGraphqlHistoryList"
+// @Param dataName path string true "dataName"
+// @Success 200 {object} []string "OK"
+// @Router /operation/graphqlHistoryList/{dataName} [get]
+func (o *operation) getGraphqlHistoryList(c echo.Context) (err error) {
+	dataName, err := o.baseHandler.GetPathParamDataName(c)
+	if err != nil {
+		return
+	}
+
+	historyFileExt := string(o.graphqlHistoryText.Extension)
+	historyDirname := strings.TrimSuffix(o.graphqlHistoryText.GetPath(dataName), historyFileExt)
+	if utils.NotExistFile(historyDirname) {
+		err = i18n.NewCustomErrorWithMode(o.modelName, nil, i18n.DirectoryReadError, historyDirname)
+		return
+	}
+
+	versionNames := make([]string, 0, 8)
+	_ = filepath.Walk(historyDirname, func(path string, info fs.FileInfo, _ error) error {
+		if info == nil || info.IsDir() {
+			return nil
+		}
+		basename := filepath.Base(path)
+		if strings.HasSuffix(basename, historyFileExt) {
+			versionNames = append(versionNames, strings.TrimSuffix(basename, historyFileExt))
+		}
+		return nil
+	})
+
+	return c.JSON(http.StatusOK, versionNames)
+}
+
+// @Tags operation
+// @Description "GetGraphqlHistoryText"
+// @Param dataName path string true "dataName"
+// @Param version query string true "version"
+// @Success 200 {string} string "OK"
+// @Failure 400 {object} i18n.CustomError
+// @Router /operation/graphqlHistory/{dataName} [get]
+func (o *operation) getGraphqlHistoryText(c echo.Context) (err error) {
+	dataName, err := o.baseHandler.GetPathParamDataName(c)
+	if err != nil {
+		return
+	}
+	version, err := o.baseHandler.GetQueryParam(c, consts.QueryParamVersion)
+	if err != nil {
+		return
+	}
+
+	content, err := o.graphqlHistoryText.Read(dataName, version)
+	if err != nil {
+		return
+	}
+	return c.String(http.StatusOK, content)
+}
+
+// @Tags operation
+// @Description "backupGraphqlHistoryText"
+// @Param dataName path string true "dataName"
+// @Param version query string true "version"
+// @Param data body string true "文本"
+// @Success 200 "OK"
+// @Failure 400 {object} i18n.CustomError
+// @Router /operation/graphqlHistory/{dataName} [post]
+func (o *operation) backupGraphqlHistoryText(c echo.Context) (err error) {
+	dataName, err := o.baseHandler.GetPathParamDataName(c)
+	if err != nil {
+		return
+	}
+	version, err := o.baseHandler.GetQueryParam(c, consts.QueryParamVersion)
+	if err != nil {
+		return
+	}
+	body, user, err := o.baseHandler.GetUserAndBody(c)
+	if err != nil {
+		return
+	}
+
+	if err = o.graphqlHistoryText.Write(dataName, user, body, version); err != nil {
+		err = i18n.NewCustomErrorWithMode(o.modelName, err, i18n.FileWriteError, o.graphqlHistoryText.GetPath(dataName, version))
+		return
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+// @Tags operation
+// @Description "rollbackGraphqlHistoryText"
+// @Param dataName path string true "dataName"
+// @Param version query string true "version"
+// @Success 200 "OK"
+// @Failure 400 {object} i18n.CustomError
+// @Router /operation/graphqlHistory/{dataName} [put]
+func (o *operation) rollbackGraphqlHistoryText(c echo.Context) (err error) {
+	dataName, user, err := o.baseHandler.GetPathDataNameAndUser(c)
+	if err != nil {
+		return
+	}
+	version, err := o.baseHandler.GetQueryParam(c, consts.QueryParamVersion)
+	if err != nil {
+		return
+	}
+
+	historyFilepath := o.graphqlHistoryText.GetPath(dataName, version)
+	if utils.NotExistFile(historyFilepath) {
+		err = i18n.NewCustomErrorWithMode(o.modelName, nil, i18n.FileReadError, historyFilepath)
+		return
+	}
+	if err = o.graphqlText.WriteCustom(dataName, user, func(dstFile *os.File) error {
+		srcFile, _err := os.Open(historyFilepath)
+		if _err != nil {
+			return _err
+		}
+		if _, _err = io.Copy(dstFile, srcFile); _err != nil {
+			return _err
+		}
+		return dstFile.Sync()
+	}); err != nil {
+		err = i18n.NewCustomErrorWithMode(o.modelName, err, i18n.FileWriteError, o.graphqlHistoryText.GetPath(dataName, version))
+		return
+	}
+
 	return c.NoContent(http.StatusOK)
 }
 

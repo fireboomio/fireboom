@@ -1149,6 +1149,99 @@ paths:
             $ref: '#/definitions/i18n.CustomError'
       tags:
       - operation
+  /operation/graphqlHistory/{dataName}:
+    get:
+      description: '"GetGraphqlHistoryText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: version
+        in: query
+        name: version
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+    post:
+      description: '"backupGraphqlHistoryText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: version
+        in: query
+        name: version
+        required: true
+        type: string
+      - description: 文本
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+    put:
+      description: '"rollbackGraphqlHistoryText"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      - description: version
+        in: query
+        name: version
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/i18n.CustomError'
+      tags:
+      - operation
+  /operation/graphqlHistoryList/{dataName}:
+    get:
+      description: '"getGraphqlHistoryList"'
+      parameters:
+      - description: dataName
+        in: path
+        name: dataName
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+      tags:
+      - operation
   /operation/hookOptions/{dataName}:
     get:
       description: '"getHookOptions"'

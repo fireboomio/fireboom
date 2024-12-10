@@ -1058,6 +1058,147 @@ const docTemplate = `{
                 }
             }
         },
+        "/operation/graphqlHistory/{dataName}": {
+            "get": {
+                "description": "\"GetGraphqlHistoryText\"",
+                "tags": [
+                    "operation"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataName",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "version",
+                        "name": "version",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.CustomError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "\"rollbackGraphqlHistoryText\"",
+                "tags": [
+                    "operation"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataName",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "version",
+                        "name": "version",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.CustomError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "\"backupGraphqlHistoryText\"",
+                "tags": [
+                    "operation"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataName",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "version",
+                        "name": "version",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "description": "文本",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.CustomError"
+                        }
+                    }
+                }
+            }
+        },
+        "/operation/graphqlHistoryList/{dataName}": {
+            "get": {
+                "description": "\"getGraphqlHistoryList\"",
+                "tags": [
+                    "operation"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataName",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/operation/hookOptions/{dataName}": {
             "get": {
                 "description": "\"getHookOptions\"",

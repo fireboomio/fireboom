@@ -15,6 +15,7 @@ const (
 	QueryParamAuthentication = "auth-key"
 	QueryParamCrud           = "crud"
 	QueryParamOverwrite      = "overwrite"
+	QueryParamVersion        = "version"
 
 	FormParamFile = "file"
 

@@ -173,7 +173,7 @@ func (t *ModelText[T]) writeFile(dataName string, writeFunc func(*os.File) error
 	if actionErr != nil {
 		return actionErr
 	}
-
+	defer func() { _ = file.Close() }()
 	return writeFunc(file)
 }
 

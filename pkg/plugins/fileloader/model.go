@@ -41,6 +41,7 @@ type Model[T any] struct {
 	renameWatchers map[string][]func(string, string, ...string) error // 监听模型字段值重命名
 
 	loadErrored bool
+	once        sync.Once
 	rwType      rwType                     // 类型
 	logger      *zap.Logger                // 日志
 	modelName   string                     // 模型名称，结构体的名称
@@ -67,14 +68,15 @@ func (p *Model[T]) LoadErrored() bool {
 }
 
 func (p *Model[T]) Init(lazyLogger ...func() *zap.Logger) {
-	p.rwType = p.DataRW.dataRWType()
-	_, err := govalidator.ValidateStruct(p)
-	if err = filterIgnoreUnsupportedTypeError(err); err != nil {
-		panic(err)
-	}
+	p.once.Do(func() {
+		p.rwType = p.DataRW.dataRWType()
+		_, err := govalidator.ValidateStruct(p)
+		if err = filterIgnoreUnsupportedTypeError(err); err != nil {
+			panic(err)
+		}
 
-	p.initData(lazyLogger...)
-	return
+		p.initData(lazyLogger...)
+	})
 }
 
 // ExistedDataName 根据名称判断数据存在

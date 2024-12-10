@@ -40,6 +40,9 @@ func (p *Model[T]) GetDataTrees() (trees DataTrees, err error) {
 		}
 
 		basename := filepath.Base(path)
+		if info.IsDir() && strings.HasPrefix(basename, ".") {
+			return nil
+		}
 		current := &DataTree{Name: basename}
 		current.Path, _ = filepath.Rel(p.Root, path)
 		current.Path = filepath.ToSlash(current.Path)
