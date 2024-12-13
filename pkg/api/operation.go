@@ -238,6 +238,7 @@ func (o *operation) rollbackGraphqlHistoryText(c echo.Context) (err error) {
 		if _err != nil {
 			return _err
 		}
+		defer func() { _ = srcFile.Close() }()
 		if _, _err = io.Copy(dstFile, srcFile); _err != nil {
 			return _err
 		}
