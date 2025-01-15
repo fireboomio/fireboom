@@ -79,6 +79,10 @@ func _() {
 	_ = x[DatabaseOasVersionError-20305]
 	_ = x[PrismaQueryError-20306]
 	_ = x[PrismaMigrateError-20307]
+	_ = x[PrismaCreateMigrationError-20308]
+	_ = x[PrismaApplyMigrationError-20309]
+	_ = x[PrismaDiffError-20310]
+	_ = x[PrismaShadowDatabaseUrlEmptyError-20311]
 	_ = x[StoragePingError-20401]
 	_ = x[StorageDisabledError-20402]
 	_ = x[StorageMkdirError-20403]
@@ -95,7 +99,7 @@ func _() {
 }
 
 const (
-	_Errcode_ZhCn_name = "服务器内部错误引擎重启错误参数非法参数解析错误结构体参数[%s]为空Body参数[%s]为空Path参数[%s]为空Query参数[%s]为空Form参数[%s]为空请勿重复提交参数签名有误请求数据读取错误请求数据为空请求代理错误文件[%s]读取错误文件[%s]写入错误文件压缩错误文件解压错误文件压缩数量为0文件[%s]内容为空目录[%s]读取错误文件[%s]读取失败文件[%s]不存在反序列化文件[%s]失败[%s]正在编辑数据数据[%s]已存在数据[%s]不存在数据锁[%s]未找到watcher[%s]不支持数据[%s]未变更数据操作[%s]不支持数据名称为空basename函数未设置root或extension为空仅允许[MultipleRW]调用内置[EmbedRW]禁止修改未发现删除的KEYS未发现重命名的KEY重命名目标[%s]已存在禁止重命名多个KEY文件写入依赖relyModel文件路径不匹配，预期[%s]，实际[%s]仅目录可被监听目录[%s]已存在文件[%s]已存在文件[%s]不存在来源[%s]不是目录目标目录[%s]已存在创建引擎启动配置错误数据新增错误数据删除错误数据修改错误数据查询错误数据拷贝错误数据重命名错误数据批量新增错误数据批量删除错误数据批量更新错误数据列表为空数据不存在数据源连接错误数据源类型[%d]不支持数据源未开启数据源连接参数为空OAS版本[%s]不支持Prisma Query引擎错误Prisma Migrate引擎错误OSS存储连接异常OSS存储未开启OSS存储创建目录错误OSS存储创建文件错误OSS存储删除错误OSS存储重命名错误OSS存储查询列表错误OSS存储查询详情错误OSS存储下载文件错误rbac[%s]已绑定角色[%s]rbacType[%s]不支持钩子服务地址未配置SDK[%s]已是最新版本"
+	_Errcode_ZhCn_name = "服务器内部错误引擎重启错误参数非法参数解析错误结构体参数[%s]为空Body参数[%s]为空Path参数[%s]为空Query参数[%s]为空Form参数[%s]为空请勿重复提交参数签名有误请求数据读取错误请求数据为空请求代理错误文件[%s]读取错误文件[%s]写入错误文件压缩错误文件解压错误文件压缩数量为0文件[%s]内容为空目录[%s]读取错误文件[%s]读取失败文件[%s]不存在反序列化文件[%s]失败[%s]正在编辑数据数据[%s]已存在数据[%s]不存在数据锁[%s]未找到watcher[%s]不支持数据[%s]未变更数据操作[%s]不支持数据名称为空basename函数未设置root或extension为空仅允许[MultipleRW]调用内置[EmbedRW]禁止修改未发现删除的KEYS未发现重命名的KEY重命名目标[%s]已存在禁止重命名多个KEY文件写入依赖relyModel文件路径不匹配，预期[%s]，实际[%s]仅目录可被监听目录[%s]已存在文件[%s]已存在文件[%s]不存在来源[%s]不是目录目标目录[%s]已存在创建引擎启动配置错误数据新增错误数据删除错误数据修改错误数据查询错误数据拷贝错误数据重命名错误数据批量新增错误数据批量删除错误数据批量更新错误数据列表为空数据不存在数据源连接错误数据源类型[%d]不支持数据源未开启数据源连接参数为空OAS版本[%s]不支持Prisma Query引擎错误Prisma Migrate引擎错误Prisma 创建迁移文件错误Prisma 应用迁移错误Prisma 创建增量迁移错误Prisma 影子数据库连接参数为空OSS存储连接异常OSS存储未开启OSS存储创建目录错误OSS存储创建文件错误OSS存储删除错误OSS存储重命名错误OSS存储查询列表错误OSS存储查询详情错误OSS存储下载文件错误rbac[%s]已绑定角色[%s]rbacType[%s]不支持钩子服务地址未配置SDK[%s]已是最新版本"
 )
 
 var (
@@ -167,19 +171,23 @@ var (
 		20305: _Errcode_ZhCn_name[1386:1408],
 		20306: _Errcode_ZhCn_name[1408:1432],
 		20307: _Errcode_ZhCn_name[1432:1458],
-		20401: _Errcode_ZhCn_name[1458:1479],
-		20402: _Errcode_ZhCn_name[1479:1497],
-		20403: _Errcode_ZhCn_name[1497:1524],
-		20404: _Errcode_ZhCn_name[1524:1551],
-		20405: _Errcode_ZhCn_name[1551:1572],
-		20406: _Errcode_ZhCn_name[1572:1596],
-		20407: _Errcode_ZhCn_name[1596:1623],
-		20408: _Errcode_ZhCn_name[1623:1650],
-		20409: _Errcode_ZhCn_name[1650:1677],
-		20501: _Errcode_ZhCn_name[1677:1704],
-		20502: _Errcode_ZhCn_name[1704:1725],
-		20601: _Errcode_ZhCn_name[1725:1752],
-		20701: _Errcode_ZhCn_name[1752:1777],
+		20308: _Errcode_ZhCn_name[1458:1489],
+		20309: _Errcode_ZhCn_name[1489:1514],
+		20310: _Errcode_ZhCn_name[1514:1545],
+		20311: _Errcode_ZhCn_name[1545:1585],
+		20401: _Errcode_ZhCn_name[1585:1606],
+		20402: _Errcode_ZhCn_name[1606:1624],
+		20403: _Errcode_ZhCn_name[1624:1651],
+		20404: _Errcode_ZhCn_name[1651:1678],
+		20405: _Errcode_ZhCn_name[1678:1699],
+		20406: _Errcode_ZhCn_name[1699:1723],
+		20407: _Errcode_ZhCn_name[1723:1750],
+		20408: _Errcode_ZhCn_name[1750:1777],
+		20409: _Errcode_ZhCn_name[1777:1804],
+		20501: _Errcode_ZhCn_name[1804:1831],
+		20502: _Errcode_ZhCn_name[1831:1852],
+		20601: _Errcode_ZhCn_name[1852:1879],
+		20701: _Errcode_ZhCn_name[1879:1904],
 	}
 )
 

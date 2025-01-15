@@ -16,6 +16,7 @@ const (
 const (
 	ExportedGeneratedParent     = "generated"
 	ExportedIntrospectionParent = "introspection"
+	ExportedMigrationParent     = "migration"
 
 	ExportedGeneratedSwaggerFilename            = "swagger"
 	ExportedGeneratedHookSwaggerFilename        = "hook.swagger"

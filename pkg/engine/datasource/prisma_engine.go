@@ -6,80 +6,64 @@ package datasource
 
 import (
 	"context"
-	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/utils"
-	"net/http"
-	"path/filepath"
+	"fireboom-server/pkg/plugins/fileloader"
 	"regexp"
+	"slices"
 	"strings"
-	"time"
-
-	"github.com/wundergraph/wundergraph/pkg/datasources/database"
-	"go.uber.org/zap"
 )
 
-func BuildEngine() *database.Engine {
-	return database.NewEngine(&http.Client{Timeout: time.Second * 30}, zap.L(), consts.RootExported)
+type EngineInput struct {
+	PrismaSchema         string
+	PrismaSchemaFilepath string
+	EnvironmentRequired  bool
 }
 
-func startQueryEngineWithAction(prismaSchemaFilepath string, action func(*database.Engine, context.Context) error, env ...string) (err error) {
-	engine := BuildEngine()
-	// 改造成适用绝对路径，解决文本过长出现的命令行too many arguments list报错
-	prismaSchemaFilepath, _ = filepath.Abs(prismaSchemaFilepath)
-	if err = engine.StartQueryEngine(prismaSchemaFilepath, env...); err != nil {
+func buildEnvironments(engineInput EngineInput) (envs []string) {
+	if !engineInput.EnvironmentRequired {
 		return
 	}
-	defer engine.StopPrismaEngine()
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
-	if err = engine.WaitUntilReady(ctx); err != nil {
-		return
+	var schemas []string
+	if len(engineInput.PrismaSchema) > 0 {
+		schemas = append(schemas, engineInput.PrismaSchema)
 	}
-
-	err = action(engine, ctx)
-	return
-}
-
-// introspectGraphqlSchema 内省graphql schema
-func introspectGraphqlSchema(prismaSchemaFilepath string, env ...string) (graphqlSchema string, err error) {
-	err = startQueryEngineWithAction(prismaSchemaFilepath, func(engine *database.Engine, ctx context.Context) error {
-		graphqlSchema, err = engine.IntrospectGraphQLSchema(ctx)
-		return err
-	}, env...)
-	return
-}
-
-// IntrospectDMMF 内省DMMF
-func IntrospectDMMF(prismaSchemaFilepath string, environmentRequired bool) (dmmfContent string, err error) {
-	var envs []string
-	if environmentRequired {
-		if _, _, env, _ := fetchEnvironmentVariable(prismaSchemaFilepath); env != "" {
-			envs = append(envs, env)
+	if len(engineInput.PrismaSchemaFilepath) > 0 {
+		introspectSchema, _ := extractIntrospectSchema(engineInput.PrismaSchemaFilepath)
+		schemas = append(schemas, introspectSchema)
+	}
+	for _, item := range schemas {
+		if variable, ok := extractEnvironmentVariable(item); ok && !slices.ContainsFunc(envs, func(s string) bool {
+			return strings.HasPrefix(s, variable+"=")
+		}) {
+			envs = append(envs, utils.JoinString("=", variable, utils.GetStringWithLockViper(variable)))
 		}
 	}
-	err = startQueryEngineWithAction(prismaSchemaFilepath, func(engine *database.Engine, ctx context.Context) error {
-		dmmfContent, err = engine.IntrospectDMMF(ctx)
-		return err
-	}, envs...)
 	return
 }
 
-// Migrate 迁移prisma
-func Migrate(ctx context.Context, migrateSchema, dataModelFilepath string) (err error) {
-	params := database.JsonRPCPayloadParams{
-		"force":  true,
-		"schema": migrateSchema,
+// 内省并缓存graphqlSchema，数据库类型数据源/prisma数据源
+func introspectForPrisma(actionDatabase ActionDatabase, dsName string) (graphqlSchema string, err error) {
+	engineInput, skipGraphql, err := actionDatabase.fetchSchemaEngineInput()
+	if err != nil {
+		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Second*30)
-	defer cancel()
-	rpcExt := database.JsonRPCExtension{CmdArgs: []string{"--datamodel=" + dataModelFilepath}}
-	if _, _, env, _ := fetchEnvironmentVariable(dataModelFilepath); env != "" {
-		rpcExt.CmdEnvs = []string{env}
+
+	prismaSchema, err := Introspect(context.Background(), engineInput, dsName)
+	if err != nil {
+		return
 	}
-	_, err = BuildEngine().Migrate(ctx, "schemaPush", params, database.JsonRPCExtension{
-		CmdArgs: []string{"--datamodel=" + dataModelFilepath},
-	})
+	if err = CachePrismaSchemaText.Write(dsName, fileloader.SystemUser, []byte(prismaSchema)); err != nil || skipGraphql {
+		return
+	}
+
+	if len(engineInput.PrismaSchemaFilepath) == 0 {
+		engineInput.PrismaSchemaFilepath = CachePrismaSchemaText.GetPath(dsName)
+	}
+	if graphqlSchema, err = IntrospectGraphqlSchema(engineInput); err != nil {
+		return
+	}
+
+	cacheGraphqlSchema(dsName, graphqlSchema)
 	return
 }
 
@@ -87,22 +71,20 @@ var envUrlRegexp = regexp.MustCompile(`env\("([^"]+)"\)`)
 
 // 匹配env("aaa")中变量aaa并且在命令行执行参数中追加
 // 替换真实的环境变量且保证env变量不在缓存中泄漏
-func getCmdEnvironmentVariable(str string) (key string, env string) {
-	if matches := envUrlRegexp.FindStringSubmatch(str); len(matches) == 2 {
-		key = matches[1]
-		env = utils.JoinString("=", key, utils.GetStringWithLockViper(key))
+func extractEnvironmentVariable(prismaSchema string) (string, bool) {
+	if matches := envUrlRegexp.FindStringSubmatch(prismaSchema); len(matches) == 2 {
+		return matches[1], true
 	}
-	return
+	return "", false
 }
 
-func fetchEnvironmentVariable(prismaSchemaFilepath string) (prismaSchema, variable, env string, err error) {
+func extractIntrospectSchema(prismaSchemaFilepath string) (introspectSchema string, err error) {
 	prismaSchemaFileText, err := utils.ReadWithCondition(prismaSchemaFilepath, nil,
 		func(_ int, line string) bool { return strings.HasSuffix(line, "}") })
 	if err != nil {
 		return
 	}
 
-	prismaSchema = utils.JoinString("\n", prismaSchemaFileText...)
-	variable, env = getCmdEnvironmentVariable(prismaSchema)
+	introspectSchema = utils.JoinString("\n", prismaSchemaFileText...)
 	return
 }

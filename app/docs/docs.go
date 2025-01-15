@@ -597,6 +597,115 @@ const docTemplate = `{
                 }
             }
         },
+        "/datasource/applyMigration/{dataName}": {
+            "post": {
+                "description": "\"应用迁移\"",
+                "tags": [
+                    "datasource"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "model名称",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "迁移成功的名称列表",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.CustomError"
+                        }
+                    }
+                }
+            }
+        },
+        "/datasource/createMigration/{dataName}": {
+            "post": {
+                "description": "\"创建迁移\"",
+                "tags": [
+                    "datasource"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "model名称",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "迁移名称",
+                        "name": "version",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "生成的迁移名称",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.CustomError"
+                        }
+                    }
+                }
+            }
+        },
+        "/datasource/diff/{dataName}": {
+            "post": {
+                "description": "\"生成增量迁移脚本\"",
+                "tags": [
+                    "datasource"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "model名称",
+                        "name": "dataName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "增量迁移选项",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/datasource.DiffCmdOption"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "生成的增量脚本",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.CustomError"
+                        }
+                    }
+                }
+            }
+        },
         "/datasource/dmmf/{dataName}": {
             "get": {
                 "description": "\"获取dmmf\"",
@@ -728,10 +837,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "prisma文本",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2146,6 +2252,28 @@ const docTemplate = `{
                 }
             }
         },
+        "datasource.DiffCmdOption": {
+            "type": "object",
+            "properties": {
+                "databaseUrl": {
+                    "$ref": "#/definitions/wgpb.ConfigurationVariable"
+                },
+                "type": {
+                    "$ref": "#/definitions/datasource.DiffCmdOptionType"
+                }
+            }
+        },
+        "datasource.DiffCmdOptionType": {
+            "type": "string",
+            "enum": [
+                "migrations_to_dev",
+                "dev_to_prod"
+            ],
+            "x-enum-varnames": [
+                "DiffCmdOptionMigrationsToDev",
+                "DiffCmdOptionDevToProd"
+            ]
+        },
         "fileloader.DataBatchResult": {
             "type": "object",
             "properties": {
@@ -2295,6 +2423,10 @@ const docTemplate = `{
                 20305,
                 20306,
                 20307,
+                20308,
+                20309,
+                20310,
+                20311,
                 20401,
                 20402,
                 20403,
@@ -2377,6 +2509,10 @@ const docTemplate = `{
                 "DatabaseOasVersionError",
                 "PrismaQueryError",
                 "PrismaMigrateError",
+                "PrismaCreateMigrationError",
+                "PrismaApplyMigrationError",
+                "PrismaDiffError",
+                "PrismaShadowDatabaseUrlEmptyError",
                 "StoragePingError",
                 "StorageDisabledError",
                 "StorageMkdirError",

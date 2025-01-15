@@ -168,6 +168,10 @@ const (
 	DatabaseOasVersionError
 	PrismaQueryError
 	PrismaMigrateError
+	PrismaCreateMigrationError
+	PrismaApplyMigrationError
+	PrismaDiffError
+	PrismaShadowDatabaseUrlEmptyError
 )
 
 const (

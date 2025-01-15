@@ -35,8 +35,12 @@ type actionDatabase struct {
 	ds *models.Datasource
 }
 
+type ActionDatabase interface {
+	fetchSchemaEngineInput() (EngineInput, bool, error)
+}
+
 func (a *actionDatabase) Introspect() (graphqlSchema string, err error) {
-	return introspectForPrisma(a.fetchIntrospectSchema, a.ds.Name)
+	return introspectForPrisma(a, a.ds.Name)
 }
 
 func (a *actionDatabase) BuildDataSourceConfiguration(*ast.SchemaDocument) (config *wgpb.DataSourceConfiguration, err error) {
@@ -63,7 +67,7 @@ func (a *actionDatabase) GetFieldRealName(fieldName string) string {
 }
 
 // 根据数据库类型组装introspectSchema
-func (a *actionDatabase) fetchIntrospectSchema() (introspectSchema, _ string, skipGraphql bool, err error) {
+func (a *actionDatabase) fetchSchemaEngineInput() (engineInput EngineInput, skipGraphql bool, err error) {
 	databaseConfig := a.ds.CustomDatabase
 	if databaseConfig == nil {
 		err = i18n.NewCustomErrorWithMode(datasourceModelName, nil, i18n.StructParamEmtpyError, "customDatabase")
@@ -81,6 +85,6 @@ func (a *actionDatabase) fetchIntrospectSchema() (introspectSchema, _ string, sk
 	}
 
 	databaseKind := strings.ToLower(a.ds.Kind.String())
-	introspectSchema = fmt.Sprintf(introspectSchemaFormat, databaseKind, databaseURL)
+	engineInput.PrismaSchema = fmt.Sprintf(introspectSchemaFormat, databaseKind, databaseURL)
 	return
 }

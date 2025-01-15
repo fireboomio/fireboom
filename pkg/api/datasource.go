@@ -7,7 +7,6 @@ package api
 
 import (
 	"bytes"
-	"context"
 	"fireboom-server/pkg/api/base"
 	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/models"
@@ -20,7 +19,6 @@ import (
 	engineClient "github.com/prisma/prisma-client-go/engine"
 	"github.com/prisma/prisma-client-go/generator/ast/dmmf"
 	"github.com/wundergraph/wundergraph/pkg/datasources/database"
-	"github.com/wundergraph/wundergraph/pkg/eventbus"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"net/http"
 	"strings"
@@ -41,6 +39,9 @@ func DatasourceExtraRouter(_, datasourceRouter *echo.Group, baseHandler *base.Ha
 	datasourceRouter.GET("/prisma"+base.DataNamePath, handler.getPrisma)
 	datasourceRouter.POST("/prisma"+base.DataNamePath, handler.updatePrismaText)
 	datasourceRouter.POST("/migrate"+base.DataNamePath, handler.migrate)
+	datasourceRouter.POST("/createMigration"+base.DataNamePath, handler.createMigration)
+	datasourceRouter.POST("/applyMigration"+base.DataNamePath, handler.applyMigration)
+	datasourceRouter.POST("/diff"+base.DataNamePath, handler.diff)
 }
 
 type (
@@ -84,7 +85,7 @@ func (d *datasource) checkConnection(c echo.Context) error {
 // @Description "迁移"
 // @Param dataName path string true "model名称"
 // @Param data body string true "迁移数据"
-// @Success 200 {string} string "prisma文本"
+// @Success 200 "OK"
 // @Failure 400 {object} i18n.CustomError
 // @Router /datasource/migrate/{dataName} [post]
 func (d *datasource) migrate(c echo.Context) error {
@@ -98,8 +99,12 @@ func (d *datasource) migrate(c echo.Context) error {
 		return err
 	}
 
-	ctx := context.WithValue(c.Request().Context(), eventbus.ChannelDatasource, data.Name)
-	err = engineDatasource.Migrate(ctx, string(migrateBytes), engineDatasource.CachePrismaSchemaText.GetPath(data.Name))
+	engineInput := engineDatasource.EngineInput{
+		PrismaSchema:         string(migrateBytes),
+		PrismaSchemaFilepath: engineDatasource.CachePrismaSchemaText.GetPath(data.Name),
+		EnvironmentRequired:  data.Kind == wgpb.DataSourceKind_PRISMA,
+	}
+	err = engineDatasource.SchemaPush(c.Request().Context(), engineInput, data.Name)
 	if err != nil {
 		return i18n.NewCustomErrorWithMode(d.modelName, err, i18n.PrismaMigrateError)
 	}
@@ -112,6 +117,94 @@ func (d *datasource) migrate(c echo.Context) error {
 		go utils.BuildAndStart()
 	}
 	return c.NoContent(http.StatusOK)
+}
+
+// @Tags datasource
+// @Description "创建迁移"
+// @Param dataName path string true "model名称"
+// @Param version query string true "迁移名称"
+// @Success 200 {string} string "生成的迁移名称"
+// @Failure 400 {object} i18n.CustomError
+// @Router /datasource/createMigration/{dataName} [post]
+func (d *datasource) createMigration(c echo.Context) error {
+	data, err := d.baseHandler.GetOneByDataName(c)
+	if err != nil {
+		return err
+	}
+	version, err := d.baseHandler.GetQueryParam(c, consts.QueryParamVersion)
+	if err != nil {
+		return err
+	}
+
+	prismaSchema, err := engineDatasource.CachePrismaSchemaText.Read(data.Name)
+	if err != nil {
+		return err
+	}
+	engineInput := engineDatasource.EngineInput{
+		PrismaSchema:         prismaSchema,
+		PrismaSchemaFilepath: engineDatasource.CachePrismaSchemaText.GetPath(data.Name),
+		EnvironmentRequired:  data.Kind == wgpb.DataSourceKind_PRISMA,
+	}
+	generatedMigrationName, err := engineDatasource.CreateMigration(c.Request().Context(), engineInput, data.Name, version)
+	if err != nil {
+		return i18n.NewCustomErrorWithMode(d.modelName, err, i18n.PrismaCreateMigrationError)
+	}
+
+	return c.String(http.StatusOK, generatedMigrationName)
+}
+
+// @Tags datasource
+// @Description "应用迁移"
+// @Param dataName path string true "model名称"
+// @Success 200 {string} []string "迁移成功的名称列表"
+// @Failure 400 {object} i18n.CustomError
+// @Router /datasource/applyMigration/{dataName} [post]
+func (d *datasource) applyMigration(c echo.Context) error {
+	data, err := d.baseHandler.GetOneByDataName(c)
+	if err != nil {
+		return err
+	}
+
+	engineInput := engineDatasource.EngineInput{
+		PrismaSchemaFilepath: engineDatasource.CachePrismaSchemaText.GetPath(data.Name),
+		EnvironmentRequired:  data.Kind == wgpb.DataSourceKind_PRISMA,
+	}
+	appliedMigrationNames, err := engineDatasource.ApplyMigration(c.Request().Context(), engineInput, data.Name)
+	if err != nil {
+		return i18n.NewCustomErrorWithMode(d.modelName, err, i18n.PrismaApplyMigrationError)
+	}
+
+	return c.JSON(http.StatusOK, appliedMigrationNames)
+}
+
+// @Tags datasource
+// @Description "生成增量迁移脚本"
+// @Param dataName path string true "model名称"
+// @Param data body datasource.DiffCmdOption true "增量迁移选项"
+// @Success 200 {string} string "生成的增量脚本"
+// @Failure 400 {object} i18n.CustomError
+// @Router /datasource/diff/{dataName} [post]
+func (d *datasource) diff(c echo.Context) error {
+	data, err := d.baseHandler.GetOneByDataName(c)
+	if err != nil {
+		return err
+	}
+
+	var diffOption engineDatasource.DiffCmdOption
+	if err := c.Bind(&diffOption); err != nil {
+		return i18n.NewCustomErrorWithMode(d.modelName, err, i18n.ParamBindError)
+	}
+
+	engineInput := engineDatasource.EngineInput{
+		PrismaSchemaFilepath: engineDatasource.CachePrismaSchemaText.GetPath(data.Name),
+		EnvironmentRequired:  data.Kind == wgpb.DataSourceKind_PRISMA,
+	}
+	diffContent, err := engineDatasource.Diff(c.Request().Context(), engineInput, data.Name, &diffOption)
+	if err != nil {
+		return i18n.NewCustomErrorWithMode(d.modelName, err, i18n.PrismaDiffError)
+	}
+
+	return c.String(http.StatusOK, diffContent)
 }
 
 // @Tags datasource
@@ -181,7 +274,11 @@ func (d *datasource) getDmmf(c echo.Context) (err error) {
 		}
 	}
 
-	dmmfContent, err := engineDatasource.IntrospectDMMF(prismaFilepath, data.Kind == wgpb.DataSourceKind_PRISMA)
+	engineInput := engineDatasource.EngineInput{
+		PrismaSchemaFilepath: prismaFilepath,
+		EnvironmentRequired:  data.Kind == wgpb.DataSourceKind_PRISMA,
+	}
+	dmmfContent, err := engineDatasource.IntrospectDMMF(engineInput)
 	if err != nil {
 		return i18n.NewCustomErrorWithMode(d.modelName, err, i18n.PrismaQueryError)
 	}
@@ -253,6 +350,7 @@ func (d *datasource) graphqlQuery(c echo.Context) (err error) {
 
 	var graphqlRequest engineClient.GQLRequest
 	if err = c.Bind(&graphqlRequest); err != nil {
+		err = i18n.NewCustomErrorWithMode(d.modelName, err, i18n.ParamBindError)
 		return
 	}
 

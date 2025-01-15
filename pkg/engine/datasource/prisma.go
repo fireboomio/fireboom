@@ -5,17 +5,12 @@
 package datasource
 
 import (
-	"context"
 	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/models"
 	"fireboom-server/pkg/common/utils"
-	"fireboom-server/pkg/plugins/fileloader"
 	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/wundergraph/wundergraph/pkg/datasources/database"
-	"github.com/wundergraph/wundergraph/pkg/eventbus"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"path/filepath"
-	"strings"
 )
 
 func init() {
@@ -25,9 +20,8 @@ func init() {
 }
 
 type actionPrisma struct {
-	ds                  *models.Datasource
-	prismaSchema        string
-	environmentVariable string
+	ds           *models.Datasource
+	prismaSchema string
 }
 
 func (a *actionPrisma) Introspect() (graphqlSchema string, err error) {
@@ -35,18 +29,17 @@ func (a *actionPrisma) Introspect() (graphqlSchema string, err error) {
 		return
 	}
 
-	return introspectForPrisma(a.fetchIntrospectSchema, a.ds.Name, models.DatasourceUploadPrisma.GetPath(a.ds.Name))
+	return introspectForPrisma(a, a.ds.Name)
 }
 
 func (a *actionPrisma) BuildDataSourceConfiguration(*ast.SchemaDocument) (config *wgpb.DataSourceConfiguration, err error) {
 	prismaSchemaFilepath := models.DatasourceUploadPrisma.GetPath(a.ds.Name)
-	if a.environmentVariable == "" {
-		_, a.environmentVariable, _, _ = fetchEnvironmentVariable(prismaSchemaFilepath)
-	}
+	introspectSchema, _ := extractIntrospectSchema(prismaSchemaFilepath)
+	environmentVariable, _ := extractEnvironmentVariable(introspectSchema)
 	config = &wgpb.DataSourceConfiguration{CustomDatabase: &wgpb.DataSourceCustom_Database{
 		DatabaseURL:         utils.MakeStaticVariable(prismaSchemaFilepath),
 		JsonInputVariables:  []string{consts.ScalarJSON},
-		EnvironmentVariable: a.environmentVariable,
+		EnvironmentVariable: environmentVariable,
 	}}
 	return
 }
@@ -65,52 +58,14 @@ func (a *actionPrisma) GetFieldRealName(fieldName string) string {
 	return getRawFieldOriginName(fieldName)
 }
 
-func (a *actionPrisma) fetchIntrospectSchema() (prismaSchema, env string, skipGraphql bool, err error) {
+func (a *actionPrisma) fetchSchemaEngineInput() (engineInput EngineInput, skipGraphql bool, err error) {
 	if skipGraphql = len(a.prismaSchema) > 0; skipGraphql {
-		prismaSchema = a.prismaSchema
-		return
-	}
-
-	prismaSchema, a.environmentVariable, env, err = fetchEnvironmentVariable(models.DatasourceUploadPrisma.GetPath(a.ds.Name))
-	return
-}
-
-// 内省并缓存graphqlSchema，数据库类型数据源/prisma数据源
-func introspectForPrisma(fetchIntrospectSchemaFunc func() (string, string, bool, error), dsName string, schemaFilepath ...string) (graphqlSchema string, err error) {
-	introspectSchema, env, skipGraphql, err := fetchIntrospectSchemaFunc()
-	if err != nil {
-		return
-	}
-
-	rpcExt := database.JsonRPCExtension{}
-	if len(env) > 0 {
-		rpcExt.CmdEnvs = []string{env}
-	}
-	ctx := context.WithValue(context.Background(), eventbus.ChannelDatasource, dsName)
-	prismaSchema, err := BuildEngine().IntrospectPrismaDatabaseSchema(ctx, introspectSchema, rpcExt)
-	if err != nil {
-		if !strings.Contains(err.Error(), ignoreEmptyDatabaseError) {
-			return
-		}
-
-		prismaSchema, err = introspectSchema, nil
-	}
-
-	if err = CachePrismaSchemaText.Write(dsName, fileloader.SystemUser, []byte(prismaSchema)); err != nil || skipGraphql {
-		return
-	}
-
-	var prismaSchemaFilepath string
-	if len(schemaFilepath) > 0 {
-		prismaSchemaFilepath = schemaFilepath[0]
+		engineInput.PrismaSchema = a.prismaSchema
 	} else {
-		prismaSchemaFilepath = CachePrismaSchemaText.GetPath(dsName)
+		engineInput.PrismaSchemaFilepath = models.DatasourceUploadPrisma.GetPath(a.ds.Name)
+		engineInput.PrismaSchema, err = extractIntrospectSchema(engineInput.PrismaSchemaFilepath)
 	}
-	if graphqlSchema, err = introspectGraphqlSchema(prismaSchemaFilepath, rpcExt.CmdEnvs...); err != nil {
-		return
-	}
-
-	cacheGraphqlSchema(dsName, graphqlSchema)
+	engineInput.EnvironmentRequired = true
 	return
 }
 

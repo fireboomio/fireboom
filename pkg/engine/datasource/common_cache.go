@@ -21,6 +21,7 @@ var (
 	CacheGraphqlSchemaText *fileloader.ModelText[models.Datasource]
 	CacheDmmfText          *fileloader.ModelText[models.Datasource]
 	introspectionDirname   = utils.NormalizePath(consts.RootExported, consts.ExportedIntrospectionParent)
+	migrationDirname       = utils.NormalizePath(consts.RootExported, consts.ExportedMigrationParent)
 )
 
 func buildDatasourceCache(name string, extension fileloader.Extension) *fileloader.ModelText[models.Datasource] {
