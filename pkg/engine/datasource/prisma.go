@@ -74,6 +74,8 @@ func buildRuntimeDataSourceConfigurationForPrisma(prismaSchema string, config *w
 	staticData := &wgpb.DataSourceCustom_Static{Data: &wgpb.ConfigurationVariable{}}
 	customDatabase := *config.CustomDatabase
 	customDatabase.PrismaSchema, _ = filepath.Abs(prismaSchema)
+	customDatabase.ExecuteTimeoutSeconds = utils.GetInt32WithLockViper(consts.DatabaseExecuteTimeout)
+	customDatabase.CloseTimeoutSeconds = utils.GetInt32WithLockViper(consts.DatabaseCloseTimeout)
 	configs, fields = copyDatasourceWithRootNodes(config, func(_ *wgpb.TypeField, configItem *wgpb.DataSourceConfiguration) bool {
 		configItem.CustomDatabase = &customDatabase
 		configItem.CustomStatic = staticData
