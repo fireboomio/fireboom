@@ -1,6 +1,6 @@
 FROM fireboomapi/base-builder-fireboom:latest as builder
 COPY . .
-ENV GOPROXY=https://pkg.go.dev,direct
+ENV GOPROXY=https://proxy.golang.org,direct
 RUN sh scripts/build.sh
 
 FROM fireboomapi/base-runner-fireboom:latest AS final
