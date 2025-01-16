@@ -4,6 +4,9 @@ on:
     tags:
       - 'v*'
 
+env:
+  GOPROXY: https://goproxy.io,direct
+
 jobs:
   build:
     runs-on: ubuntu-latest
