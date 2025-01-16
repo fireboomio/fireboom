@@ -11,6 +11,9 @@ on:
       - './github/workflows/build-main.yaml'
       - 'README.md'
 
+env:
+  GOPROXY: https://goproxy.io,direct
+
 jobs:
   build:
     runs-on: ubuntu-latest
