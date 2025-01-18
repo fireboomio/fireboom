@@ -30,7 +30,6 @@ type Datasource struct {
 	CacheEnabled bool   `json:"cacheEnabled"`
 
 	Kind           wgpb.DataSourceKind `json:"kind"`
-	KindForPrisma  wgpb.DataSourceKind `json:"kindForPrisma,omitempty"`
 	CustomRest     *CustomRest         `json:"customRest"`
 	CustomAsyncapi *CustomRest         `json:"customAsyncapi,omitempty"`
 	CustomGraphql  *CustomGraphql      `json:"customGraphql"`

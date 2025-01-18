@@ -6,7 +6,6 @@
 package api
 
 import (
-	"bytes"
 	"fireboom-server/pkg/api/base"
 	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/models"
@@ -21,7 +20,6 @@ import (
 	"github.com/wundergraph/wundergraph/pkg/datasources/database"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"net/http"
-	"strings"
 )
 
 func DatasourceExtraRouter(_, datasourceRouter *echo.Group, baseHandler *base.Handler[models.Datasource], modelRoot *fileloader.Model[models.Datasource]) {
@@ -315,18 +313,6 @@ func (d *datasource) updatePrismaText(c echo.Context) (err error) {
 		return
 	}
 
-	var (
-		providerPrefix = []byte(`provider = "`)
-		providerSuffix = []byte(`"`)
-	)
-	prefixIndex := bytes.Index(body, providerPrefix)
-	startIndex := prefixIndex + len(providerPrefix)
-	suffixIndex := bytes.Index(body[startIndex:], providerSuffix)
-	data, _ := models.DatasourceRoot.GetByDataName(dataName)
-	if prefixIndex != -1 && suffixIndex != -1 && data != nil {
-		data.KindForPrisma = wgpb.DataSourceKind(wgpb.DataSourceKind_value[strings.ToUpper(string(body[startIndex:startIndex+suffixIndex]))])
-		_ = models.DatasourceRoot.InsertOrUpdate(data)
-	}
 	return c.NoContent(http.StatusOK)
 }
 

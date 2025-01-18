@@ -8,6 +8,7 @@ import (
 	"context"
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/plugins/fileloader"
+	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"regexp"
 	"slices"
 	"strings"
@@ -76,6 +77,27 @@ func extractEnvironmentVariable(prismaSchema string) (string, bool) {
 		return matches[1], true
 	}
 	return "", false
+}
+
+var (
+	databaseProviderPrefix = `provider = "`
+	databaseProviderSuffix = `"`
+)
+
+// 提取数据库类型
+func extractDatabaseProvider(prismaSchema string) (kind wgpb.DataSourceKind) {
+	prefixIndex := strings.Index(prismaSchema, databaseProviderPrefix)
+	if prefixIndex == -1 {
+		return
+	}
+	startIndex := prefixIndex + len(databaseProviderPrefix)
+	suffixIndex := strings.Index(prismaSchema[startIndex:], databaseProviderSuffix)
+	if suffixIndex == -1 {
+		return
+	}
+	provider := prismaSchema[startIndex : startIndex+suffixIndex]
+	kind = wgpb.DataSourceKind(wgpb.DataSourceKind_value[strings.ToUpper(provider)])
+	return
 }
 
 func extractIntrospectSchema(prismaSchemaFilepath string) (introspectSchema string, err error) {

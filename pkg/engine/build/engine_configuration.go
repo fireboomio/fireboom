@@ -91,14 +91,14 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 			continue
 		}
 
-		if extend, ok := itemAction.(datasource.ActionExtend); ok {
-			extend.ExtendDocument(itemDocument)
-		}
-
 		// 调用不同的函数构建引擎所需配置
 		if itemConfig, err = itemAction.BuildDataSourceConfiguration(itemDocument); err != nil || itemConfig == nil {
 			e.printIntrospectError(err, ds.Name)
 			continue
+		}
+
+		if extend, ok := itemAction.(datasource.ActionExtend); ok {
+			extend.ExtendDocument(itemDocument)
 		}
 
 		// 将数据源名称添加到graphql命名中
@@ -107,7 +107,6 @@ func (e *engineConfiguration) Resolve(builder *Builder) (err error) {
 
 		itemConfig.Id = ds.Name
 		itemConfig.Kind = ds.Kind
-		itemConfig.KindForPrisma = ds.KindForPrisma
 		itemConfig.RootNodes = itemRename.rootNodes
 		itemConfig.ChildNodes = itemRename.childNodes
 		e.engineConfig.DatasourceConfigurations = append(e.engineConfig.DatasourceConfigurations, itemConfig)

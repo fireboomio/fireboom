@@ -59,11 +59,11 @@ func (a *actionDatabase) RuntimeDataSourceConfiguration(config *wgpb.DataSourceC
 }
 
 func (a *actionDatabase) ExtendDocument(document *ast.SchemaDocument) {
-	extendOptionalRawField(document)
+	extendOptionalRawField(a.ds.Kind, document)
 }
 
 func (a *actionDatabase) GetFieldRealName(fieldName string) string {
-	return getRawFieldOriginName(fieldName)
+	return getRawFieldOriginName(a.ds.Kind, fieldName)
 }
 
 // 根据数据库类型组装introspectSchema

@@ -3,6 +3,8 @@ package datasource
 import (
 	"fireboom-server/pkg/common/consts"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/wundergraph/wundergraph/pkg/datasources/database"
+	"github.com/wundergraph/wundergraph/pkg/wgpb"
 )
 
 const (
@@ -15,19 +17,27 @@ var originRawFields = map[string]string{
 	optionalRawFieldExecuteRaw: "executeRaw",
 }
 
-func getRawFieldOriginName(fieldName string) string {
+func getRawFieldOriginName(kind wgpb.DataSourceKind, fieldName string) string {
+	if !database.SupportOptionalRaw(kind) {
+		return fieldName
+	}
 	if name, ok := originRawFields[fieldName]; ok {
 		fieldName = name
 	}
 	return fieldName
 }
 
-func extendOptionalRawField(document *ast.SchemaDocument) {
+func extendOptionalRawField(kind wgpb.DataSourceKind, document *ast.SchemaDocument) {
+	if !database.SupportOptionalRaw(kind) {
+		return
+	}
 	mutations := document.Definitions.ForName(consts.TypeMutation)
 	if mutations == nil {
 		return
 	}
-	mutations.Fields = append(mutations.Fields, makeExtendRawField(optionalRawFieldQueryRaw), makeExtendRawField(optionalRawFieldExecuteRaw))
+	mutations.Fields = append(mutations.Fields,
+		makeExtendRawField(optionalRawFieldQueryRaw),
+		makeExtendRawField(optionalRawFieldExecuteRaw))
 }
 
 func makeExtendRawField(name string) *ast.FieldDefinition {

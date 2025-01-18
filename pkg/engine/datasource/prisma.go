@@ -21,6 +21,7 @@ func init() {
 
 type actionPrisma struct {
 	ds           *models.Datasource
+	providerKind wgpb.DataSourceKind
 	prismaSchema string
 }
 
@@ -35,12 +36,15 @@ func (a *actionPrisma) Introspect() (graphqlSchema string, err error) {
 func (a *actionPrisma) BuildDataSourceConfiguration(*ast.SchemaDocument) (config *wgpb.DataSourceConfiguration, err error) {
 	prismaSchemaFilepath := models.DatasourceUploadPrisma.GetPath(a.ds.Name)
 	introspectSchema, _ := extractIntrospectSchema(prismaSchemaFilepath)
+	a.providerKind = extractDatabaseProvider(introspectSchema)
 	environmentVariable, _ := extractEnvironmentVariable(introspectSchema)
-	config = &wgpb.DataSourceConfiguration{CustomDatabase: &wgpb.DataSourceCustom_Database{
-		DatabaseURL:         utils.MakeStaticVariable(prismaSchemaFilepath),
-		JsonInputVariables:  []string{consts.ScalarJSON},
-		EnvironmentVariable: environmentVariable,
-	}}
+	config = &wgpb.DataSourceConfiguration{
+		KindForPrisma: a.providerKind,
+		CustomDatabase: &wgpb.DataSourceCustom_Database{
+			DatabaseURL:         utils.MakeStaticVariable(prismaSchemaFilepath),
+			JsonInputVariables:  []string{consts.ScalarJSON},
+			EnvironmentVariable: environmentVariable,
+		}}
 	return
 }
 
@@ -51,11 +55,11 @@ func (a *actionPrisma) RuntimeDataSourceConfiguration(config *wgpb.DataSourceCon
 }
 
 func (a *actionPrisma) ExtendDocument(document *ast.SchemaDocument) {
-	extendOptionalRawField(document)
+	extendOptionalRawField(a.providerKind, document)
 }
 
 func (a *actionPrisma) GetFieldRealName(fieldName string) string {
-	return getRawFieldOriginName(fieldName)
+	return getRawFieldOriginName(a.providerKind, fieldName)
 }
 
 func (a *actionPrisma) fetchSchemaEngineInput() (engineInput EngineInput, skipGraphql bool, err error) {
