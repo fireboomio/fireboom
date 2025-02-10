@@ -164,6 +164,7 @@ func (r *hookReportInfo) report(isFirstReport bool) {
 		if restartInvoked = affectCount > 0 || reportChanged; restartInvoked {
 			AddOnEveryStartedHook(func() {
 				r.printReport(zap.Bool("restartInvoked", true))
+				r.resetTicker(time.Second)
 				r.mutex.Unlock()
 			})
 			go utils.BuildAndStart()
