@@ -123,7 +123,7 @@ func (r *hookReportInfo) report(isFirstReport bool) {
 			r.mutex.Unlock()
 		}
 	}()
-	if models.GetEnabledServerSdk() == nil {
+	if models.GetEnabledServerSdk() == nil || !utils.EngineStarted() {
 		r.resetTicker(5 * time.Second)
 		return
 	}
