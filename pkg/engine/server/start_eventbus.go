@@ -20,6 +20,7 @@ func (s *EngineStart) BreakData() {
 		return
 	}
 
+	eventbus.SetGlobalLock(engineStarterMutex)
 	eventbus.Subscribe(eventbus.ChannelOperation, eventbus.EventBreak, func(data any) any {
 		s.printBreakStart(eventbus.ChannelOperation, data)
 		return nil

@@ -36,7 +36,10 @@ import (
 // 7. globalSetting配置变更启动
 // 8. globalOperation配置变更启动
 
-var EngineStarter *EngineStart
+var (
+	EngineStarter      *EngineStart
+	engineStarterMutex = &sync.Mutex{}
+)
 
 func init() {
 	utils.RegisterInitMethod(30, func() {
@@ -51,11 +54,8 @@ func init() {
 			return
 		}
 
-		engineStarterMutex := &sync.Mutex{}
 		utils.BuildAndStart = func() {
-			if !engineStarterMutex.TryLock() {
-				return
-			}
+			engineStarterMutex.Lock()
 
 			EngineBuilder.release()
 			EngineStarter.release()
