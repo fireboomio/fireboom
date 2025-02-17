@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"github.com/buger/jsonparser"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/spf13/cast"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
 	"github.com/vektah/gqlparser/v2/parser"
@@ -45,7 +46,6 @@ const (
 	fieldDefinitionSupplyErrorFormat = "must supply [%s] on path [%s]"
 	nullableRequiredKey              = "Nullable"
 	selectionRootField               = "data"
-	EnumDescriptionsKey              = "X-Enum-Descriptions"
 	whereUniqueInputSuffix           = "WhereUniqueInput"
 	compoundUniqueInputSuffix        = "CompoundUniqueInput"
 )
@@ -749,16 +749,52 @@ func (i *QueryDocumentItem) buildJsonschemaWithDefinition(hasSubFields bool, fie
 		schemaRef = objectBuild(fieldTypeDefinition)
 	case ast.Enum:
 		enumSchema := schemaRef.Value
-		enumDescriptionMap := make(map[string]string)
-		enumSchema.Title, enumSchema.Type, enumSchema.Description = fieldTypeName, openapi3.TypeString, fieldTypeDefinition.Description
+		var (
+			enumVarnames       []interface{}
+			enumDescriptionMap map[string]string
+			enumCastMethod     func(string) interface{}
+		)
+		scalarName, enumDesc := datasource.MatchEnumScalarName(fieldTypeDefinition.Description)
+		switch scalarName {
+		case consts.ScalarInt:
+			enumSchema.Type = openapi3.TypeInteger
+			enumCastMethod = func(e string) interface{} { return cast.ToInt(e) }
+		case consts.ScalarFloat:
+			enumSchema.Type = openapi3.TypeNumber
+			enumCastMethod = func(e string) interface{} { return cast.ToFloat64(e) }
+		default:
+			enumSchema.Type = openapi3.TypeString
+		}
+		enumSchema.Title, enumSchema.Description = fieldTypeName, enumDesc
 		for _, value := range fieldTypeDefinition.EnumValues {
-			enumSchema.Enum = append(enumSchema.Enum, value.Name)
-			if len(value.Description) > 0 {
-				enumDescriptionMap[value.Name] = value.Description
+			var enumValue interface{}
+			realValue, description := datasource.MatchEnumRealValue(value.Description)
+			if len(realValue) > 0 {
+				enumValue = realValue
+				enumVarnames = append(enumVarnames, value.Name)
+			} else {
+				enumValue = value.Name
+			}
+			if enumCastMethod != nil {
+				enumValue = enumCastMethod(strings.TrimPrefix(value.Name, "_"))
+			}
+			enumSchema.Enum = append(enumSchema.Enum, enumValue)
+
+			if len(description) > 0 {
+				if enumDescriptionMap == nil {
+					enumDescriptionMap = map[string]string{}
+				}
+				enumDescriptionMap[value.Name] = description
 			}
 		}
-		if len(enumDescriptionMap) > 0 {
-			enumSchema.Extensions = map[string]interface{}{EnumDescriptionsKey: enumDescriptionMap}
+		if len(enumVarnames) > 0 || len(enumDescriptionMap) > 0 {
+			enumSchema.Extensions = map[string]interface{}{}
+			if len(enumVarnames) > 0 {
+				enumSchema.Extensions[datasource.EnumVarnamesKey] = enumVarnames
+			}
+			if len(enumDescriptionMap) > 0 {
+				enumSchema.Extensions[datasource.EnumDescriptionsKey] = enumDescriptionMap
+			}
 		}
 	}
 	return

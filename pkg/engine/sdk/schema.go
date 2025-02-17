@@ -72,7 +72,7 @@ type (
 		Name                string                 // 枚举名称
 		ValueType           string                 // 枚举值类型
 		Values              []interface{}          // 枚举值列表
-		ValueAliasMap       map[string]interface{} // 枚举变量名替换
+		ValueVarnameMap     map[string]interface{} // 枚举变量名替换
 		ValueDescriptionMap map[string]string      // 枚举变量名描述
 	}
 	operationInfo struct {
@@ -358,12 +358,15 @@ func (o *objectInfoFactory) buildObjectFromDataSchema(schemaRef *openapi3.Schema
 	schema := schemaRef.Value
 	info.Description, info.Default = schema.Description, schema.Default
 	if enum := schema.Enum; enum != nil {
-		info.TypeRefEnum = &enumField{Name: schema.Title, ValueType: schema.Type, Values: schema.Enum}
+		info.TypeRefEnum = &enumField{Name: schema.Title, ValueType: schema.Type, Values: enum}
 		if extensions := schema.Extensions; extensions != nil {
-			if value, ok := extensions[EnumAliasesKey]; ok {
-				info.TypeRefEnum.ValueAliasMap = value.(map[string]interface{})
+			if value, ok := extensions[datasource.EnumVarnamesKey].([]interface{}); ok && len(value) == len(enum) {
+				info.TypeRefEnum.ValueVarnameMap = make(map[string]interface{}, len(value))
+				for i, v := range enum {
+					info.TypeRefEnum.ValueVarnameMap[cast.ToString(v)] = value[i]
+				}
 			}
-			if value, ok := extensions[build.EnumDescriptionsKey]; ok {
+			if value, ok := extensions[datasource.EnumDescriptionsKey]; ok {
 				info.TypeRefEnum.ValueDescriptionMap = value.(map[string]string)
 			}
 		}

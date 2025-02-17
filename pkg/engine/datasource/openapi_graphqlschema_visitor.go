@@ -8,20 +8,25 @@ import (
 	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/utils"
 	"fmt"
+	"github.com/buger/jsonparser"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/spf13/cast"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/wundergraph/graphql-go-tools/pkg/engine/plan"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
+	"regexp"
 	"strings"
 )
 
 const (
-	AdditionalSuffix = "Map"
-	schemaOneOf      = "oneOf"
-	schemaAnyOf      = "anyOf"
-	schemaAllOf      = "allOf"
+	AdditionalSuffix    = "Map"
+	schemaOneOf         = "oneOf"
+	schemaAnyOf         = "anyOf"
+	schemaAllOf         = "allOf"
+	EnumVarnamesKey     = "x-enum-varnames"
+	EnumDescriptionsKey = "x-enum-descriptions"
 )
 
 var (
@@ -65,6 +70,11 @@ func init() {
 	stringFormatToScalarMap["date"] = consts.ScalarDate
 	stringFormatToScalarMap["date-time"] = consts.ScalarDateTime
 	stringFormatToScalarMap["uuid"] = consts.ScalarUUID
+
+	plan.EnumScalarNameFetch = func(desc string) string {
+		scalarName, _ := MatchEnumScalarName(desc)
+		return scalarName
+	}
 }
 
 func visitSchemaOneOf(r *resolveGraphqlSchema, input *visitSchemaInput, schemaValue *openapi3.Schema, hasSchemaRefStr bool) visitSchemaOutput {
@@ -185,19 +195,56 @@ func visitSchemaEnum(r *resolveGraphqlSchema, input *visitSchemaInput, schemaVal
 
 	valueRewrites := make(map[string]string)
 	enumDef.Description = normalizeDescription(schemaValue.Description)
-	for _, item := range schemaValue.Enum {
+	switch schemaValue.Type {
+	case openapi3.TypeInteger:
+		enumDef.Description += fmt.Sprintf(enumScalarNameFormat, consts.ScalarInt)
+	case openapi3.TypeNumber:
+		enumDef.Description += fmt.Sprintf(enumScalarNameFormat, consts.ScalarFloat)
+	}
+	var (
+		enumVarnames     []string
+		enumDescriptions map[string]interface{}
+	)
+	if schemaValue.Extensions != nil {
+		if v, ok := schemaValue.Extensions[EnumVarnamesKey].([]interface{}); ok && len(v) == len(schemaValue.Enum) {
+			enumVarnames = cast.ToStringSlice(v)
+		}
+		if v, ok := schemaValue.Extensions[EnumDescriptionsKey].(map[string]interface{}); ok {
+			enumDescriptions = v
+		}
+	}
+	for i, item := range schemaValue.Enum {
 		itemValueDef := &enumValueDefinition{}
 		enumItem := cast.ToString(item)
-		itemValueDef.baseDefinition = r.normalizeBaseDefinition(enumItem, "", func(normalized string) {
+		var (
+			enumItemValue = enumItem
+			enumItemDesc  string
+		)
+		if enumVarnames != nil {
+			enumItemValue = enumVarnames[i]
+			enumItemDesc += fmt.Sprintf(enumRealValueFormat, enumItem)
+		}
+		if enumDescriptions != nil {
+			enumItemDesc += cast.ToString(enumDescriptions[enumItem])
+		}
+		itemValueDef.baseDefinition = r.normalizeBaseDefinition(enumItemValue, enumItemDesc, func(normalized string) {
 			valueRewrites[normalized] = enumItem
 		})
+		if enumVarnames != nil && itemValueDef.baseDefinition.originName == "" {
+			itemValueDef.baseDefinition.originName = enumItem
+			valueRewrites[itemValueDef.baseDefinition.Name] = enumItem
+		}
 		enumDef.EnumValues = append(enumDef.EnumValues, itemValueDef)
 	}
 	if input.rootKind == ast.InputObject && len(valueRewrites) > 0 {
-		r.storeCustomRestRewriter(input.rootKind, enumDef.Name, &wgpb.DataSourceRESTRewriter{
+		valueRewrite := &wgpb.DataSourceRESTRewriter{
 			Type:          wgpb.DataSourceRESTRewriterType_valueRewrite,
 			ValueRewrites: valueRewrites,
-		})
+		}
+		if schemaValue.Type != openapi3.TypeString {
+			valueRewrite.ValueType = int32(jsonparser.Number)
+		}
+		r.storeCustomRestRewriter(input.rootKind, enumDef.Name, valueRewrite)
 	}
 
 	if schemaValue.Default != nil {
@@ -410,4 +457,24 @@ func choiceAppendDefinitionField(objectDef *definition, itemDef baseDefinition, 
 
 func matchSchemaWithType(schemaRef *openapi3.SchemaRef, schemaType string) bool {
 	return schemaRef.Value != nil && schemaRef.Value.Type == schemaType
+}
+
+const (
+	enumRealValueFormat  = `<#enumRealValue#>%s<#enumRealValue#>`
+	enumScalarNameFormat = `<#enumScalarName#>%s<#enumScalarName#>`
+)
+
+var (
+	enumRealValueRegexp  = regexp.MustCompile(`<#enumRealValue#>([^}]+)<#enumRealValue#>`)
+	enumScalarNameRegexp = regexp.MustCompile(`<#enumScalarName#>([^}]+)<#enumScalarName#>`)
+)
+
+// MatchEnumRealValue 通过在description中添加的特殊标识匹配出额外字段名称
+func MatchEnumRealValue(description string) (string, string) {
+	return utils.MatchNameWithRegexp(description, enumRealValueRegexp)
+}
+
+// MatchEnumScalarName 通过在description中添加的特殊标识匹配出额外字段名称
+func MatchEnumScalarName(description string) (string, string) {
+	return utils.MatchNameWithRegexp(description, enumScalarNameRegexp)
 }

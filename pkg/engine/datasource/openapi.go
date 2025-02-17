@@ -19,6 +19,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/tidwall/gjson"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/wundergraph/wundergraph/pkg/customhttpclient"
 	"github.com/wundergraph/wundergraph/pkg/interpolate"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
 	"golang.org/x/exp/maps"
@@ -35,12 +36,9 @@ func init() {
 			customRestExistedResponseRewriters: make(map[string]bool),
 			customRestRequestRewriterMap:       make(map[string]*wgpb.DataSourceCustom_REST_Rewriter),
 			customRestResponseRewriterMap:      make(map[string]*wgpb.DataSourceCustom_REST_Rewriter),
-			subscribedResolves:                 make(map[string]resolveOpenapi),
 		}
 	}
 }
-
-const extensionXSubscribed = "x-subscribed"
 
 var (
 	versionKeys    = []string{"swagger", "openapi"}
@@ -62,6 +60,7 @@ var (
 		echo.MIMETextPlainCharsetUTF8,
 		echo.MIMEMultipartForm,
 		echo.MIMEOctetStream,
+		customhttpclient.TextEventStreamMine,
 		"*/*",
 	}
 )
@@ -75,7 +74,6 @@ type (
 		customRestExistedResponseRewriters map[string]bool
 		customRestRequestRewriterMap       map[string]*wgpb.DataSourceCustom_REST_Rewriter
 		customRestResponseRewriterMap      map[string]*wgpb.DataSourceCustom_REST_Rewriter
-		subscribedResolves                 map[string]resolveOpenapi
 	}
 	resolveOpenapi interface {
 		resolve(*resolveItem)
@@ -296,9 +294,23 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 		method:   method,
 	}
 	resolveInfo.responses = make(map[string]contentSchema)
+	var (
+		operationMatchMineTypes     []string
+		operationOnlyEventStream    bool
+		operationContainEventStream bool
+	)
+	operationIdSuffix := method.String()
+	if typeName == consts.TypeSubscription {
+		operationIdSuffix += typeName
+		operationMatchMineTypes = append(operationMatchMineTypes, customhttpclient.TextEventStreamMine)
+	}
 	for code, resp := range operation.Responses {
-		respSchema := a.fetchResponseResolveSchema(resp.Value)
-		if strings.HasPrefix(code, "2") {
+		respSchema, contentSize := a.fetchResponseResolveSchema(resp.Value, operationMatchMineTypes...)
+		if code == "200" {
+			resolveInfo.succeedResponse = respSchema
+			operationContainEventStream = contentSize > 0 && resp.Value.Content.Get(customhttpclient.TextEventStreamMine) != nil
+			operationOnlyEventStream = operationContainEventStream && contentSize == 1
+		} else if strings.HasPrefix(code, "2") && resolveInfo.succeedResponse.schema == nil {
 			resolveInfo.succeedResponse = respSchema
 		} else {
 			resolveInfo.responses[code] = respSchema
@@ -315,17 +327,6 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 	} else {
 		resolveInfo.description = operation.Summary
 	}
-	var operationIdSuffix string
-	if typeName == consts.TypeSubscription {
-		operationIdSuffix = typeName
-		subscribedBytes, _ := json.Marshal(operation.Extensions[extensionXSubscribed])
-		_ = json.Unmarshal(subscribedBytes, &resolveInfo.subscribed)
-		if resolveInfo.subscribed.Schema != nil {
-			resolveInfo.succeedResponse.schema = a.fetchSchemaRef(resolveInfo.subscribed.Schema)
-		}
-	} else {
-		operationIdSuffix = method.String()
-	}
 	resolveInfo.operationId = utils.NormalizeName(utils.JoinString("_", strings.TrimPrefix(operationId, "/"), strings.ToLower(operationIdSuffix)))
 	resolveInfo.parameters = append(operation.Parameters, parameters...)
 
@@ -335,22 +336,21 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 	if resolveInfo.succeedResponse.schema == nil {
 		resolveInfo.succeedResponse.schema = &openapi3.SchemaRef{Value: &openapi3.Schema{Type: openapi3.TypeBoolean, Default: true}}
 	}
-	resolve.resolve(resolveInfo)
+	if typeName == consts.TypeSubscription || !operationOnlyEventStream {
+		resolve.resolve(resolveInfo)
+	}
 
-	if _, ok := operation.Extensions[extensionXSubscribed]; ok {
-		if resolvedValue, resolved := a.subscribedResolves[path]; !resolved || resolvedValue != resolve {
-			a.subscribedResolves[path] = resolve
-			subscribedInfo := a.iteratorPathItem(path, operation, parameters, method, consts.TypeSubscription, resolve)
-			if _, ok = a.customRestRequestRewriterMap[subscribedInfo.operationId]; !ok {
-				if resolvedRewriter, existed := a.customRestRequestRewriterMap[resolveInfo.operationId]; existed {
-					a.customRestRequestRewriterMap[subscribedInfo.operationId] = resolvedRewriter
-				}
+	if typeName != consts.TypeSubscription && operationContainEventStream {
+		subscribedInfo := a.iteratorPathItem(path, operation, parameters, method, consts.TypeSubscription, resolve)
+		if _, ok := a.customRestRequestRewriterMap[subscribedInfo.operationId]; !ok {
+			if resolvedRewriter, existed := a.customRestRequestRewriterMap[resolveInfo.operationId]; existed {
+				a.customRestRequestRewriterMap[subscribedInfo.operationId] = resolvedRewriter
 			}
-			if _, ok = a.customRestResponseRewriterMap[subscribedInfo.operationId]; !ok &&
-				subscribedInfo.succeedResponse == resolveInfo.succeedResponse {
-				if resolvedRewriter, existed := a.customRestResponseRewriterMap[resolveInfo.operationId]; existed {
-					a.customRestResponseRewriterMap[subscribedInfo.operationId] = resolvedRewriter
-				}
+		}
+		if _, ok := a.customRestResponseRewriterMap[subscribedInfo.operationId]; !ok &&
+			subscribedInfo.succeedResponse == resolveInfo.succeedResponse {
+			if resolvedRewriter, existed := a.customRestResponseRewriterMap[resolveInfo.operationId]; existed {
+				a.customRestResponseRewriterMap[subscribedInfo.operationId] = resolvedRewriter
 			}
 		}
 	}
@@ -359,10 +359,11 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 
 // 获取response定义中的schemaRef
 // 添加对'*/*'类型的支持
-func (a *actionOpenapi) fetchResponseResolveSchema(response *openapi3.Response) (schema contentSchema) {
+func (a *actionOpenapi) fetchResponseResolveSchema(response *openapi3.Response, matchType ...string) (schema contentSchema, contentSize int) {
 	if response != nil && response.Content != nil {
+		contentSize = len(response.Content)
 		for _, mime := range mimeTypes {
-			if result := response.Content.Get(mime); result != nil {
+			if result := response.Content.Get(mime); result != nil && (len(matchType) == 0 || slices.Contains(matchType, mime)) {
 				schema.schema, schema.contentType = result.Schema, mime
 				break
 			}

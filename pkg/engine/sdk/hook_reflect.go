@@ -10,6 +10,7 @@ import (
 	"fireboom-server/pkg/common/models"
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/engine/build"
+	"fireboom-server/pkg/engine/datasource"
 	"fireboom-server/pkg/websocket"
 	"fmt"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -29,10 +30,7 @@ import (
 	"strings"
 )
 
-const (
-	serverHook     = "hook"
-	EnumAliasesKey = "X-Enum-Aliases"
-)
+const serverHook = "hook"
 
 type (
 	reflectObjectFactory struct {
@@ -119,18 +117,17 @@ func (o *reflectObjectFactory) buildServerStructDefinitions() {
 func (o *reflectObjectFactory) buildInt32EnumSchema(enumMap map[string]int32, anyValue any) *openapi3.SchemaRef {
 	enumSchema := openapi3.NewInt32Schema()
 	enumSchema.Title = utils.GetTypeName(anyValue)
-	valueAliasMap := make(map[string]interface{})
-	enumSchema.Extensions = map[string]interface{}{EnumAliasesKey: valueAliasMap}
+	var enumVarnames []string
 	enumKeys := maps.Keys(enumMap)
 	slices.Sort(enumKeys)
 	for _, name := range enumKeys {
 		value := enumMap[name]
-		valueStr := fmt.Sprintf("%v", value)
-		if _, ok := valueAliasMap[valueStr]; !ok {
-			valueAliasMap[valueStr] = name
+		if !slices.Contains(enumVarnames, name) {
+			enumVarnames = append(enumVarnames, name)
 			enumSchema.Enum = append(enumSchema.Enum, value)
 		}
 	}
+	enumSchema.Extensions = map[string]interface{}{datasource.EnumVarnamesKey: enumVarnames}
 	return &openapi3.SchemaRef{Value: enumSchema}
 }
 
@@ -185,11 +182,11 @@ func (o *reflectObjectFactory) reflectServerConfig() {
 func (o *reflectObjectFactory) reflectHookEndpoint() {
 	endpointSchema := openapi3.NewStringSchema()
 	endpointSchema.Title = "Endpoint"
-	endpointValueAliasMap := map[string]interface{}{}
-	endpointSchema.Extensions = map[string]interface{}{EnumAliasesKey: endpointValueAliasMap}
+	var endpointEnumVarnames []string
 	for hook := range models.HttpTransportHookOptionMap {
 		endpoint := fmt.Sprintf("/global/httpTransport/%s", hook)
-		endpointValueAliasMap[endpoint] = hook
+		endpointSchema.Enum = append(endpointSchema.Enum, endpoint)
+		endpointEnumVarnames = append(endpointEnumVarnames, string(hook))
 		metadata := &endpointMetadata{title: hook, response: hooks.MiddlewareHookResponse{}}
 		o.endpoints[endpoint] = metadata
 		switch hook {
@@ -201,7 +198,8 @@ func (o *reflectObjectFactory) reflectHookEndpoint() {
 	}
 	for hook := range models.AuthenticationHookOptionMap {
 		endpoint := fmt.Sprintf("/authentication/%s", hook)
-		endpointValueAliasMap[endpoint] = hook
+		endpointSchema.Enum = append(endpointSchema.Enum, endpoint)
+		endpointEnumVarnames = append(endpointEnumVarnames, string(hook))
 		metadata := &endpointMetadata{title: hook, requestBody: baseRequestBody{}, response: hooks.MiddlewareHookResponse{}}
 		o.endpoints[endpoint] = metadata
 		switch hook {
@@ -212,7 +210,8 @@ func (o *reflectObjectFactory) reflectHookEndpoint() {
 	for hook := range models.OperationHookOptionMap {
 		if _, ok := models.HttpTransportHookAliasMap[hook]; !ok {
 			endpoint := fmt.Sprintf("/operation/{path}/%s", hook)
-			endpointValueAliasMap[endpoint] = hook
+			endpointSchema.Enum = append(endpointSchema.Enum, endpoint)
+			endpointEnumVarnames = append(endpointEnumVarnames, string(hook))
 			o.endpoints[endpoint] = &endpointMetadata{
 				title:       hook,
 				requestBody: operationHookPayload{},
@@ -222,7 +221,8 @@ func (o *reflectObjectFactory) reflectHookEndpoint() {
 	}
 	for hook := range models.StorageProfileHookOptionMap {
 		endpoint := fmt.Sprintf("/upload/{provider}/{profile}/%s", hook)
-		endpointValueAliasMap[endpoint] = hook
+		endpointSchema.Enum = append(endpointSchema.Enum, endpoint)
+		endpointEnumVarnames = append(endpointEnumVarnames, string(hook))
 		o.endpoints[endpoint] = &endpointMetadata{
 			title:       hook,
 			requestBody: uploadHookPayload{},
@@ -230,7 +230,8 @@ func (o *reflectObjectFactory) reflectHookEndpoint() {
 		}
 	}
 	wsConnectionInitEndpoint := fmt.Sprintf("/global/wsTransport/%s", consts.WsTransportOnConnectionInit)
-	endpointValueAliasMap[wsConnectionInitEndpoint] = consts.WsTransportOnConnectionInit
+	endpointSchema.Enum = append(endpointSchema.Enum, wsConnectionInitEndpoint)
+	endpointEnumVarnames = append(endpointEnumVarnames, string(consts.WsTransportOnConnectionInit))
 	o.endpoints[wsConnectionInitEndpoint] = &endpointMetadata{
 		title:                     consts.WsTransportOnConnectionInit,
 		requestBody:               hooks.OnWsConnectionInitHookPayload{},
@@ -238,44 +239,46 @@ func (o *reflectObjectFactory) reflectHookEndpoint() {
 		middlewareResponseRewrite: onWsConnectionInitHookResponse{},
 	}
 	graphqlEndpoint := "/gqls/{name}/graphql"
-	endpointValueAliasMap[graphqlEndpoint] = consts.HookCustomizeParent
+	endpointSchema.Enum = append(endpointSchema.Enum, graphqlEndpoint)
+	endpointEnumVarnames = append(endpointEnumVarnames, consts.HookCustomizeParent)
 	o.endpoints[wsConnectionInitEndpoint] = &endpointMetadata{
 		title:       consts.HookCustomizeParent,
 		requestBody: customizeHookPayload{},
 		response:    customizeHookResponse{},
 	}
 	functionEndpoint := "/function/{path}"
-	endpointValueAliasMap[functionEndpoint] = consts.HookFunctionParent
+	endpointSchema.Enum = append(endpointSchema.Enum, functionEndpoint)
+	endpointEnumVarnames = append(endpointEnumVarnames, consts.HookFunctionParent)
 	o.endpoints[functionEndpoint] = &endpointMetadata{
 		title:       consts.HookFunctionParent,
 		requestBody: operationHookPayload{},
 		response:    hooks.MiddlewareHookResponse{},
 	}
 	proxyEndpoint := "/proxy/{path}"
-	endpointValueAliasMap[proxyEndpoint] = consts.HookProxyParent
+	endpointSchema.Enum = append(endpointSchema.Enum, proxyEndpoint)
+	endpointEnumVarnames = append(endpointEnumVarnames, consts.HookProxyParent)
 	o.endpoints[proxyEndpoint] = &endpointMetadata{
 		title:       consts.HookProxyParent,
 		requestBody: onRequestHookPayload{},
 		response:    hooks.MiddlewareHookResponse{},
 	}
 	healthEndpoint, healthTitle := "/health", "health"
-	endpointValueAliasMap[healthEndpoint] = healthTitle
+	endpointSchema.Enum = append(endpointSchema.Enum, healthEndpoint)
+	endpointEnumVarnames = append(endpointEnumVarnames, healthTitle)
 	o.endpoints[healthEndpoint] = &endpointMetadata{title: consts.MiddlewareHook(healthTitle), response: websocket.Health{}}
-	for name := range endpointValueAliasMap {
-		endpointSchema.Enum = append(endpointSchema.Enum, name)
-	}
+	endpointSchema.Extensions = map[string]interface{}{datasource.EnumVarnamesKey: endpointEnumVarnames}
 	o.buildObjectFromDataSchema(&openapi3.SchemaRef{Value: endpointSchema}, &objectField{})
 
 	internalEndpointSchema := openapi3.NewStringSchema()
 	internalEndpointSchema.Title = "InternalEndpoint"
-	internalEndpointValueAliasMap := map[string]interface{}{}
-	internalEndpointSchema.Extensions = map[string]interface{}{EnumAliasesKey: internalEndpointValueAliasMap}
-	internalEndpointValueAliasMap["/internal/operations/{path}"] = "internalRequest"
-	internalEndpointValueAliasMap["/internal/notifyTransactionFinish"] = "internalTransaction"
-	internalEndpointValueAliasMap["/s3/{provider}/upload"] = "s3upload"
-	for name := range internalEndpointValueAliasMap {
-		internalEndpointSchema.Enum = append(internalEndpointSchema.Enum, name)
-	}
+	internalEndpointSchema.Enum = append(endpointSchema.Enum,
+		"/internal/operations/{path}",
+		"/internal/notifyTransactionFinish",
+		"/s3/{provider}/upload")
+	endpointEnumVarnames = append(endpointEnumVarnames, healthTitle)
+	internalEndpointSchema.Extensions = map[string]interface{}{datasource.EnumVarnamesKey: []string{
+		"internalRequest", "internalTransaction", "s3upload",
+	}}
 	o.buildObjectFromDataSchema(&openapi3.SchemaRef{Value: internalEndpointSchema}, &objectField{})
 }
 
@@ -329,8 +332,8 @@ func (o *reflectObjectFactory) reflectCustomizeHook() {
 	graphqlEndpointFlag := "${graphqlEndpoint}"
 	customizeFlagSchema := openapi3.NewStringSchema()
 	customizeFlagSchema.Title = "CustomizeFlag"
-	customizeFlagSchema.Extensions = map[string]interface{}{EnumAliasesKey: map[string]interface{}{graphqlEndpointFlag: "graphqlEndpoint"}}
 	customizeFlagSchema.Enum = append(customizeFlagSchema.Enum, "subscription", "__schema", graphqlEndpointFlag)
+	customizeFlagSchema.Extensions = map[string]interface{}{datasource.EnumVarnamesKey: []string{"subscription", "__schema", "graphqlEndpoint"}}
 	o.buildObjectFromDataSchema(&openapi3.SchemaRef{Value: customizeFlagSchema}, &objectField{})
 }
 
