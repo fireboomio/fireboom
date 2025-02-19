@@ -281,13 +281,13 @@ func (i *QueryDocumentItem) resolveSelectionArguments(fieldName string, argument
 			return
 		}
 
-		argDefinitionIndex := argumentOverview.indexes[argItem.Name]
-		if argDefinitionIndex == -1 {
+		argDefinitionIndex, found := argumentOverview.indexes[argItem.Name]
+		if !found {
 			i.reportErrorWithPath(argumentDefinitionMissFormat, argItem.Name, nextParentPath...)
 			return
 		}
 
-		argDefinition := fieldDefinition.Arguments[argumentOverview.indexes[argItem.Name]]
+		argDefinition := fieldDefinition.Arguments[argDefinitionIndex]
 		if argDefinition == nil {
 			i.reportErrorWithPath(argumentDefinitionMissFormat, argItem.Name, nextParentPath...)
 			return
