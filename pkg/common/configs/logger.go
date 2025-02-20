@@ -90,5 +90,5 @@ func setLoggerLevel(level string) {
 	}
 
 	loggerLevel = parseLevel
-	logging.SetTraceDebug(parseLevel.Enabled(zapcore.DebugLevel))
+	logging.SetLogLevel(loggerLevel)
 }

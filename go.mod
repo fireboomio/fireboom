@@ -168,6 +168,6 @@ replace (
 	github.com/flowchartsman/handlebars/v3 => github.com/fireboomio/handlebars/v3 v3.0.0-20230407011829-1693185f0572
 	github.com/getkin/kin-openapi => github.com/fireboomio/kin-openapi v0.0.0-20240110095352-e1b4433e41a8
 	github.com/prisma/prisma-client-go => github.com/fireboomio/prisma-client-go v0.0.0-20240614073744-961bb930abe4
-	github.com/wundergraph/graphql-go-tools => github.com/fireboomio/graphql-go-tools v0.0.0-20250214134149-eb9e2b8f1b7d
+	github.com/wundergraph/graphql-go-tools => github.com/fireboomio/graphql-go-tools v0.0.0-20250220070125-2f1e1afba2b9
 	github.com/wundergraph/wundergraph => ./wundergraphGitSubmodule
 )
