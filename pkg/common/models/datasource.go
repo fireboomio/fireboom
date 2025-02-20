@@ -74,17 +74,20 @@ func (d *Datasource) IsCustomDatabase() bool {
 	return slices.Contains(databaseKinds, d.Kind)
 }
 
-func (c *CustomGraphql) GetGraphqlUrl(dsName string) (string, error) {
+func (c *CustomGraphql) GetGraphqlUrlVariables(dsName string) (url, baseUrl, path *wgpb.ConfigurationVariable, err error) {
 	if !c.Customized {
-		return c.Endpoint, nil
+		url = utils.MakeStaticVariable(c.Endpoint)
+		return
 	}
 
 	serverOptions := configs.GlobalSettingRoot.FirstData().ServerOptions
 	if serverOptions == nil || serverOptions.ServerUrl == nil {
-		return "", i18n.NewCustomErrorWithMode(DatasourceRoot.GetModelName(), nil, i18n.SettingServerUrlEmptyError)
+		err = i18n.NewCustomErrorWithMode(DatasourceRoot.GetModelName(), nil, i18n.SettingServerUrlEmptyError)
+		return
 	}
 
-	return utils.GetVariableString(serverOptions.ServerUrl) + fmt.Sprintf(`/gqls/%s/graphql`, dsName), nil
+	baseUrl, path = serverOptions.ServerUrl, utils.MakeStaticVariable(fmt.Sprintf(`/gqls/%s/graphql`, dsName))
+	return
 }
 
 func (c *CustomDatabase) GetDatabaseUrl(dsKind wgpb.DataSourceKind, dsName string) (string, error) {

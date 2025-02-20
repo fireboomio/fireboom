@@ -88,20 +88,21 @@ func (a *actionGraphql) Introspect() (graphqlSchema string, err error) {
 
 func (a *actionGraphql) BuildDataSourceConfiguration(doc *ast.SchemaDocument) (*wgpb.DataSourceConfiguration, error) {
 	graphqlConfig := a.ds.CustomGraphql
-	graphqlUrl, err := graphqlConfig.GetGraphqlUrl(a.ds.Name)
+	url, baseUrl, path, err := graphqlConfig.GetGraphqlUrlVariables(a.ds.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	url := utils.MakeStaticVariable(graphqlUrl)
 	rewriteHeaders := make(map[string]*wgpb.HTTPHeader)
 	rewriteHttpHeaders(graphqlConfig.Headers, rewriteHeaders)
 	return &wgpb.DataSourceConfiguration{
 		CustomGraphql: &wgpb.DataSourceCustom_GraphQL{
 			Fetch: &wgpb.FetchConfiguration{
-				Url:    url,
-				Method: wgpb.HTTPMethod_POST,
-				Header: rewriteHeaders,
+				Url:     url,
+				BaseUrl: baseUrl,
+				Path:    path,
+				Method:  wgpb.HTTPMethod_POST,
+				Header:  rewriteHeaders,
 			},
 			Subscription: &wgpb.GraphQLSubscriptionConfiguration{
 				Enabled: doc.Definitions.ForName(consts.TypeSubscription) != nil,
