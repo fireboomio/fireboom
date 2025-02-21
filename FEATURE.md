@@ -109,6 +109,8 @@ query($username: String!) {
 
 ## 重大变更:
 1. rest数据源的数字枚举值现在SDK中会生成实际的数字枚举
+2. opentracing链路输入输出由原本日志DEBUG控制改为配置withSpanInOut
 
 ## 问题修复:
 1. 解决不存在的operation参数导致编译崩溃
+2. 解决SDK中定义的Graphql访问地址错误在编译时确定为静态地址的问题

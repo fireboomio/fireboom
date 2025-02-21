@@ -9,13 +9,17 @@ import (
 	"github.com/opentracing/opentracing-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerlog "github.com/uber/jaeger-client-go/log"
+	"github.com/wundergraph/wundergraph/pkg/logging"
 	"go.uber.org/zap"
 )
 
-type jaegerConfiguration jaegercfg.Configuration
+type jaegerConfiguration struct {
+	WithSpanInOut bool `json:"withSpanInOut"`
+	jaegercfg.Configuration
+}
 
 func (j *jaegerConfiguration) setGlobalTracer() {
-	yamlConfig := (*jaegercfg.Configuration)(j)
+	yamlConfig := &j.Configuration
 	if _, err := yamlConfig.FromEnv(); err != nil {
 		logger.Error("setGlobalTracer FromEnv failed", zap.Error(err))
 		return
@@ -33,6 +37,7 @@ func (j *jaegerConfiguration) setGlobalTracer() {
 	}
 
 	opentracing.SetGlobalTracer(tracer)
+	logging.WithSpanInOut(j.WithSpanInOut)
 }
 
 func init() {

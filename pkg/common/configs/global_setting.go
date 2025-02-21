@@ -39,7 +39,6 @@ type (
 
 		AuthorizedRedirectUris       []*wgpb.ConfigurationVariable `json:"authorizedRedirectUris"`
 		AuthorizedRedirectUriRegexes []*wgpb.ConfigurationVariable `json:"authorizedRedirectUriRegexes"`
-		AllowedReport                bool                          `json:"allowedReport"`
 		EnableCSRFProtect            bool                          `json:"enableCSRFProtect"`
 		ForceHttpsRedirects          bool                          `json:"forceHttpsRedirects"`
 		GlobalRateLimit              *wgpb.OperationRateLimit      `json:"globalRateLimit"`
