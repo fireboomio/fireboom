@@ -39,6 +39,7 @@ var startCmd = &cobra.Command{
 func init() {
 	startCmd.Flags().String(consts.WebPort, consts.DefaultWebPort, "Web port to listen on")
 	startCmd.Flags().String(consts.ActiveMode, consts.DefaultProdActive, "Mode active to run in different environment")
+	startCmd.Flags().Bool(consts.EnableLogicDelete, false, "Whether enable logic delete for multiple data")
 	startCmd.Flags().Bool(consts.IgnoreMergeEnvironment, false, "Whether Ignore merge environment")
 
 	startCmd.Flags().Bool(consts.EnableSwagger, false, "Whether enable swagger in production")

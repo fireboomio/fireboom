@@ -5,6 +5,7 @@
 package fileloader
 
 import (
+	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/plugins/i18n"
 	"github.com/buger/jsonparser"
@@ -187,7 +188,7 @@ func (p *Model[T]) deleteByDataNamesNotLock(checkExist bool, dataNames []string)
 			return
 		}
 
-		if logic := multiple.LogicDelete; logic != nil {
+		if logic := multiple.LogicDelete; logic != nil && utils.GetBoolWithLockViper(consts.EnableLogicDelete) {
 			logic(data)
 			if err = p.storeModel(data); err != nil {
 				return

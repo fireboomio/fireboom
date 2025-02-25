@@ -112,6 +112,7 @@ query($username: String!) {
 ## 重大变更:
 1. rest数据源的数字枚举值现在SDK中会生成实际的数字枚举
 2. opentracing链路输入输出由原本日志DEBUG控制改为配置withSpanInOut
+3. authentication/datasource/operation/sdk/role/storage逻辑删除改为有启动命令和环境变量控制，且默认关闭
 
 ## 问题修复:
 1. 解决不存在的operation参数导致编译崩溃

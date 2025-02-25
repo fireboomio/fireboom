@@ -11,12 +11,13 @@ const (
 
 	DevMode                = "dev"
 	EnableAuth             = "enable-auth"
-	RegenerateKey          = "regenerate-key"
 	EnableRebuild          = "enable-rebuild"
 	EnableSwagger          = "enable-swagger"
 	EnableHookReport       = "enable-hook-report"
 	EnableWebConsole       = "enable-web-console"
 	EnableDebugPprof       = "enable-debug-pprof"
+	EnableLogicDelete      = "enable-logic-delete"
+	RegenerateKey          = "regenerate-key"
 	IgnoreMergeEnvironment = "ignore-merge-environment"
 )
 
