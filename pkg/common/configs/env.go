@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/subosito/gotenv"
 	"os"
+	"strings"
 )
 
 var EnvEffectiveRoot *fileloader.Model[gotenv.Env]
@@ -25,6 +26,7 @@ var EnvEffectiveRoot *fileloader.Model[gotenv.Env]
 func init() {
 	utils.RegisterInitMethod(10, func() {
 		viper.AutomaticEnv()
+		viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 		envDefaultName := consts.DefaultEnv
 		if !utils.GetBoolWithLockViper(consts.DevMode) {
 			envDefaultName += utils.StringDot + consts.DefaultProdActive
