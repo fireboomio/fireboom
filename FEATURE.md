@@ -115,3 +115,4 @@ query($username: String!) {
 ## 问题修复:
 1. 解决不存在的operation参数导致编译崩溃
 2. 解决SDK中定义的Graphql访问地址错误在编译时确定为静态地址的问题
+3. 解决增量编译时 runtime 和更新接口顺序错误导致的 schema 错误问题

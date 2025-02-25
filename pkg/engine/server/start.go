@@ -38,7 +38,7 @@ import (
 
 var (
 	EngineStarter      *EngineStart
-	engineStarterMutex = &sync.Mutex{}
+	engineStarterMutex = &sync.RWMutex{}
 )
 
 func init() {
@@ -88,7 +88,7 @@ func Shutdown() {
 
 // StartNodeServer 引擎启动
 // mutex 热重启引擎是会传入，加锁防止引擎启动完成前重新调用
-func (s *EngineStart) StartNodeServer(mutex ...*sync.Mutex) {
+func (s *EngineStart) StartNodeServer(mutex ...*sync.RWMutex) {
 	var err error
 	defer func() {
 		if err != nil {
