@@ -138,6 +138,7 @@ func (o *operations) resolveOperationItem(item *models.Operation) (itemResult *w
 		o.operationsConfigData.Invalids = append(o.operationsConfigData.Invalids, item.Path)
 		return
 	}
+	item.Invalid = false
 	return
 }
 
