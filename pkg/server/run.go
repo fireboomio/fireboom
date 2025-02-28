@@ -172,9 +172,21 @@ func httpErrorHandler(err error, c echo.Context) {
 		return
 	}
 
-	logger.Warn("not response error with i18n.CustomError", zap.Error(err))
-	c.Response().WriteHeader(http.StatusInternalServerError)
-	if _, err = c.Response().Write([]byte(err.Error())); err != nil {
+	var (
+		status    int
+		errMsg    string
+		httpError *echo.HTTPError
+	)
+	if errors.As(err, &httpError) {
+		status = httpError.Code
+		errMsg = fmt.Sprintf("%v", httpError.Message)
+	} else {
+		status = http.StatusInternalServerError
+		errMsg = err.Error()
+		logger.Warn("response error not oneOf [i18n.CustomError, echo.HTTPError]", zap.Error(err))
+	}
+	c.Response().WriteHeader(status)
+	if _, err = c.Response().Write([]byte(errMsg)); err != nil {
 		logger.Error("error write unknownErr", zap.Error(err))
 	}
 }
