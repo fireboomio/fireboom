@@ -17,16 +17,15 @@ import (
 	"fireboom-server/pkg/plugins/fileloader"
 	"github.com/spf13/viper"
 	"github.com/subosito/gotenv"
-	"os"
 	"strings"
 )
 
 var EnvEffectiveRoot *fileloader.Model[gotenv.Env]
 
 func init() {
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	utils.RegisterInitMethod(10, func() {
-		viper.AutomaticEnv()
-		viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 		envDefaultName := consts.DefaultEnv
 		if !utils.GetBoolWithLockViper(consts.DevMode) {
 			envDefaultName += utils.StringDot + consts.DefaultProdActive
@@ -51,9 +50,7 @@ func init() {
 			DataHook: &fileloader.DataHook[gotenv.Env]{
 				AfterInit: func(datas map[string]*gotenv.Env) {
 					for k, v := range *datas[envEffectiveName] {
-						if os.Getenv(k) == "" {
-							utils.SetWithLockViper(k, v)
-						}
+						utils.SetWithLockViper(k, v, true)
 					}
 				},
 				AfterUpdate: func(data *gotenv.Env, modifies *fileloader.DataModifies, _ string, _ ...string) {

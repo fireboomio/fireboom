@@ -11,10 +11,13 @@ import (
 var viperMutex = &sync.Mutex{}
 
 // SetWithLockViper 带锁设置viper的值
-func SetWithLockViper(key string, value interface{}) {
+func SetWithLockViper(key string, value interface{}, skipIfExisted ...bool) {
 	viperMutex.Lock()
 	defer viperMutex.Unlock()
 
+	if len(skipIfExisted) > 0 && skipIfExisted[0] && viper.IsSet(key) {
+		return
+	}
 	viper.Set(key, value)
 	_ = os.Setenv(key, fmt.Sprintf("%v", value))
 }
