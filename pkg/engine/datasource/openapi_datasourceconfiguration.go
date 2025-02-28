@@ -5,6 +5,7 @@
 package datasource
 
 import (
+	"fireboom-server/pkg/common/consts"
 	"fireboom-server/pkg/common/models"
 	"fireboom-server/pkg/common/utils"
 	"fmt"
@@ -87,8 +88,8 @@ func (r *resolveDataSourceConfiguration) resolve(item *resolveItem) {
 		Fetch:             fetchConfig,
 		ResponseExtractor: r.customRest.ResponseExtractor,
 		Subscription: &wgpb.RESTSubscriptionConfiguration{
-			Enabled:  item.subscribed.Enabled,
-			DoneData: item.subscribed.DoneData,
+			Enabled:  item.typeName == consts.TypeSubscription,
+			DoneData: item.sseDataData,
 		},
 	}
 	/*for code, content := range item.responses {

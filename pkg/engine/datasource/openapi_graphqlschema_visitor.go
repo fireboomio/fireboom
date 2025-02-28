@@ -27,6 +27,7 @@ const (
 	schemaAllOf         = "allOf"
 	EnumVarnamesKey     = "x-enum-varnames"
 	EnumDescriptionsKey = "x-enum-descriptions"
+	SseDoneDataKey      = "x-done-data"
 )
 
 var (

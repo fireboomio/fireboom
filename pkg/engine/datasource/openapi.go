@@ -17,6 +17,7 @@ import (
 	"github.com/ghodss/yaml"
 	json "github.com/json-iterator/go"
 	"github.com/labstack/echo/v4"
+	"github.com/spf13/cast"
 	"github.com/tidwall/gjson"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/wundergraph/wundergraph/pkg/customhttpclient"
@@ -92,12 +93,7 @@ type (
 		requestBody     contentSchema
 		responses       map[string]contentSchema
 		succeedResponse contentSchema
-		subscribed
-	}
-	subscribed struct {
-		Enabled  bool                `json:"enabled"`
-		DoneData string              `json:"doneData,omitempty"`
-		Schema   *openapi3.SchemaRef `json:"schema,omitempty"`
+		sseDataData     string
 	}
 )
 
@@ -305,11 +301,14 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 		operationMatchMineTypes = append(operationMatchMineTypes, customhttpclient.TextEventStreamMine)
 	}
 	for code, resp := range operation.Responses {
-		respSchema, contentSize := a.fetchResponseResolveSchema(resp.Value, operationMatchMineTypes...)
+		extension, respSchema, contentSize := a.fetchResponseResolveSchema(resp.Value, operationMatchMineTypes...)
 		if code == "200" {
 			resolveInfo.succeedResponse = respSchema
 			operationContainEventStream = contentSize > 0 && resp.Value.Content.Get(customhttpclient.TextEventStreamMine) != nil
 			operationOnlyEventStream = operationContainEventStream && contentSize == 1
+			if operationContainEventStream && extension != nil {
+				resolveInfo.sseDataData = cast.ToString(extension[SseDoneDataKey])
+			}
 		} else if strings.HasPrefix(code, "2") && resolveInfo.succeedResponse.schema == nil {
 			resolveInfo.succeedResponse = respSchema
 		} else {
@@ -359,11 +358,12 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 
 // 获取response定义中的schemaRef
 // 添加对'*/*'类型的支持
-func (a *actionOpenapi) fetchResponseResolveSchema(response *openapi3.Response, matchType ...string) (schema contentSchema, contentSize int) {
+func (a *actionOpenapi) fetchResponseResolveSchema(response *openapi3.Response, matchType ...string) (extension map[string]any, schema contentSchema, contentSize int) {
 	if response != nil && response.Content != nil {
 		contentSize = len(response.Content)
 		for _, mime := range mimeTypes {
 			if result := response.Content.Get(mime); result != nil && (len(matchType) == 0 || slices.Contains(matchType, mime)) {
+				extension = result.Extensions
 				schema.schema, schema.contentType = result.Schema, mime
 				break
 			}
