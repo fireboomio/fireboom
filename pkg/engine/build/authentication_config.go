@@ -86,6 +86,7 @@ func (a *authenticationConfig) Resolve(builder *Builder) (err error) {
 func (a *authenticationConfig) makeJwksProvider(item *models.Authentication) *wgpb.JwksAuthProvider {
 	jwksProvider := &wgpb.JwksAuthProvider{Issuer: item.Issuer}
 	if provider := item.JwksProvider; provider != nil {
+		jwksProvider.Id = item.Name
 		jwksProvider.JwksJson = provider.JwksJson
 		jwksProvider.UserInfoCacheTtlSeconds = provider.UserInfoCacheTtlSeconds
 	}
