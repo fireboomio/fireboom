@@ -131,7 +131,9 @@ func (r *hookReportInfo) report(isFirstReport bool) {
 	var report healthReport
 	buf := pool.GetBytesBuffer()
 	defer pool.PutBytesBuffer(buf)
+	enableHookReport := utils.GetBoolWithLockViper(consts.EnableHookReport)
 	r.client.ResetServerUrl(models.GetHookServerUrl())
+	r.client.ResetHealthQuery(map[string]interface{}{consts.EnableHookReport: enableHookReport})
 	// 调用钩子的健康检查接口
 	if r.client.DoHealthCheckRequest(r.ctx, buf) {
 		var health Health
@@ -155,7 +157,7 @@ func (r *hookReportInfo) report(isFirstReport bool) {
 	if reportChanged || isFirstReport {
 		r.Time = report.Time
 	}
-	if utils.GetBoolWithLockViper(consts.EnableHookReport) {
+	if enableHookReport {
 		// 仅有dev模式会触发热重启
 		var affectCount int
 		affectCount += migrateCustomizes(report.Customizes)
