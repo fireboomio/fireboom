@@ -4,6 +4,6 @@ sampler:
   type: const
   param: 1
 reporter:
-  queueSize: 50
-  bufferFlushInterval: 5000
+  queueSize: 100
+  bufferFlushInterval: 1000000000
   localAgentHostPort: "127.0.0.1:6831"

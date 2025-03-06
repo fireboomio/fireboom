@@ -71,3 +71,5 @@ const (
 	DatabaseExecuteTimeout = "FB_DATABASE_EXECUTE_TIMEOUT"
 	DatabaseCloseTimeout   = "FB_DATABASE_CLOSE_TIMEOUT"
 )
+
+const JaegerWithSpanInOut = "JAEGER_WITH_SPAN_IN_OUT"

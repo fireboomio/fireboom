@@ -7,10 +7,12 @@ import (
 	"fireboom-server/pkg/plugins/fileloader"
 	"github.com/ghodss/yaml"
 	"github.com/opentracing/opentracing-go"
+	"github.com/spf13/cast"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerlog "github.com/uber/jaeger-client-go/log"
 	"github.com/wundergraph/wundergraph/pkg/logging"
 	"go.uber.org/zap"
+	"os"
 )
 
 type jaegerConfiguration struct {
@@ -36,6 +38,9 @@ func (j *jaegerConfiguration) setGlobalTracer() {
 		return
 	}
 
+	if e := os.Getenv(consts.JaegerWithSpanInOut); e != "" {
+		j.WithSpanInOut = cast.ToBool(e)
+	}
 	opentracing.SetGlobalTracer(tracer)
 	logging.WithSpanInOut(j.WithSpanInOut)
 }
