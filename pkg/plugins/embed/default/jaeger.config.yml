@@ -1,5 +1,6 @@
 serviceName: "FireboomNode.${active:dev}"
 disabled: true
+withSpanIO: true
 sampler:
   type: const
   param: 1
