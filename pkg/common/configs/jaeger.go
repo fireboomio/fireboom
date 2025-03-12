@@ -16,7 +16,7 @@ import (
 )
 
 type jaegerConfiguration struct {
-	WithSpanIO bool `json:"withSpanIO"`
+	SpanInout bool `json:"spanInout"`
 	jaegercfg.Configuration
 }
 
@@ -38,11 +38,11 @@ func (j *jaegerConfiguration) setGlobalTracer() {
 		return
 	}
 
-	if e := os.Getenv(consts.JaegerWithSpanIO); e != "" {
-		j.WithSpanIO = cast.ToBool(e)
+	if e := os.Getenv(consts.JaegerSpanInout); e != "" {
+		j.SpanInout = cast.ToBool(e)
 	}
 	opentracing.SetGlobalTracer(tracer)
-	logging.WithSpanIO(j.WithSpanIO)
+	logging.WithSpanInout(j.SpanInout)
 }
 
 func init() {

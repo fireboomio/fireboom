@@ -72,4 +72,4 @@ const (
 	DatabaseCloseTimeout   = "FB_DATABASE_CLOSE_TIMEOUT"
 )
 
-const JaegerWithSpanIO = "JAEGER_WITH_SPAN_IO"
+const JaegerSpanInout = "JAEGER_SPAN_INOUT"
