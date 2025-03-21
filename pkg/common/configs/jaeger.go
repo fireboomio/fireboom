@@ -7,21 +7,15 @@ import (
 	"fireboom-server/pkg/plugins/fileloader"
 	"github.com/ghodss/yaml"
 	"github.com/opentracing/opentracing-go"
-	"github.com/spf13/cast"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerlog "github.com/uber/jaeger-client-go/log"
-	"github.com/wundergraph/wundergraph/pkg/logging"
 	"go.uber.org/zap"
-	"os"
 )
 
-type jaegerConfiguration struct {
-	SpanInout bool `json:"spanInout"`
-	jaegercfg.Configuration
-}
+type jaegerConfiguration jaegercfg.Configuration
 
 func (j *jaegerConfiguration) setGlobalTracer() {
-	yamlConfig := &j.Configuration
+	yamlConfig := (*jaegercfg.Configuration)(j)
 	if _, err := yamlConfig.FromEnv(); err != nil {
 		logger.Error("setGlobalTracer FromEnv failed", zap.Error(err))
 		return
@@ -38,11 +32,7 @@ func (j *jaegerConfiguration) setGlobalTracer() {
 		return
 	}
 
-	if e := os.Getenv(consts.JaegerSpanInout); e != "" {
-		j.SpanInout = cast.ToBool(e)
-	}
 	opentracing.SetGlobalTracer(tracer)
-	logging.WithSpanInout(j.SpanInout)
 }
 
 func init() {

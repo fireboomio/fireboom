@@ -163,3 +163,13 @@ query($username: String!) {
 
 1. RBAC权限判断不通过时状态码返回403，而不是401，并提示Permission not enough
 2. Token失效和无效现在会在401状态码基础上增加错误提示
+
+# 版本v2.2.11
+
+## 问题修复:
+
+1. 前端限制@export指令导出的参数不可输入，且从jsonschema中移除
+
+## 重大变更:
+
+1. 删除SpanInout控制，改为IsGlobalTracerRegistered控制

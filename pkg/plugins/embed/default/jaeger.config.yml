@@ -1,6 +1,5 @@
 serviceName: "FireboomNode.${active:dev}"
 disabled: true
-spanInout: true
 sampler:
   type: const
   param: 1
