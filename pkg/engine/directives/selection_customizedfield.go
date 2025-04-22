@@ -20,11 +20,12 @@ import (
 )
 
 const (
-	customizedFieldName        = "customizedField"
-	customizedFieldArgType     = "type"
-	customizedFieldArgDesc     = "desc"
-	customizedFieldArgItems    = "items"
-	customizedFieldArgTypeType = "CustomizedFieldType"
+	customizedFieldName          = "customizedField"
+	customizedFieldArgType       = "type"
+	customizedFieldArgDesc       = "desc"
+	customizedFieldArgItems      = "items"
+	customizedFieldArgAdditional = "additional"
+	customizedFieldArgTypeType   = "CustomizedFieldType"
 )
 
 type customizedField struct{ selectionFieldCustomized }
@@ -45,6 +46,10 @@ func (s *customizedField) Directive() *ast.DirectiveDefinition {
 			},
 			{
 				Name: customizedFieldArgItems,
+				Type: ast.NamedType(customizedFieldArgTypeType, nil),
+			},
+			{
+				Name: customizedFieldArgAdditional,
 				Type: ast.NamedType(customizedFieldArgTypeType, nil),
 			},
 		},
@@ -70,6 +75,12 @@ func (s *customizedField) Resolve(resolver *SelectionResolver) (err error) {
 		err = fmt.Errorf(argumentRequiredFormat, customizedFieldArgType)
 		return
 	}
+
+	additional, additionalOk := resolver.Arguments[customizedFieldArgAdditional]
+	if additionalOk = additionalOk && valueType == consts.ScalarJSON; additionalOk {
+		valueType = additional
+	}
+
 	isArray := valueType == utils.UppercaseFirst(openapi3.TypeArray)
 	items, itemsOk := resolver.Arguments[customizedFieldArgItems]
 	if itemsOk = itemsOk && isArray; itemsOk {
@@ -89,6 +100,10 @@ func (s *customizedField) Resolve(resolver *SelectionResolver) (err error) {
 	if isArray && resolver.Schema != nil && resolver.Schema.Value.Type != openapi3.TypeArray {
 		schema := *resolver.Schema
 		resolver.Schema.Value = &openapi3.Schema{Type: openapi3.TypeArray, Items: &schema}
+	}
+	if additionalOk && resolver.Schema != nil {
+		schema := *resolver.Schema
+		resolver.Schema.Value = &openapi3.Schema{Type: openapi3.TypeObject, AdditionalProperties: openapi3.AdditionalProperties{Schema: &schema}}
 	}
 	return
 }
