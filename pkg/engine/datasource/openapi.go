@@ -304,7 +304,9 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 		extension, respSchema, contentSize := a.fetchResponseResolveSchema(resp.Value, operationMatchMineTypes...)
 		if code == "200" {
 			resolveInfo.succeedResponse = respSchema
-			operationContainEventStream = contentSize > 0 && resp.Value.Content.Get(customhttpclient.TextEventStreamMine) != nil
+			if contentSize > 0 {
+				_, operationContainEventStream = resp.Value.Content[customhttpclient.TextEventStreamMine]
+			}
 			operationOnlyEventStream = operationContainEventStream && contentSize == 1
 			if operationContainEventStream && extension != nil {
 				resolveInfo.sseDataData = cast.ToString(extension[SseDoneDataKey])
@@ -330,7 +332,8 @@ func (a *actionOpenapi) iteratorPathItem(path string, operation *openapi3.Operat
 	resolveInfo.parameters = append(operation.Parameters, parameters...)
 
 	if requestBody := operation.RequestBody; requestBody != nil {
-		resolveInfo.requestBody = a.fetchRequestBodyResolveSchema(requestBody.Value)
+		requestSchema, contentType := FetchRequestBodyResolveSchema(requestBody.Value)
+		resolveInfo.requestBody = contentSchema{contentType: contentType, schema: requestSchema}
 	}
 	if resolveInfo.succeedResponse.schema == nil {
 		resolveInfo.succeedResponse.schema = &openapi3.SchemaRef{Value: &openapi3.Schema{Type: openapi3.TypeBoolean, Default: true}}
@@ -376,16 +379,16 @@ func (a *actionOpenapi) fetchResponseResolveSchema(response *openapi3.Response, 
 	return
 }
 
-// 获取requestBody定义中的schemaRef
+// FetchRequestBodyResolveSchema 获取requestBody定义中的schemaRef
 // 添加了json和form两种类型的支持
-func (a *actionOpenapi) fetchRequestBodyResolveSchema(requestBody *openapi3.RequestBody) (schema contentSchema) {
+func FetchRequestBodyResolveSchema(requestBody *openapi3.RequestBody) (schema *openapi3.SchemaRef, contentType string) {
 	if requestBody.Content == nil {
 		return
 	}
 
 	for _, mime := range mimeTypes {
 		if result := requestBody.Content.Get(mime); result != nil {
-			schema.schema, schema.contentType = result.Schema, mime
+			schema, contentType = result.Schema, mime
 			break
 		}
 	}
