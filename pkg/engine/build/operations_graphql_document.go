@@ -23,9 +23,11 @@ import (
 	"github.com/wundergraph/wundergraph/pkg/apihandler"
 	"github.com/wundergraph/wundergraph/pkg/interpolate"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"io"
 	"strings"
+	"sync"
 )
 
 const (
@@ -70,6 +72,17 @@ type QueryDocumentItem struct {
 
 type jsonschemaObjectBuildFunc func(*ast.Definition) *openapi3.SchemaRef
 
+var queryDocumentItemPool = sync.Pool{
+	New: func() interface{} {
+		return &QueryDocumentItem{modelName: models.OperationRoot.GetModelName()}
+	},
+}
+
+func PutQueryDocumentItem(item *QueryDocumentItem) {
+	item.Reset()
+	queryDocumentItemPool.Put(item)
+}
+
 func NewQueryDocumentItem(queryContent string) (item *QueryDocumentItem, err error) {
 	itemDocument, err := parser.ParseQuery(&ast.Source{Input: queryContent})
 	if err != nil {
@@ -81,12 +94,33 @@ func NewQueryDocumentItem(queryContent string) (item *QueryDocumentItem, err err
 		return
 	}
 
-	item = &QueryDocumentItem{
-		modelName:           models.OperationRoot.GetModelName(),
-		itemDocument:        itemDocument,
-		operationDefinition: itemDocument.Operations[0],
-	}
+	item = queryDocumentItemPool.Get().(*QueryDocumentItem)
+	item.Reset()
+	item.itemDocument = itemDocument
+	item.operationDefinition = itemDocument.Operations[0]
 	return
+}
+
+// Reset 重置QueryDocumentItem
+func (i *QueryDocumentItem) Reset() {
+	i.operation = nil
+	i.definitionFetch = nil
+
+	i.itemDocument = nil
+	i.operationDefinition = nil
+	i.usedArgumentDefinitions.Clear()
+	i.usedArgumentDefinitions = nil
+	i.operationSchema = apihandler.OperationSchema{}
+	maps.Clear(i.variablesSchemas)
+	i.variablesSchemas = nil
+	i.variablesRefs = nil
+	maps.Clear(i.variablesRefVisited)
+	i.variablesRefVisited = nil
+	maps.Clear(i.variablesExported)
+	i.variablesExported = nil
+	i.definitionFieldIndexes = nil
+	i.fieldArgumentIndexes = nil
+	i.Errors = i.Errors[:0]
 }
 
 // ModifyOperationDirective 修改指令中参数值

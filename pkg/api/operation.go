@@ -401,6 +401,7 @@ func (o *operation) bindRoles(c echo.Context) (err error) {
 			}
 
 			err = o.graphqlText.WriteCustom(dataName, user, func(graphqlFile *os.File) error {
+				defer build.PutQueryDocumentItem(queryItem)
 				return queryItem.PrintQueryDocument(graphqlFile)
 			})
 		case wgpb.OperationExecutionEngine_ENGINE_FUNCTION:

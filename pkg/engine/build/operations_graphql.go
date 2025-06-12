@@ -74,6 +74,7 @@ func (o *operations) resolveGraphqlOperation(operation *models.Operation, graphq
 	if err != nil {
 		return
 	}
+	defer PutQueryDocumentItem(queryItem)
 
 	operationResult = &wgpb.Operation{
 		Name:                   normalizeOperationName(operation.Path),
