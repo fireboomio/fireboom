@@ -31,8 +31,10 @@ var devCmd = &cobra.Command{
 }
 
 func init() {
+	devCmd.Flags().String(consts.McpPort, consts.DefaultMcpPort, "Mcp port to listen on")
 	devCmd.Flags().String(consts.WebPort, consts.DefaultWebPort, "Web port to listen on")
 	devCmd.Flags().String(consts.ActiveMode, "", "Mode active to run in different environment")
+	devCmd.Flags().String(consts.Workdir, "", "Working directory to run the application")
 	devCmd.Flags().Bool(consts.EnableLogicDelete, false, "Whether enable logic delete for multiple data")
 	devCmd.Flags().Bool(consts.IgnoreMergeEnvironment, false, "Whether Ignore merge environment")
 

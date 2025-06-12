@@ -37,6 +37,7 @@ func engineBuildWithWaitGroup() bool {
 
 func init() {
 	buildCmd.Flags().String(consts.ActiveMode, consts.DefaultProdActive, "Mode active to run in different environment")
+	buildCmd.Flags().String(consts.Workdir, "", "Working directory to build the application")
 	buildCmd.Flags().Bool(consts.IgnoreMergeEnvironment, false, "Whether Ignore merge environment")
 	rootCmd.AddCommand(buildCmd)
 }

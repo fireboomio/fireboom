@@ -152,6 +152,7 @@ func initEchoRoot() *echo.Echo {
 	vscode.InitRouter(contextRouter)
 
 	rewriteDynamicSwagger()
+	go initMpcServer(e)
 	for _, callback := range callbacks {
 		callback()
 	}

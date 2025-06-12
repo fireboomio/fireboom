@@ -173,3 +173,15 @@ query($username: String!) {
 ## 重大变更:
 
 1. 删除SpanInout控制，改为IsGlobalTracerRegistered控制
+
+# 版本v2.2.12
+
+## 问题修复:
+
+1. 解决解析Rest数据源中API错误将*/*响应解析成订阅operation
+
+## 新增功能:
+
+1. 指令@customizedField支持属性additional用以生成map
+2. 新增--workdir参数用于切换工作目录，方便管理多个项目
+3. 初步实现MCP，9123所有接口封装支持MCP，调试通过

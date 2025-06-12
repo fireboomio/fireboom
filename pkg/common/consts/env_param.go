@@ -6,8 +6,10 @@ package consts
 
 // command params
 const (
+	McpPort    = "mcp-port"
 	WebPort    = "web-port"
 	ActiveMode = "active"
+	Workdir    = "workdir"
 
 	DevMode                = "dev"
 	EnableAuth             = "enable-auth"
@@ -23,6 +25,7 @@ const (
 
 // command params default value
 const (
+	DefaultMcpPort    = "9999"
 	DefaultWebPort    = "9123"
 	DefaultProdActive = "prod"
 )
