@@ -23,7 +23,7 @@ func (p *Model[T]) addCopyAction(action func(string, string) error) {
 	p.copyActions = append(p.copyActions, action)
 }
 
-func (p *Model[T]) addRemoveAction(action func(string) error) {
+func (p *Model[T]) AddRemoveAction(action func(string) error) {
 	if p.rwType != multipleRW {
 		return
 	}
@@ -31,7 +31,7 @@ func (p *Model[T]) addRemoveAction(action func(string) error) {
 	p.removeActions = append(p.removeActions, action)
 }
 
-func (p *Model[T]) addRenameAction(action func(string, string) error) {
+func (p *Model[T]) AddRenameAction(action func(string, string) error) {
 	if p.rwType != multipleRW {
 		return
 	}
@@ -78,7 +78,7 @@ func (p *Model[T]) callRenameAction(src, dst string) (err error) {
 	return
 }
 
-func (p *Model[T]) addRemoveWatcher(path []string, watcher func(string, ...string) error) {
+func (p *Model[T]) AddRemoveWatcher(path []string, watcher func(string, ...string) error) {
 	if p.rwType != multipleRW {
 		return
 	}
@@ -89,7 +89,7 @@ func (p *Model[T]) addRemoveWatcher(path []string, watcher func(string, ...strin
 	p.removeWatchers[watcherName] = watchers
 }
 
-func (p *Model[T]) addRenameWatcher(path []string, watcher func(string, string, ...string) error) {
+func (p *Model[T]) AddRenameWatcher(path []string, watcher func(string, string, ...string) error) {
 	if p.rwType != multipleRW {
 		return
 	}

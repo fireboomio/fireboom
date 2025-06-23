@@ -80,17 +80,17 @@ func (t *ModelText[T]) load() {
 		if !t.RelyModelActionIgnored {
 			// 注册变更事件通知
 			p.addCopyAction(t.copy)
-			p.addRenameAction(func(src, dst string) error {
+			p.AddRenameAction(func(src, dst string) error {
 				return t.rename(src, dst)
 			})
-			p.addRemoveAction(func(dataName string) error {
+			p.AddRemoveAction(func(dataName string) error {
 				return t.remove(dataName)
 			})
 		}
 		if len(t.RelyModelWatchPath) > 0 {
 			// 注册监听字段变更事件通知
-			p.addRemoveWatcher(t.RelyModelWatchPath, t.remove)
-			p.addRenameWatcher(t.RelyModelWatchPath, t.rename)
+			p.AddRemoveWatcher(t.RelyModelWatchPath, t.remove)
+			p.AddRenameWatcher(t.RelyModelWatchPath, t.rename)
 		}
 	case *SingleTextRW[T]:
 		t.Title = rw.Name

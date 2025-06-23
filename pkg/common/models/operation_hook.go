@@ -11,9 +11,13 @@ import (
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/plugins/fileloader"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
+	"sync"
 )
 
-var OperationHookOptionMap HookOptions
+var (
+	OperationHookOptionMap HookOptions
+	operationHookOnce      sync.Once
+)
 
 func GetOperationHookOptions(dataName string) (result HookOptions) {
 	return getHookOptionResultMap(OperationHookOptionMap, dataName)
@@ -44,6 +48,14 @@ func buildOperationHook(hook consts.MiddlewareHook, enabledFunc func(item *wgpb.
 		item.Root = outputPath
 		item.UpperFirstBasename = upperFirstBasename
 		item.ResetRootDirectory()
+		operationHookOnce.Do(func() {
+			OperationRoot.AddRenameAction(func(srcDataName, _ string) error {
+				return removeSdkEmptyDir(outputPath, srcDataName)
+			})
+			OperationRoot.AddRemoveAction(func(dataName string) error {
+				return removeSdkEmptyDir(outputPath, dataName)
+			})
+		})
 	})
 	OperationHookOptionMap[hook] = buildHookOption(item)
 }

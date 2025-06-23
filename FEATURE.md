@@ -179,6 +179,7 @@ query($username: String!) {
 ## 问题修复:
 
 1. 解决解析Rest数据源中API错误将*/*响应解析成订阅operation
+2. 解决operation钩子及上传钩子在重命名/移动时未移除原有空目录的问题
 
 ## 新增功能:
 

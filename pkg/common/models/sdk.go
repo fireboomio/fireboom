@@ -13,6 +13,7 @@ import (
 	"fireboom-server/pkg/plugins/fileloader"
 	"go.uber.org/zap"
 	"math"
+	"os"
 	"regexp"
 )
 
@@ -171,4 +172,15 @@ func ReplaceGithubProxyUrl(url string) string {
 
 func GetEnabledServerSdk() *Sdk {
 	return SdkRoot.FirstData(func(item *Sdk) bool { return item.Type == SdkServer && item.Enabled })
+}
+
+func removeSdkEmptyDir(outputPath, dataName string) error {
+	if outputPath == "" {
+		return nil
+	}
+	path := utils.NormalizePath(outputPath, dataName)
+	if utils.NotExistFile(path) {
+		return nil
+	}
+	return os.RemoveAll(path)
 }

@@ -13,9 +13,13 @@ import (
 	"fireboom-server/pkg/common/utils"
 	"fireboom-server/pkg/plugins/fileloader"
 	"github.com/wundergraph/wundergraph/pkg/wgpb"
+	"sync"
 )
 
-var StorageProfileHookOptionMap HookOptions
+var (
+	StorageProfileHookOptionMap HookOptions
+	storageProfileHookOnce      sync.Once
+)
 
 func GetStorageProfileHookOptions(dataName, profile string) HookOptions {
 	return getHookOptionResultMap(StorageProfileHookOptionMap, dataName, profile)
@@ -65,6 +69,20 @@ func buildS3UploadProfileHook(hook consts.UploadHook, enabledFunc func(item *wgp
 		item.Root = outputPath
 		item.UpperFirstBasename = upperFirstBasename
 		item.ResetRootDirectory()
+		storageProfileHookOnce.Do(func() {
+			StorageRoot.AddRenameAction(func(srcDataName, _ string) error {
+				return removeSdkEmptyDir(outputPath, srcDataName)
+			})
+			StorageRoot.AddRemoveAction(func(dataName string) error {
+				return removeSdkEmptyDir(outputPath, dataName)
+			})
+			StorageRoot.AddRenameWatcher(item.RelyModelWatchPath, func(srcDataName, _ string, optional ...string) error {
+				return removeSdkEmptyDir(outputPath, utils.NormalizePath(srcDataName, optional[0]))
+			})
+			StorageRoot.AddRemoveWatcher(item.RelyModelWatchPath, func(dataName string, optional ...string) error {
+				return removeSdkEmptyDir(outputPath, utils.NormalizePath(dataName, optional[0]))
+			})
+		})
 	})
 	StorageProfileHookOptionMap[consts.MiddlewareHook(hook)] = buildHookOption(item)
 }
