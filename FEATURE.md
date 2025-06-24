@@ -174,12 +174,13 @@ query($username: String!) {
 
 1. 删除SpanInout控制，改为IsGlobalTracerRegistered控制
 
-# 版本v2.2.12
+# 版本未发布
 
 ## 问题修复:
 
 1. 解决解析Rest数据源中API错误将*/*响应解析成订阅operation
 2. 解决operation钩子及上传钩子在重命名/移动时未移除原有空目录的问题
+3. 修复生成上传钩子代码时读取模板文件路径错误问题
 
 ## 新增功能:
 
