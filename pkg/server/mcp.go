@@ -78,10 +78,10 @@ func initMpcServer(e *echo.Echo) {
 		m.buildMpcTool(path, http.MethodOptions, pathItem.Options)
 	}
 
-	mcpAddress := fmt.Sprintf(":%s", utils.GetStringWithLockViper(consts.McpPort))
-	websocket.AddOnFirstStartedHook(func() { logger.Info("mcp server started", zap.String("address", mcpAddress)) }, math.MaxInt)
+	mcpPort := utils.GetStringWithLockViper(consts.McpPort)
+	websocket.AddOnFirstStartedHook(func() { logger.Info("mcp server started", zap.String("port", mcpPort)) }, math.MaxInt)
 	// Start the server
-	if err = server.NewSSEServer(m.s).Start(mcpAddress); err != nil {
+	if err = server.NewSSEServer(m.s).Start(fmt.Sprintf(":%s", mcpPort)); err != nil {
 		logger.Error("server error",
 			zap.String("name", cloudInstanceName),
 			zap.Error(err))

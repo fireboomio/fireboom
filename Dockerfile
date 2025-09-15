@@ -17,7 +17,7 @@ ENV FB_SERVER_LISTEN_HOST="localhost"
 ENV FB_SERVER_LISTEN_PORT=9992
 ENV FB_SERVER_URL="http://localhost:9992"
 ENV FB_LOG_LEVEL="DEBUG"
-ENV FB_REPO_URL_MIRROR="https://git.fireboom.io/{orgName}/{repoName}.git"
+ENV FB_REPO_URL_MIRROR="https://proxy.fireboom.io/https://github.com/{orgName}/{repoName}.git"
 ENV FB_RAW_URL_MIRROR="https://raw.git.fireboom.io/{orgName}/{repoName}/{branchName}/{filePath}"
 
 ENTRYPOINT [ "fireboom" ]
